@@ -2,9 +2,13 @@ language: java
 before_install:
 - cd ${TRAVIS_BUILD_DIR}/..
 - git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-common.git
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-actors.git
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-symbio.git
 - cd vlingo-common && mvn install -DskipTests=true
+- cd ${TRAVIS_BUILD_DIR}/..
+- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-actors.git
+- cd vlingo-actors && mvn install -DskipTests=true
+- cd ${TRAVIS_BUILD_DIR}/..
+- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-symbio.git
+- cd vlingo-symbio && mvn install -DskipTests=true
 - cd ${TRAVIS_BUILD_DIR}
 script:
 - mvn install
