@@ -27,7 +27,7 @@
         },
         {
             "includePattern": "pom.xml",
-            "uploadPattern": "/io/vlingo/vlingo-lattice/0.1.0/vlingo-lattice-0.1.1.pom",
+            "uploadPattern": "/io/vlingo/vlingo-lattice/0.1.1/vlingo-lattice-0.1.1.pom",
             "matrixParams": {
                 "override": 1
             }
