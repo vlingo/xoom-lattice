@@ -48,14 +48,23 @@ public class StatefulEntityTest {
     until1.completes();
 
     final Entity1State identityState = new Entity1State("123");
-    final TestUntil until2 = TestUntil.happenings(2);
+    final TestUntil until2 = TestUntil.happenings(1);
+
+    System.out.print("::: ");
 
     final Entity1 restoredEntity1 =
             world.actorFor(Definition.has(Entity1Actor.class, Definition.parameters(identityState, until2)), Entity1.class);
 
-    restoredEntity1.current().atLast(current -> assertEquals(new Entity1State("123", "Sally Jane", 24), current));
-    
     until2.completes();
+
+    final TestUntil until3 = TestUntil.happenings(1);
+
+    restoredEntity1.current().atLast(current -> {
+      assertEquals(new Entity1State("123", "Sally Jane", 24), current);
+      until3.happened();
+    });
+
+    until3.completes();
   }
 
   @Before
@@ -137,6 +146,7 @@ public class StatefulEntityTest {
 
   public static class Entity1Actor extends StatefulEntity<Entity1State,String> implements Entity1 {
     private Entity1State state;
+    private int stateVersion = 1;
     private final TestUntil until;
 
     public Entity1Actor(final Entity1State state, final TestUntil until) {
@@ -160,7 +170,6 @@ public class StatefulEntityTest {
 
     @Override
     public Completes<Entity1State> current() {
-      until.happened();
       return completes().with(state);
     }
 
@@ -191,8 +200,9 @@ public class StatefulEntityTest {
     }
 
     @Override
-    public void state(final Entity1State state) {
+    public void state(final Entity1State state, final int stateVersion) {
       this.state = state;
+      this.stateVersion = stateVersion;
     }
 
     @Override
@@ -202,7 +212,7 @@ public class StatefulEntityTest {
 
     @Override
     public int stateVersion() {
-      return 1;
+      return stateVersion;
     }
 
     @Override

@@ -12,7 +12,7 @@ public interface Stateful<T> {
   void preserve(final T state);
   void restore();
   T state();
-  void state(final T state);
+  void state(final T state, final int stateVersion);
   Class<?> stateType();
   int stateVersion();
   int typeVersion();

@@ -26,10 +26,10 @@ public abstract class StatefulEntity<S,R> extends Actor
     final R raw = info.adapter.to(state, stateVersion(), typeVersion());
     if (info.isBinary()) {
       stowMessages(WriteResultInterest.class);
-      info.binaryStateStore().write(new BinaryState(id(), (Class<S>) stateType(), typeVersion(), (byte[]) raw, stateVersion()), selfAs(WriteResultInterest.class));
+      info.binaryStateStore().write(new BinaryState(id(), (Class<S>) stateType(), typeVersion(), (byte[]) raw, stateVersion() + 1), selfAs(WriteResultInterest.class));
     } else {
       stowMessages(WriteResultInterest.class);
-      info.textStateStore().write(new TextState(id(), (Class<S>) stateType(), typeVersion(), (String) raw, stateVersion()), selfAs(WriteResultInterest.class));
+      info.textStateStore().write(new TextState(id(), (Class<S>) stateType(), typeVersion(), (String) raw, stateVersion() + 1), selfAs(WriteResultInterest.class));
     }
   }
 
@@ -50,7 +50,7 @@ public abstract class StatefulEntity<S,R> extends Actor
   public void readResultedIn(final Result result, final String id, final State<R> state) {
     final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
     final S preserved = info.adapter.from(state.data, stateVersion(), typeVersion());
-    state(preserved);
+    state(preserved, state.dataVersion);
     disperseStowedMessages();
   }
 
@@ -65,7 +65,7 @@ public abstract class StatefulEntity<S,R> extends Actor
   public void writeResultedIn(final Result result, final String id, final State<R> state) {
     final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
     final S preserved = info.adapter.from(state.data, stateVersion(), typeVersion());
-    state(preserved);
+    state(preserved, state.dataVersion);
     disperseStowedMessages();
   }
 
