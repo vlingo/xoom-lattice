@@ -30,7 +30,7 @@ public class StatefulEntityTest {
   @Test
   public void testThatStatefulEntityPreservesRestores() throws Exception {
     final Entity1State state = new Entity1State("123", "Sally", 23);
-    final TestUntil until1 = TestUntil.happenings(0);
+    final TestUntil until1 = TestUntil.happenings(3);
 
     final Entity1 entity1 =
             world.actorFor(Definition.has(Entity1Actor.class, Definition.parameters(state, until1)), Entity1.class);
@@ -50,10 +50,46 @@ public class StatefulEntityTest {
     final Entity1State identityState = new Entity1State("123");
     final TestUntil until2 = TestUntil.happenings(1);
 
-    System.out.print("::: ");
-
     final Entity1 restoredEntity1 =
             world.actorFor(Definition.has(Entity1Actor.class, Definition.parameters(identityState, until2)), Entity1.class);
+
+    until2.completes();
+
+    final TestUntil until3 = TestUntil.happenings(1);
+
+    restoredEntity1.current().atLast(current -> {
+      assertEquals(new Entity1State("123", "Sally Jane", 24), current);
+      until3.happened();
+    });
+
+    until3.completes();
+  }
+
+  @Test
+  public void testThatMetadataCallbackPreservesRestores() throws Exception {
+    final Entity1State state = new Entity1State("123", "Sally", 23);
+    final TestUntil until1 = TestUntil.happenings(3);
+
+    final Entity1 entity1 =
+            world.actorFor(Definition.has(Entity1MetadataCallbackActor.class, Definition.parameters(state, until1)), Entity1.class);
+
+    entity1.current().atLast(current -> assertEquals(state, current));
+
+    entity1.changeName("Sally Jane");
+
+    entity1.current().atLast(current -> assertEquals("Sally Jane", current.name));
+
+    entity1.increaseAge();
+
+    entity1.current().atLast(current -> assertEquals(24, current.age));
+
+    until1.completes();
+
+    final Entity1State identityState = new Entity1State("123");
+    final TestUntil until2 = TestUntil.happenings(1);
+
+    final Entity1 restoredEntity1 =
+            world.actorFor(Definition.has(Entity1MetadataCallbackActor.class, Definition.parameters(identityState, until2)), Entity1.class);
 
     until2.completes();
 
@@ -146,7 +182,7 @@ public class StatefulEntityTest {
 
   public static class Entity1Actor extends StatefulEntity<Entity1State,String> implements Entity1 {
     private Entity1State state;
-    private int stateVersion = 1;
+    private int stateVersion = 0;
     private final TestUntil until;
 
     public Entity1Actor(final Entity1State state, final TestUntil until) {
@@ -195,8 +231,79 @@ public class StatefulEntityTest {
     }
 
     @Override
-    public Entity1State state() {
-      return state;
+    public void state(final Entity1State state, final int stateVersion) {
+      this.state = state;
+      this.stateVersion = stateVersion;
+    }
+
+    @Override
+    public Class<Entity1State> stateType() {
+      return Entity1State.class;
+    }
+
+    @Override
+    public int stateVersion() {
+      return stateVersion;
+    }
+
+    @Override
+    public int typeVersion() {
+      return 1;
+    }
+  }
+
+  public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State,String> implements Entity1 {
+    private Entity1State state;
+    private int stateVersion = 0;
+    private final TestUntil until;
+
+    public Entity1MetadataCallbackActor(final Entity1State state, final TestUntil until) {
+      this.state = state;
+      this.until = until;
+    }
+
+    @Override
+    public void start() {
+      if (state.hasState()) {
+        preserve(state, "METADATA", "new", (state, version) -> state(state, version));
+      } else {
+        restore((state, version) -> state(state, version));
+      }
+      until.happened();
+    }
+
+    //===================================
+    // Entity1
+    //===================================
+
+    @Override
+    public Completes<Entity1State> current() {
+      return completes().with(state);
+    }
+
+    @Override
+    public void changeName(final String name) {
+      preserve(state.withName(name), "METADATA", "changeName", (state, version) -> {
+        state(state, version);
+      });
+      until.happened();
+    }
+
+    @Override
+    public void increaseAge() {
+      preserve(state.withAge(state.age + 1), "METADATA", "increaseAge", (state, version) -> {
+        state(state, version);
+      });
+      until.happened();
+    }
+
+    //===================================
+    // StatefulEntity
+    //===================================
+
+    @Override
+    public String id() {
+      return state.id;
     }
 
     @Override
