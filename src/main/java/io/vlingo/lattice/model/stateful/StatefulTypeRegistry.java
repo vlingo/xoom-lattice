@@ -25,9 +25,10 @@ public final class StatefulTypeRegistry {
     return (Info<S,R>) stores.get(type);
   }
 
-  public void register(final Info<?,?> info) {
+  public StatefulTypeRegistry register(final Info<?,?> info) {
     StateTypeStateStoreMap.stateTypeToStoreName(info.storeType, info.storeName);
     stores.put(info.storeType, info);
+    return this;
   }
 
   public static class Info<S,R> {
