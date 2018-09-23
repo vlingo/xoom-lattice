@@ -18,7 +18,7 @@ Tooling for reactive Domain-Driven Design projects that are highly concurrent. I
     <dependency>
       <groupId>io.vlingo</groupId>
       <artifactId>vlingo-lattice</artifactId>
-      <version>0.1.2</version>
+      <version>0.7.0</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
@@ -26,7 +26,7 @@ Tooling for reactive Domain-Driven Design projects that are highly concurrent. I
 
 ```gradle
 dependencies {
-    compile 'io.vlingo:vlingo-lattice:0.1.2'
+    compile 'io.vlingo:vlingo-lattice:0.7.0'
 }
 
 repositories {
@@ -42,3 +42,11 @@ This Source Code Form is subject to the terms of the
 Mozilla Public License, v. 2.0. If a copy of the MPL
 was not distributed with this file, You can obtain
 one at https://mozilla.org/MPL/2.0/.
+
+
+### Licenses for Dependencies
+
+MurmurHash.java is open source licensed under Apache 2 by the Apache Software Foundation
+http://www.apache.org/licenses/LICENSE-2.0
+
+See: https://github.com/apache/cassandra/blob/trunk/src/java/org/apache/cassandra/utils/MurmurHash.java
