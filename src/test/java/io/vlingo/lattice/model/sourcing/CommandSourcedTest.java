@@ -11,28 +11,45 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import io.vlingo.actors.Definition;
+import io.vlingo.actors.World;
+import io.vlingo.actors.testkit.TestUntil;
+
 public class CommandSourcedTest {
+  private Entity entity;
+  private Result result;
+  private World world;
+
   @Test
   public void testThatCtorEmits() {
-    final TestCommandSourcedEntity cs = new TestCommandSourcedEntity();
-    assertTrue(cs.tested1);
-    assertEquals(1, cs.applied().size());
-    assertEquals(DoCommand1.class, cs.applied().get(0).getClass());
-    assertFalse(cs.tested2);
-    assertEquals(1, cs.applied().size());
+    result.until.completes();
+    assertTrue(result.tested1);
+    assertEquals(1, result.applied.size());
+    assertEquals(DoCommand1.class, result.applied.get(0).getClass());
+    assertFalse(result.tested2);
   }
 
   @Test
   public void testThatEventEmits() {
-    final TestCommandSourcedEntity cs = new TestCommandSourcedEntity();
-    assertTrue(cs.tested1);
-    assertFalse(cs.tested2);
-    assertEquals(1, cs.applied().size());
-    assertEquals(DoCommand1.class, cs.applied().get(0).getClass());
-    cs.doTest2();
-    assertEquals(2, cs.applied().size());
-    assertEquals(DoCommand2.class, cs.applied().get(1).getClass());
+    result.until.completes();
+    assertTrue(result.tested1);
+    assertFalse(result.tested2);
+    assertEquals(1, result.applied.size());
+    assertEquals(DoCommand1.class, result.applied.get(0).getClass());
+    result.until = TestUntil.happenings(1);
+    entity.doTest2();
+    result.until.completes();
+    assertEquals(2, result.applied.size());
+    assertEquals(DoCommand2.class, result.applied.get(1).getClass());
+  }
+
+  @Before
+  public void setUp() {
+    world = World.startWithDefaults("test-cs");
+    result = new Result();
+    entity = world.actorFor(Definition.has(TestCommandSourcedEntity.class, Definition.parameters(result)), Entity.class);
   }
 }
