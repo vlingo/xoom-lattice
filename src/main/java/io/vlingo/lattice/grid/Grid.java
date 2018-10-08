@@ -17,6 +17,7 @@ import io.vlingo.lattice.grid.cache.CacheNodePoint;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.HashedNodePoint;
 import io.vlingo.lattice.grid.hashring.MurmurArrayHashRing;
+import io.vlingo.lattice.model.identity.IdentityGeneratorType;
 
 public class Grid {
   public final AddressFactory addressFactory;
@@ -26,7 +27,7 @@ public class Grid {
   private final HashRing<String> hashRing;
   private final Stage stage;
 
-  public static Grid grid(final Stage stage, final UniqueValueGeneratorType type) {
+  public static Grid grid(final Stage stage, final IdentityGeneratorType type) {
     return new Grid(stage, type);
   }
 
@@ -40,7 +41,7 @@ public class Grid {
     return actor;
   }
 
-  private Grid(final Stage stage, final UniqueValueGeneratorType type) {
+  private Grid(final Stage stage, final IdentityGeneratorType type) {
     this.stage = stage;
     this.addressFactory = new GridAddressFactory(type);
     this.cache = new Cache();
