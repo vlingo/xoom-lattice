@@ -11,12 +11,14 @@ import java.util.UUID;
 
 import io.vlingo.actors.Address;
 import io.vlingo.actors.AddressFactory;
+import io.vlingo.lattice.model.identity.IdentityGenerator;
+import io.vlingo.lattice.model.identity.IdentityGeneratorType;
 
 public final class GridAddressFactory implements AddressFactory {
   private static final Address None = new GridAddress(null, "(none)");
 
-  private final UniqueValueGenerator generator;
-  private final UniqueValueGeneratorType type;
+  private final IdentityGenerator generator;
+  private final IdentityGeneratorType type;
 
   @Override
   public <T> Address findableBy(final T id) {
@@ -72,7 +74,7 @@ public final class GridAddressFactory implements AddressFactory {
     throw new UnsupportedOperationException("Unsupported for GridAddress.");
   }
 
-  GridAddressFactory(final UniqueValueGeneratorType type) {
+  GridAddressFactory(final IdentityGeneratorType type) {
     this.type = type;
     this.generator = this.type.generator();
   }
