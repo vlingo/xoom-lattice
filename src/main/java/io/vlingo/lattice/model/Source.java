@@ -46,6 +46,10 @@ public abstract class Source<T> {
     return false;
   }
 
+  public String typeName() {
+    return getClass().getSimpleName();
+  }
+
   protected Source() {
     this(SemanticVersion.toValue(1, 0, 0));
   }
