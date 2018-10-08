@@ -19,11 +19,12 @@ import org.junit.Test;
 
 import io.vlingo.actors.Address;
 import io.vlingo.actors.AddressFactory;
+import io.vlingo.lattice.model.identity.IdentityGeneratorType;
 
 public class AddressTest {
   @Test
   public void testNameGiven() throws Exception {
-    final AddressFactory addressFactory = new GridAddressFactory(UniqueValueGeneratorType.Random);
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
 
     final Address address = addressFactory.uniqueWith("test-address");
     
@@ -40,7 +41,7 @@ public class AddressTest {
 
   @Test
   public void testNameAndUUIDIdGiven() throws Exception {
-    final AddressFactory addressFactory = new GridAddressFactory(UniqueValueGeneratorType.Random);
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
 
     final String id1 = UUID.randomUUID().toString();
     
@@ -63,7 +64,7 @@ public class AddressTest {
 
   @Test
   public void testNameAndLongIdGiven() throws Exception {
-    final AddressFactory addressFactory = new GridAddressFactory(UniqueValueGeneratorType.Random);
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
 
     final long id = 123;
     
@@ -83,7 +84,7 @@ public class AddressTest {
 
   @Test
   public void testTimeBasedOrdering() throws Exception {
-    final AddressFactory addressFactory = new GridAddressFactory(UniqueValueGeneratorType.TimeBased);
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.TIME_BASED);
 
     final Address[] ordered = new Address[10];
     final Address[] reversed = new Address[10];
