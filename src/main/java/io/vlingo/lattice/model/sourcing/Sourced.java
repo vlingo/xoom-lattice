@@ -11,12 +11,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
+import io.vlingo.actors.Actor;
 import io.vlingo.lattice.model.Source;
 
-public abstract class Sourced<T> {
-  private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers = new HashMap<>();
+public abstract class Sourced<T> extends Actor {
+  private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
+          new ConcurrentHashMap<>();
 
   private final List<Source<T>> applied;
   private final int currentVersion;
@@ -71,6 +75,15 @@ public abstract class Sourced<T> {
     }
   }
 
+  protected Sourced(final List<Source<T>> stream, final int currentVersion, final Consumer<Source<?>> consumer) {
+    this.applied = new ArrayList<>(1);
+    this.currentVersion = currentVersion;
+
+    for (final Source<?> source : stream) {
+      consumer.accept(source);
+    }
+  }
+
   @SafeVarargs
   final protected void apply(final Source<T>... sources) {
     final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
@@ -84,5 +97,10 @@ public abstract class Sourced<T> {
       applied.add(source);
       sourcedTypeMap.get(source.getClass()).accept(this, source);
     }
+  }
+
+  final protected void apply(final Source<T> source, final Consumer<Source<T>> consumer) {
+    applied.add(source);
+    consumer.accept(source);
   }
 }
