@@ -9,7 +9,7 @@ package io.vlingo.lattice.model.sourcing;
 
 import java.util.function.BiConsumer;
 
-public class TestCommandSourcedEntity extends CommandSourced {
+public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   static {
     final BiConsumer<TestCommandSourcedEntity,DoCommand1> bi1 = TestCommandSourcedEntity::applied1;
     registerConsumer(TestCommandSourcedEntity.class, DoCommand1.class, bi1);
@@ -17,10 +17,10 @@ public class TestCommandSourcedEntity extends CommandSourced {
     registerConsumer(TestCommandSourcedEntity.class, DoCommand2.class, bi2);
   }
 
-  public boolean tested1;
-  public boolean tested2;
+  private final Result result;
 
-  public TestCommandSourcedEntity() {
+  public TestCommandSourcedEntity(final Result result) {
+    this.result = result;
     apply(new DoCommand1());
   }
 
@@ -28,11 +28,15 @@ public class TestCommandSourcedEntity extends CommandSourced {
     apply(new DoCommand2());
   }
 
-  public void applied1(final DoCommand1 command) {
-    tested1 = true;
+  private void applied1(final DoCommand1 command) {
+    result.tested1 = true;
+    result.applied.add(command);
+    result.until.happened();
   }
 
-  public void applied2(final DoCommand2 command) {
-    tested2 = true;
+  private void applied2(final DoCommand2 command) {
+    result.tested2 = true;
+    result.applied.add(command);
+    result.until.happened();
   }
 }
