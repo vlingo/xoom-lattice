@@ -9,7 +9,7 @@ package io.vlingo.lattice.model.sourcing;
 
 import java.util.function.BiConsumer;
 
-public class TestEventSourcedEntity extends EventSourced {
+public class TestEventSourcedEntity extends EventSourced implements Entity {
   static {
     final BiConsumer<TestEventSourcedEntity,Test1Happened> bi1 = TestEventSourcedEntity::applied1;
     registerConsumer(TestEventSourcedEntity.class, Test1Happened.class, bi1);
@@ -17,22 +17,27 @@ public class TestEventSourcedEntity extends EventSourced {
     registerConsumer(TestEventSourcedEntity.class, Test2Happened.class, bi2);
   }
 
-  public boolean tested1;
-  public boolean tested2;
+  private final Result result;
 
-  public TestEventSourcedEntity() {
+  public TestEventSourcedEntity(final Result result) {
+    this.result = result;
     apply(new Test1Happened());
   }
 
+  @Override
   public void doTest2() {
     apply(new Test2Happened());
   }
 
-  public void applied1(final Test1Happened event) {
-    tested1 = true;
+  private void applied1(final Test1Happened event) {
+    result.tested1 = true;
+    result.applied.add(event);
+    result.until.happened();
   }
 
-  public void applied2(final Test2Happened event) {
-    tested2 = true;
+  private void applied2(final Test2Happened event) {
+    result.tested2 = true;
+    result.applied.add(event);
+    result.until.happened();
   }
 }
