@@ -35,15 +35,15 @@ public class StatefulEntityTest {
     final Entity1 entity1 =
             world.actorFor(Definition.has(Entity1Actor.class, Definition.parameters(state, until1)), Entity1.class);
 
-    entity1.current().atLast((Entity1State current) -> assertEquals(state, current));
+    entity1.current().consumeAfter((Entity1State current) -> assertEquals(state, current));
 
     entity1.changeName("Sally Jane");
 
-    entity1.current().atLast((Entity1State current) -> assertEquals("Sally Jane", current.name));
+    entity1.current().consumeAfter((Entity1State current) -> assertEquals("Sally Jane", current.name));
 
     entity1.increaseAge();
 
-    entity1.current().atLast((Entity1State current) -> assertEquals(24, current.age));
+    entity1.current().consumeAfter((Entity1State current) -> assertEquals(24, current.age));
 
     until1.completes();
 
@@ -57,7 +57,7 @@ public class StatefulEntityTest {
 
     final TestUntil until3 = TestUntil.happenings(1);
 
-    restoredEntity1.current().atLast(current -> {
+    restoredEntity1.current().consumeAfter(current -> {
       assertEquals(new Entity1State("123", "Sally Jane", 24), current);
       until3.happened();
     });
@@ -73,15 +73,15 @@ public class StatefulEntityTest {
     final Entity1 entity1 =
             world.actorFor(Definition.has(Entity1MetadataCallbackActor.class, Definition.parameters(state, until1)), Entity1.class);
 
-    entity1.current().atLast((Entity1State current) -> assertEquals(state, current));
+    entity1.current().consumeAfter((Entity1State current) -> assertEquals(state, current));
 
     entity1.changeName("Sally Jane");
 
-    entity1.current().atLast((Entity1State current) -> assertEquals("Sally Jane", current.name));
+    entity1.current().consumeAfter((Entity1State current) -> assertEquals("Sally Jane", current.name));
 
     entity1.increaseAge();
 
-    entity1.current().atLast((Entity1State current) -> assertEquals(24, current.age));
+    entity1.current().consumeAfter((Entity1State current) -> assertEquals(24, current.age));
 
     until1.completes();
 
@@ -95,7 +95,7 @@ public class StatefulEntityTest {
 
     final TestUntil until3 = TestUntil.happenings(1);
 
-    restoredEntity1.current().atLast(current -> {
+    restoredEntity1.current().consumeAfter(current -> {
       assertEquals(new Entity1State("123", "Sally Jane", 24), current);
       until3.happened();
     });
