@@ -13,10 +13,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.vlingo.actors.Completes;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.common.Completes;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.store.state.TextStateStore;
