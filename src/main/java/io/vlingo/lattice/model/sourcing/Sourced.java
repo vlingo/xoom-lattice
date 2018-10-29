@@ -16,6 +16,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.testkit.TestState;
 import io.vlingo.lattice.model.Source;
 
 public abstract class Sourced<T> extends Actor {
@@ -52,6 +53,13 @@ public abstract class Sourced<T> extends Actor {
 
   public int nextVersion() {
     return currentVersion + 1;
+  }
+
+  @Override
+  public TestState viewTestState() {
+    final TestState testState = new TestState();
+    testState.putValue("applied", applied());
+    return testState;
   }
 
   protected Sourced() {
