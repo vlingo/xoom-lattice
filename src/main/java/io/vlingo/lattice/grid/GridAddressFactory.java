@@ -11,8 +11,8 @@ import java.util.UUID;
 
 import io.vlingo.actors.Address;
 import io.vlingo.actors.AddressFactory;
-import io.vlingo.lattice.model.identity.IdentityGenerator;
-import io.vlingo.lattice.model.identity.IdentityGeneratorType;
+import io.vlingo.common.identity.IdentityGenerator;
+import io.vlingo.common.identity.IdentityGeneratorType;
 
 public final class GridAddressFactory implements AddressFactory {
   private static final Address None = new GridAddress(null, "(none)");

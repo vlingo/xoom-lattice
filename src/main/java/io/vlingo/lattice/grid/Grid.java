@@ -12,12 +12,12 @@ import java.util.function.BiFunction;
 import io.vlingo.actors.AddressFactory;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.Stage;
+import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.cache.CacheNodePoint;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.HashedNodePoint;
 import io.vlingo.lattice.grid.hashring.MurmurArrayHashRing;
-import io.vlingo.lattice.model.identity.IdentityGeneratorType;
 
 public class Grid {
   public final AddressFactory addressFactory;

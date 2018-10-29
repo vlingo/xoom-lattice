@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import io.vlingo.actors.Address;
 import io.vlingo.actors.AddressFactory;
-import io.vlingo.lattice.model.identity.IdentityGeneratorType;
+import io.vlingo.common.identity.IdentityGeneratorType;
 
 public class AddressTest {
   @Test
