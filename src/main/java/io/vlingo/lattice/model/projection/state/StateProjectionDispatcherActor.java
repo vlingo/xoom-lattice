@@ -15,10 +15,10 @@ import io.vlingo.lattice.model.projection.Projectable;
 import io.vlingo.lattice.model.projection.Projection;
 import io.vlingo.lattice.model.projection.ProjectionControl;
 import io.vlingo.lattice.model.projection.ProjectionDispatcher;
+import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.state.StateStore.ConfirmDispatchedResultInterest;
 import io.vlingo.symbio.store.state.StateStore.Dispatcher;
 import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
-import io.vlingo.symbio.store.state.StateStore.Result;
 
 public abstract class StateProjectionDispatcherActor extends AbstractProjectionDispatcherActor
     implements Dispatcher, ProjectionDispatcher, ConfirmDispatchedResultInterest {
