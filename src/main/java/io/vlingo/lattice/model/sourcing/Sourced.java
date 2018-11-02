@@ -17,6 +17,8 @@ import java.util.function.Consumer;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.testkit.TestState;
+import io.vlingo.lattice.model.Command;
+import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.lattice.model.Source;
 
 public abstract class Sourced<T> extends Actor {
@@ -45,6 +47,22 @@ public abstract class Sourced<T> extends Actor {
 
   public List<Source<T>> applied() {
     return applied;
+  }
+
+  public Source<T> applied(final int index) {
+    return applied.get(index);
+  }
+
+  public Command appliedCommand(final int index) {
+    return (Command) applied.get(index);
+  }
+
+  public DomainEvent appliedEvent(final int index) {
+    return (DomainEvent) applied.get(index);
+  }
+
+  public int appliedCount() {
+    return applied.size();
   }
 
   public int currentVersion() {
