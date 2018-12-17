@@ -29,6 +29,11 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
     apply(new Test2Happened());
   }
 
+  @Override
+  protected String streamName() {
+    return "TestEvent123";
+  }
+
   private void applied1(final Test1Happened event) {
     result.tested1 = true;
     result.applied.add(event);

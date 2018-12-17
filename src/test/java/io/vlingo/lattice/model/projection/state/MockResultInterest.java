@@ -12,8 +12,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.common.Outcome;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.Result;
+import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ConfirmDispatchedResultInterest;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
@@ -45,38 +47,44 @@ public class MockResultInterest
   }
 
   @Override
-  public void readResultedIn(final Result result, final String id, final State<String> state, final Object object) {
-    readTextResultedIn.incrementAndGet();
-    textReadResult.set(result);
-    textState.set(state);
-    until.happened();
+  public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<String> state, final Object object) {
+    outcome
+      .andThen(result -> {
+        readTextResultedIn.incrementAndGet();
+        textReadResult.set(result);
+        textState.set(state);
+        until.happened();
+        return result;
+      })
+      .otherwise(cause -> {
+        readTextResultedIn.incrementAndGet();
+        textReadResult.set(cause.result);
+        textState.set(state);
+        errorCauses.add(cause);
+        until.happened();
+        return cause.result;
+      });
   }
 
   @Override
-  public void readResultedIn(final Result result, final Exception cause, final String id, final State<String> state, final Object object) {
-    readTextResultedIn.incrementAndGet();
-    textReadResult.set(result);
-    textState.set(state);
-    errorCauses.add(cause);
-    until.happened();
-  }
-
-  @Override
-  public void writeResultedIn(final Result result, final String id, final State<String> state, final Object object) {
-    writeTextResultedIn.incrementAndGet();
-    textWriteResult.set(result);
-    textWriteAccumulatedResults.add(result);
-    textState.set(state);
-    until.happened();
-  }
-
-  @Override
-  public void writeResultedIn(final Result result, final Exception cause, final String id, final State<String> state, final Object object) {
-    writeTextResultedIn.incrementAndGet();
-    textWriteResult.set(result);
-    textWriteAccumulatedResults.add(result);
-    textState.set(state);
-    errorCauses.add(cause);
-    until.happened();
+  public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<String> state, final Object object) {
+    outcome
+      .andThen(result -> {
+        writeTextResultedIn.incrementAndGet();
+        textWriteResult.set(result);
+        textWriteAccumulatedResults.add(result);
+        textState.set(state);
+        until.happened();
+        return result;
+      })
+      .otherwise(cause -> {
+        writeTextResultedIn.incrementAndGet();
+        textWriteResult.set(cause.result);
+        textWriteAccumulatedResults.add(cause.result);
+        textState.set(state);
+        errorCauses.add(cause);
+        until.happened();
+        return cause.result;
+      });
   }
 }

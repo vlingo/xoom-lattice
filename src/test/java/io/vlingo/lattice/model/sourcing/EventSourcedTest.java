@@ -17,9 +17,14 @@ import org.junit.Test;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
+import io.vlingo.symbio.store.journal.Journal;
+import io.vlingo.symbio.store.journal.inmemory.InMemoryJournalActor;
 
 public class EventSourcedTest {
   private Entity entity;
+  private Journal<String> journal;
+  private MockJournalListener listener;
   private Result result;
   private World world;
 
@@ -28,7 +33,9 @@ public class EventSourcedTest {
     result.until.completes();
     assertTrue(result.tested1);
     assertEquals(1, result.applied.size());
+    assertEquals(1, listener.entries.size());
     assertEquals(Test1Happened.class, result.applied.get(0).getClass());
+    assertEquals(Test1Happened.class.getName(), listener.entries.get(0).type);
     assertFalse(result.tested2);
   }
 
@@ -38,17 +45,31 @@ public class EventSourcedTest {
     assertTrue(result.tested1);
     assertFalse(result.tested2);
     assertEquals(1, result.applied.size());
+    assertEquals(1, listener.entries.size());
     assertEquals(Test1Happened.class, result.applied.get(0).getClass());
+    assertEquals(Test1Happened.class.getName(), listener.entries.get(0).type);
     result.until = TestUntil.happenings(1);
     entity.doTest2();
     result.until.completes();
     assertEquals(2, result.applied.size());
+    assertEquals(2, listener.entries.size());
     assertEquals(Test2Happened.class, result.applied.get(1).getClass());
+    assertEquals(Test2Happened.class.getName(), listener.entries.get(1).type);
   }
 
   @Before
+  @SuppressWarnings("unchecked")
   public void setUp() {
     world = World.startWithDefaults("test-es");
+    
+    listener = new MockJournalListener();
+
+    journal = world.actorFor(Definition.has(InMemoryJournalActor.class, Definition.parameters(listener)), Journal.class);
+    journal.registerAdapter(Test1Happened.class, new Test1HappenedAdapter());
+    journal.registerAdapter(Test2Happened.class, new Test2HappenedAdapter());
+
+    SourcedTypeRegistry.instance.register(new Info<>(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
+
     result = new Result();
     entity = world.actorFor(Definition.has(TestEventSourcedEntity.class, Definition.parameters(result)), Entity.class);
   }
