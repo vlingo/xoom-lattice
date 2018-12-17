@@ -17,9 +17,14 @@ import org.junit.Test;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
+import io.vlingo.symbio.store.journal.Journal;
+import io.vlingo.symbio.store.journal.inmemory.InMemoryJournalActor;
 
 public class CommandSourcedTest {
   private Entity entity;
+  private Journal<String> journal;
+  private MockJournalListener listener;
   private Result result;
   private World world;
 
@@ -47,8 +52,18 @@ public class CommandSourcedTest {
   }
 
   @Before
+  @SuppressWarnings("unchecked")
   public void setUp() {
     world = World.startWithDefaults("test-cs");
+    
+    listener = new MockJournalListener();
+
+    journal = world.actorFor(Definition.has(InMemoryJournalActor.class, Definition.parameters(listener)), Journal.class);
+    journal.registerAdapter(DoCommand1.class, new DoCommand1Adapter());
+    journal.registerAdapter(DoCommand2.class, new DoCommand2Adapter());
+
+    SourcedTypeRegistry.instance.register(new Info<>(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));
+
     result = new Result();
     entity = world.actorFor(Definition.has(TestCommandSourcedEntity.class, Definition.parameters(result)), Entity.class);
   }

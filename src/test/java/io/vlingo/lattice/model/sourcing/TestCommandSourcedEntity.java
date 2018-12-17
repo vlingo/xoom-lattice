@@ -28,6 +28,11 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
     apply(new DoCommand2());
   }
 
+  @Override
+  protected String streamName() {
+    return "TestCommand123";
+  }
+
   private void applied1(final DoCommand1 command) {
     result.tested1 = true;
     result.applied.add(command);

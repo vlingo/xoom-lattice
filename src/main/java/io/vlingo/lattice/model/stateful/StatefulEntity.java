@@ -10,12 +10,14 @@ package io.vlingo.lattice.model.stateful;
 import java.util.function.BiConsumer;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.BinaryState;
 import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.store.Result;
+import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 
@@ -26,7 +28,7 @@ public abstract class StatefulEntity<S,R> extends Actor
   @SuppressWarnings("unchecked")
   public void preserve(final S state, final String metadataValue, final String operation, final BiConsumer<S,Integer> consumer) {
     final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
-    final R raw = info.adapter.to(state, stateVersion(), typeVersion());
+    final R raw = info.adapter.toRaw(state, stateVersion(), typeVersion());
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     if (info.isBinary()) {
       stowMessages(WriteResultInterest.class);
@@ -50,44 +52,51 @@ public abstract class StatefulEntity<S,R> extends Actor
     }
   }
 
+  /**
+   * FOR INTERNAL USE ONLY.
+   */
   @Override
   @SuppressWarnings("unchecked")
-  public void readResultedIn(final Result result, final String id, final State<R> state, final Object consumer) {
-    final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
-    final S preserved = info.adapter.from(state.data, stateVersion(), typeVersion());
-    if (consumer != null) {
-      ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
-    } else {
-      state(preserved, state.dataVersion);
-    }
-    disperseStowedMessages();
-  }
-
-  @Override
-  public void readResultedIn(final Result result, final Exception cause, final String id, final State<R> state, final Object consumer) {
-    final String message = "State not restored because: " + result + " with: " + cause.getMessage();
-    logger().log(message, cause);
-    throw new IllegalStateException(message, cause);
+  final public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<R> state, final Object consumer) {
+    outcome
+      .andThen(result -> {
+        final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
+        final S preserved = info.adapter.fromRaw(state.data, stateVersion(), typeVersion());
+        if (consumer != null) {
+          ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
+        } else {
+          state(preserved, state.dataVersion);
+        }
+        disperseStowedMessages();
+        return result;
+      })
+      .otherwise(cause -> {
+        final String message = "State not restored for: " + state.type + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
+        logger().log(message, cause);
+        throw new IllegalStateException(message, cause);
+      });
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public void writeResultedIn(final Result result, final String id, final State<R> state, final Object consumer) {
-    final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
-    final S preserved = info.adapter.from(state.data, stateVersion(), typeVersion());
-    if (consumer != null) {
-      ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
-    } else {
-      state(preserved, state.dataVersion);
-    }
-    disperseStowedMessages();
-  }
-
-  @Override
-  public void writeResultedIn(final Result result, final Exception cause, final String id, final State<R> state, final Object consumer) {
-    final String message = "State not preserved because: " + result + " with: " + cause.getMessage();
-    logger().log(message, cause);
-    throw new IllegalStateException(message, cause);
+  final public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<R> state, final Object consumer) {
+    outcome
+      .andThen(result -> {
+        final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
+        final S preserved = info.adapter.fromRaw(state.data, stateVersion(), typeVersion());
+        if (consumer != null) {
+          ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
+        } else {
+          state(preserved, state.dataVersion);
+        }
+        disperseStowedMessages();
+        return result;
+      })
+      .otherwise(cause -> {
+        final String message = "State not preserved for: " + state.type + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
+        logger().log(message, cause);
+        throw new IllegalStateException(message, cause);
+      });
   }
 
   protected StatefulEntity() {

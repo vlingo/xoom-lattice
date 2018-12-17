@@ -19,6 +19,7 @@ import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.common.Completes;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
+import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.store.state.TextStateStore;
 import io.vlingo.symbio.store.state.inmemory.InMemoryTextStateStoreActor;
 
@@ -123,12 +124,12 @@ public class StatefulEntityTest {
 
   public static class Entity1StateAdapter implements StateAdapter<Entity1State,String> {
     @Override
-    public Entity1State from(final String raw, final int stateVersion, final int typeVersion) {
+    public Entity1State fromRaw(final String raw, final int stateVersion, final int typeVersion) {
       return JsonSerialization.deserialized(raw, Entity1State.class);
     }
 
     @Override
-    public String to(final Entity1State state, final int stateVersion, final int typeVersion) {
+    public String toRaw(final Entity1State state, final int stateVersion, final int typeVersion) {
       return JsonSerialization.serialized(state);
     }
   }
