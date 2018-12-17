@@ -10,6 +10,7 @@ package io.vlingo.lattice.model.stateful;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.store.state.BinaryStateStore;
 import io.vlingo.symbio.store.state.StateStore;
 import io.vlingo.symbio.store.state.StateTypeStateStoreMap;
