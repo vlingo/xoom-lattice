@@ -7,6 +7,8 @@
 
 package io.vlingo.lattice.model;
 
+import io.vlingo.symbio.Source;
+
 public abstract class DomainEvent extends Source<DomainEvent> {
   protected DomainEvent() {
     super();
