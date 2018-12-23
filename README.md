@@ -1,6 +1,6 @@
 # vlingo-lattice
 
-[![Build Status](https://travis-ci.org/vlingo/vlingo-lattice.svg?branch=master)](https://travis-ci.org/vlingo/vlingo-lattice) [ ![Download](https://api.bintray.com/packages/vlingo/vlingo-platform-java/vlingo-lattice/images/download.svg) ](https://bintray.com/vlingo/vlingo-platform-java/vlingo-lattice/_latestVersion)
+[![Javadocs](http://javadoc.io/badge/io.vlingo/vlingo-lattice.svg?color=brightgreen)](http://javadoc.io/doc/io.vlingo/vlingo-lattice) [![Build Status](https://travis-ci.org/vlingo/vlingo-lattice.svg?branch=master)](https://travis-ci.org/vlingo/vlingo-lattice) [ ![Download](https://api.bintray.com/packages/vlingo/vlingo-platform-java/vlingo-lattice/images/download.svg) ](https://bintray.com/vlingo/vlingo-platform-java/vlingo-lattice/_latestVersion)
 
 Tooling for reactive Domain-Driven Design projects that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, CQRS, and Event Sourcing support.
 
