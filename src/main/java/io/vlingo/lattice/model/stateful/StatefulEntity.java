@@ -24,10 +24,11 @@ import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 public abstract class StatefulEntity<S,R> extends Actor
     implements Stateful<S>, ReadResultInterest<R>, WriteResultInterest<R> {
 
+  private final Info<S,R> info;
+
   @Override
   @SuppressWarnings("unchecked")
   public void preserve(final S state, final String metadataValue, final String operation, final BiConsumer<S,Integer> consumer) {
-    final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
     final R raw = info.adapter.toRaw(state, stateVersion(), typeVersion());
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     if (info.isBinary()) {
@@ -42,7 +43,6 @@ public abstract class StatefulEntity<S,R> extends Actor
   @Override
   @SuppressWarnings("unchecked")
   public void restore(final BiConsumer<S,Integer> consumer) {
-    final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
     if (info.isBinary()) {
       stowMessages(ReadResultInterest.class);
       info.binaryStateStore().read(id(), (Class<S>) stateType(), selfAs(ReadResultInterest.class), consumer);
@@ -60,7 +60,6 @@ public abstract class StatefulEntity<S,R> extends Actor
   final public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<R> state, final Object consumer) {
     outcome
       .andThen(result -> {
-        final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
         final S preserved = info.adapter.fromRaw(state.data, stateVersion(), typeVersion());
         if (consumer != null) {
           ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
@@ -82,7 +81,6 @@ public abstract class StatefulEntity<S,R> extends Actor
   final public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<R> state, final Object consumer) {
     outcome
       .andThen(result -> {
-        final Info<S,R> info = StatefulTypeRegistry.instance.info(stateType());
         final S preserved = info.adapter.fromRaw(state.data, stateVersion(), typeVersion());
         if (consumer != null) {
           ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
@@ -100,5 +98,6 @@ public abstract class StatefulEntity<S,R> extends Actor
   }
 
   protected StatefulEntity() {
+    this.info = stage().world().resolveDynamic(StatefulTypeRegistry.INTERNAL_NAME, StatefulTypeRegistry.class).info(stateType());
   }
 }
