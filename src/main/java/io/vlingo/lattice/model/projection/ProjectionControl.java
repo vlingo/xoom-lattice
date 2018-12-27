@@ -9,4 +9,13 @@ package io.vlingo.lattice.model.projection;
 
 public interface ProjectionControl {
   void confirmProjected(final String projectionId);
+
+  default Confirmer confirmerFor(final Projectable projectable) {
+    return () -> this.confirmProjected(projectable.projectionId());
+  }
+
+  @FunctionalInterface
+  public static interface Confirmer {
+    void confirm();
+  }
 }
