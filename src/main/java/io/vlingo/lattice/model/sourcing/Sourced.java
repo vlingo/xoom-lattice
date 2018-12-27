@@ -7,7 +7,6 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +33,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
   private int currentVersion;
   private SourcedTypeRegistry.Info<?,?> journalInfo;
   private AppendResultInterest<T> interest;
+  private final String streamName;
 
   @SuppressWarnings("unchecked")
   public static void registerConsumer(
@@ -45,7 +45,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
             registeredConsumers.get(sourcedType);
 
     if (sourcedTypeMap == null) {
-      sourcedTypeMap = new HashMap<>();
+      sourcedTypeMap = new ConcurrentHashMap<>();
       registeredConsumers.put((Class<Sourced<Source<?>>>) sourcedType, sourcedTypeMap);
     }
 
@@ -60,34 +60,31 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
   }
 
   @SuppressWarnings("unchecked")
-  protected Sourced() {
+  protected Sourced(final String... streamNameSegments) {
+    this.streamName = streamNameFrom(streamNameSegments);
     this.applied = new ResettableReadOnlyList<>();
     this.currentVersion = 0;
-    this.journalInfo = SourcedTypeRegistry.instance.info(getClass());
+    this.journalInfo = stage().world().resolveDynamic(SourcedTypeRegistry.INTERNAL_NAME, SourcedTypeRegistry.class).info(getClass());
     this.interest = selfAs(AppendResultInterest.class);
+    restore();
   }
 
-  protected Sourced(final List<Source<T>> stream, final int currentVersion) {
-    this();
-
-    final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
-            registeredConsumers.get(getClass());
-
-    if (sourcedTypeMap == null) {
-      throw new IllegalStateException("No such Sourced type.");
+  private String streamNameFrom(final String[] streamNameSegments) {
+    final StringBuilder builder = new StringBuilder();
+    builder.append(streamNameSegments[0]);
+    for (int idx = 1; idx < streamNameSegments.length; ++idx) {
+      builder.append(":").append(streamNameSegments[idx]);
     }
-
-    for (final Source<?> source : stream) {
-      sourcedTypeMap.get(source.getClass()).accept(this, source);
-    }
+    return builder.toString();
   }
 
-  protected Sourced(final List<Source<T>> stream, final int currentVersion, final Consumer<Source<?>> consumer) {
-    this();
-
-    for (final Source<?> source : stream) {
-      consumer.accept(source);
-    }
+  /**
+   * Answers my {@code currentVersion}, which if zero indicates that the receiver
+   * is being initially constructed or reconstituted.
+   * @return int
+   */
+  protected int currentVersion() {
+    return currentVersion;
   }
 
   @SafeVarargs
@@ -95,17 +92,15 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
     applied.wrap(sources);
     final Journal<T> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAll(streamName(), nextVersion(), applied, interest, null);
+    journal.appendAll(streamName, nextVersion(), applied, interest, null);
   }
 
   final protected void apply(final Source<T> source, final Consumer<Source<T>> consumer) {
     applied.wrap(source);
     final Journal<T> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.append(streamName(), nextVersion(), source, interest, consumer);
+    journal.append(streamName, nextVersion(), source, interest, consumer);
   }
-
-  protected abstract String streamName();
 
   //==================================
   // AppendResultInterest
@@ -132,7 +127,8 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
         return result;
       })
       .otherwise(cause -> {
-        final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+        disperseStowedMessages();
+        final String message = "Source (count 1) not appended for: " + type() + "(" + streamName + ") because: " + cause.result + " with: " + cause.getMessage();
         logger().log(message, cause);
         throw new StorageException(cause.result, message, cause);
       });
@@ -156,6 +152,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
                 registeredConsumers.get(getClass());
 
         if (sourcedTypeMap == null) {
+          disperseStowedMessages();
           throw new IllegalStateException("No such Sourced type.");
         }
 
@@ -168,8 +165,9 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
         return result;
       })
       .otherwise(cause -> {
-        final String message = "Source (count " + applied.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+        final String message = "Source (count " + applied.size() + ") not appended for: " + type() + "(" + streamName + ") because: " + cause.result + " with: " + cause.getMessage();
         logger().log(message, cause);
+        disperseStowedMessages();
         throw new StorageException(cause.result, message, cause);
       });
   }
@@ -180,6 +178,40 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest<T
 
   private int nextVersion() {
     return currentVersion + 1;
+  }
+
+  private void restore() {
+    stowMessages();
+
+    journalInfo.journal.streamReader(getClass().getSimpleName())
+      .andThenTo(reader -> reader.streamFor(streamName))
+      .andThenConsume(stream -> {
+        restoreFrom(journalInfo.entryAdapterProvider.asSources(stream.entries), stream.streamVersion);
+        disperseStowedMessages();
+      })
+      .otherwiseConsume(stream -> {
+        disperseStowedMessages();
+      })
+      .recoverFrom(cause -> {
+        final String message = "Stream not recovered for: " + type() + "(" + streamName + ") because: " + cause.getMessage();
+        disperseStowedMessages();
+        throw new StorageException(Result.Failure, message, cause);
+      });
+  }
+
+  private void restoreFrom(final List<Source<T>> stream, final int currentVersion) {
+    final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
+            registeredConsumers.get(getClass());
+
+    if (sourcedTypeMap == null) {
+      throw new IllegalStateException("No such Sourced type.");
+    }
+
+    for (final Source<?> source : stream) {
+      sourcedTypeMap.get(source.getClass()).accept(this, source);
+    }
+
+    this.currentVersion = currentVersion;
   }
 
   private String type() {
