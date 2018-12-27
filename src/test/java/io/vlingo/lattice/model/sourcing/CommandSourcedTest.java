@@ -25,6 +25,7 @@ public class CommandSourcedTest {
   private Entity entity;
   private Journal<String> journal;
   private MockJournalListener listener;
+  private SourcedTypeRegistry registry;
   private Result result;
   private World world;
 
@@ -62,7 +63,8 @@ public class CommandSourcedTest {
     journal.registerAdapter(DoCommand1.class, new DoCommand1Adapter());
     journal.registerAdapter(DoCommand2.class, new DoCommand2Adapter());
 
-    SourcedTypeRegistry.instance.register(new Info<>(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));
+    registry = new SourcedTypeRegistry(world);
+    registry.register(new Info<>(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));
 
     result = new Result();
     entity = world.actorFor(Definition.has(TestCommandSourcedEntity.class, Definition.parameters(result)), Entity.class);
