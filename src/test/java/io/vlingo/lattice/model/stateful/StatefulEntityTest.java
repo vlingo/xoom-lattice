@@ -25,6 +25,7 @@ import io.vlingo.symbio.store.state.inmemory.InMemoryTextStateStoreActor;
 
 public class StatefulEntityTest {
   private MockTextDispatcher dispatcher;
+  private StatefulTypeRegistry registry;
   private TextStateStore store;
   private World world;
 
@@ -109,7 +110,8 @@ public class StatefulEntityTest {
     world = World.startWithDefaults("stateful-entity");
     dispatcher = new MockTextDispatcher();
     store = world.actorFor(Definition.has(InMemoryTextStateStoreActor.class, Definition.parameters(dispatcher)), TextStateStore.class);
-    StatefulTypeRegistry.instance.register(
+    registry = new StatefulTypeRegistry(world);
+    registry.register(
             new Info<Entity1State,String>(
                     store,
                     Entity1State.class,
