@@ -25,6 +25,7 @@ public class EventSourcedTest {
   private Entity entity;
   private Journal<String> journal;
   private MockJournalListener listener;
+  private SourcedTypeRegistry registry;
   private Result result;
   private World world;
 
@@ -68,7 +69,8 @@ public class EventSourcedTest {
     journal.registerAdapter(Test1Happened.class, new Test1HappenedAdapter());
     journal.registerAdapter(Test2Happened.class, new Test2HappenedAdapter());
 
-    SourcedTypeRegistry.instance.register(new Info<>(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
+    registry = new SourcedTypeRegistry(world);
+    registry.register(new Info<>(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
 
     result = new Result();
     entity = world.actorFor(Definition.has(TestEventSourcedEntity.class, Definition.parameters(result)), Entity.class);
