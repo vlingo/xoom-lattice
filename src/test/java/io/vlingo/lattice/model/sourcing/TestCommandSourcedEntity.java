@@ -20,17 +20,13 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   private final Result result;
 
   public TestCommandSourcedEntity(final Result result) {
+    super("TestCommand123");
     this.result = result;
     apply(new DoCommand1());
   }
 
   public void doTest2() {
     apply(new DoCommand2());
-  }
-
-  @Override
-  protected String streamName() {
-    return "TestCommand123";
   }
 
   private void applied1(final DoCommand1 command) {
