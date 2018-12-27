@@ -20,6 +20,7 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
   private final Result result;
 
   public TestEventSourcedEntity(final Result result) {
+    super("TestEvent123");
     this.result = result;
     apply(new Test1Happened());
   }
@@ -27,11 +28,6 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
   @Override
   public void doTest2() {
     apply(new Test2Happened());
-  }
-
-  @Override
-  protected String streamName() {
-    return "TestEvent123";
   }
 
   private void applied1(final Test1Happened event) {
