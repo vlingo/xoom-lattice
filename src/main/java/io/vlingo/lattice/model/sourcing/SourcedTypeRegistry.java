@@ -7,9 +7,16 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
+import io.vlingo.actors.World;
+import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.EntryAdapter;
+import io.vlingo.symbio.EntryAdapterProvider;
+import io.vlingo.symbio.Source;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.ObjectJournal;
 import io.vlingo.symbio.store.journal.Journal.TextJournal;
@@ -17,9 +24,13 @@ import io.vlingo.symbio.store.state.BinaryStateStore;
 import io.vlingo.symbio.store.state.TextStateStore;
 
 public final class SourcedTypeRegistry {
-  public static final SourcedTypeRegistry instance = new SourcedTypeRegistry();
+  static final String INTERNAL_NAME = UUID.randomUUID().toString();
 
-  private final Map<Class<?>,Info<?,?>> stores = new HashMap<>();
+  private final Map<Class<?>,Info<?,?>> stores = new ConcurrentHashMap<>();
+
+  public SourcedTypeRegistry(final World world) {
+    world.registerDynamic(INTERNAL_NAME, this);
+  }
 
   @SuppressWarnings("unchecked")
   public <S,R> Info<S,R> info(Class<S> type) {
@@ -32,6 +43,7 @@ public final class SourcedTypeRegistry {
   }
 
   public static class Info<S,R> {
+    public final EntryAdapterProvider entryAdapterProvider;
     public final Journal<R> journal;
     public final String sourcedName;
     public final Class<S> sourcedType;
@@ -40,6 +52,11 @@ public final class SourcedTypeRegistry {
       this.journal = journal;
       this.sourcedType = sourcedType;
       this.sourcedName = sourcedName;
+      this.entryAdapterProvider = new EntryAdapterProvider();
+    }
+
+    public EntryAdapterProvider entryAdapterProvider() {
+      return entryAdapterProvider;
     }
 
     @SuppressWarnings("unchecked")
@@ -69,6 +86,16 @@ public final class SourcedTypeRegistry {
 
     public boolean isText() {
       return false;
+    }
+
+    public <T extends Source<?>,E extends Entry<?>> Info<S,R> register(final Class<T> sourceType, final EntryAdapter<T,E> adapter) {
+      entryAdapterProvider.registerAdapter(sourceType, adapter);
+      return this;
+    }
+
+    public <T extends Source<?>,E extends Entry<?>> Info<S,R> register(final Class<T> sourceType, final EntryAdapter<T,E> adapter, final BiConsumer<Class<T>,EntryAdapter<T,E>> consumer) {
+      entryAdapterProvider.registerAdapter(sourceType, adapter, consumer);
+      return this;
     }
   }
 
