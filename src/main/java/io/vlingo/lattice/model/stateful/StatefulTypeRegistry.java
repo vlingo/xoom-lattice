@@ -9,7 +9,9 @@ package io.vlingo.lattice.model.stateful;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import io.vlingo.actors.World;
 import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.store.state.BinaryStateStore;
 import io.vlingo.symbio.store.state.StateStore;
@@ -17,9 +19,13 @@ import io.vlingo.symbio.store.state.StateTypeStateStoreMap;
 import io.vlingo.symbio.store.state.TextStateStore;
 
 public final class StatefulTypeRegistry {
-  public static final StatefulTypeRegistry instance = new StatefulTypeRegistry();
+  static final String INTERNAL_NAME = UUID.randomUUID().toString();
 
   private final Map<Class<?>,Info<?,?>> stores = new HashMap<>();
+
+  public StatefulTypeRegistry(final World world) {
+    world.registerDynamic(INTERNAL_NAME, this);
+  }
 
   @SuppressWarnings("unchecked")
   public <S,R> Info<S,R> info(Class<?> type) {
