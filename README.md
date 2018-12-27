@@ -18,7 +18,7 @@ Tooling for reactive Domain-Driven Design projects that are highly concurrent. I
     <dependency>
       <groupId>io.vlingo</groupId>
       <artifactId>vlingo-lattice</artifactId>
-      <version>0.7.5</version>
+      <version>0.7.6</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
@@ -26,7 +26,7 @@ Tooling for reactive Domain-Driven Design projects that are highly concurrent. I
 
 ```gradle
 dependencies {
-    compile 'io.vlingo:vlingo-lattice:0.7.5'
+    compile 'io.vlingo:vlingo-lattice:0.7.6'
 }
 
 repositories {
