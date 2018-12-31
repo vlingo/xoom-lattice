@@ -19,6 +19,9 @@ import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.common.Completes;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
+import io.vlingo.symbio.Metadata;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.store.state.TextStateStore;
 import io.vlingo.symbio.store.state.inmemory.InMemoryTextStateStoreActor;
@@ -45,7 +48,7 @@ public class StatefulEntityTest {
 
     entity1.increaseAge();
 
-    entity1.current().andThenConsume((Entity1State current) -> assertEquals(24, current.age));
+    entity1.current().andThenConsume((Entity1State current) -> { assertEquals(24, current.age); until1.happened(); });
 
     until1.completes();
 
@@ -112,7 +115,7 @@ public class StatefulEntityTest {
     store = world.actorFor(Definition.has(InMemoryTextStateStoreActor.class, Definition.parameters(dispatcher)), TextStateStore.class);
     registry = new StatefulTypeRegistry(world);
     registry.register(
-            new Info<Entity1State,String>(
+            new Info<Entity1State,State<String>>(
                     store,
                     Entity1State.class,
                     Entity1State.class.getSimpleName(),
@@ -124,15 +127,23 @@ public class StatefulEntityTest {
     world.terminate();
   }
 
-  public static class Entity1StateAdapter implements StateAdapter<Entity1State,String> {
+  public static class Entity1StateAdapter implements StateAdapter<Entity1State,State<String>> {
+    @Override public int typeVersion() { return 1; }
+
     @Override
-    public Entity1State fromRaw(final String raw, final int stateVersion, final int typeVersion) {
-      return JsonSerialization.deserialized(raw, Entity1State.class);
+    public Entity1State fromRawState(final State<String> raw) {
+      return JsonSerialization.deserialized(raw.data, Entity1State.class);
     }
 
     @Override
-    public String toRaw(final Entity1State state, final int stateVersion, final int typeVersion) {
-      return JsonSerialization.serialized(state);
+    public State<String> toRawState(final Entity1State state, final int stateVersion) {
+      return this.toRawState(state, stateVersion, Metadata.nullMetadata());
+    }
+
+    @Override
+    public State<String> toRawState(final Entity1State state, final int stateVersion, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(state);
+      return new TextState(state.id, Entity1State.class, typeVersion(), serialization, stateVersion);
     }
   }
 
@@ -183,7 +194,7 @@ public class StatefulEntityTest {
     }
   }
 
-  public static class Entity1Actor extends StatefulEntity<Entity1State,String> implements Entity1 {
+  public static class Entity1Actor extends StatefulEntity<Entity1State,State<String>> implements Entity1 {
     private Entity1State state;
     private int stateVersion = 0;
     private final TestUntil until;
@@ -248,14 +259,9 @@ public class StatefulEntityTest {
     public int stateVersion() {
       return stateVersion;
     }
-
-    @Override
-    public int typeVersion() {
-      return 1;
-    }
   }
 
-  public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State,String> implements Entity1 {
+  public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State,State<String>> implements Entity1 {
     private Entity1State state;
     private int stateVersion = 0;
     private final TestUntil until;
@@ -323,11 +329,6 @@ public class StatefulEntityTest {
     @Override
     public int stateVersion() {
       return stateVersion;
-    }
-
-    @Override
-    public int typeVersion() {
-      return 1;
     }
   }
 }

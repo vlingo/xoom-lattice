@@ -53,18 +53,24 @@ public class CommandSourcedTest {
   }
 
   @Before
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public void setUp() {
     world = World.startWithDefaults("test-cs");
     
     listener = new MockJournalListener();
 
     journal = world.actorFor(Definition.has(InMemoryJournalActor.class, Definition.parameters(listener)), Journal.class);
-    journal.registerAdapter(DoCommand1.class, new DoCommand1Adapter());
-    journal.registerAdapter(DoCommand2.class, new DoCommand2Adapter());
 
     registry = new SourcedTypeRegistry(world);
-    registry.register(new Info<>(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));
+    registry.register(new Info(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));
+    registry.info(TestCommandSourcedEntity.class)
+      .register(DoCommand1.class, new DoCommand1Adapter(),
+              (type, adapter) -> journal.registerAdapter(type, adapter))
+      .register(DoCommand2.class, new DoCommand2Adapter(),
+              (type, adapter) -> journal.registerAdapter(type, adapter))
+      .register(DoCommand3.class, new DoCommand3Adapter(),
+              (type, adapter) -> journal.registerAdapter(type, adapter));
+
 
     result = new Result();
     entity = world.actorFor(Definition.has(TestCommandSourcedEntity.class, Definition.parameters(result)), Entity.class);

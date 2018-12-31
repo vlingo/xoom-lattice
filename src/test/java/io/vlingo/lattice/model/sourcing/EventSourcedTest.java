@@ -58,8 +58,29 @@ public class EventSourcedTest {
     assertEquals(Test2Happened.class.getName(), listener.entries.get(1).type);
   }
 
+  @Test
+  public void testThatOutcomeCompletes() {
+    result.until.completes();
+    assertTrue(result.tested1);
+    assertFalse(result.tested3);
+    assertEquals(1, result.applied.size());
+    assertEquals(1, listener.entries.size());
+    assertEquals(Test1Happened.class, result.applied.get(0).getClass());
+    assertEquals(Test1Happened.class.getName(), listener.entries.get(0).type);
+    result.until = TestUntil.happenings(2);
+    entity.doTest3().andThenConsume(greeting -> {
+      assertEquals("hello", greeting);
+      result.until.happened();
+    });
+    result.until.completes();
+    assertEquals(2, result.applied.size());
+    assertEquals(2, listener.entries.size());
+    assertEquals(Test3Happened.class, result.applied.get(1).getClass());
+    assertEquals(Test3Happened.class.getName(), listener.entries.get(1).type);
+  }
+
   @Before
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public void setUp() {
     world = World.startWithDefaults("test-es");
     
@@ -68,9 +89,10 @@ public class EventSourcedTest {
     journal = world.actorFor(Definition.has(InMemoryJournalActor.class, Definition.parameters(listener)), Journal.class);
     journal.registerAdapter(Test1Happened.class, new Test1HappenedAdapter());
     journal.registerAdapter(Test2Happened.class, new Test2HappenedAdapter());
+    journal.registerAdapter(Test3Happened.class, new Test3HappenedAdapter());
 
     registry = new SourcedTypeRegistry(world);
-    registry.register(new Info<>(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
+    registry.register(new Info(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
 
     result = new Result();
     entity = world.actorFor(Definition.has(TestEventSourcedEntity.class, Definition.parameters(result)), Entity.class);

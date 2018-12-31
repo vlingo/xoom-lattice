@@ -9,7 +9,10 @@ package io.vlingo.lattice.model.sourcing;
 
 import java.util.function.BiConsumer;
 
-public class TestCommandSourcedEntity extends CommandSourced implements Entity {
+import io.vlingo.common.Completes;
+import io.vlingo.symbio.State;
+
+public class TestCommandSourcedEntity extends CommandSourced<State<String>> implements Entity {
   static {
     final BiConsumer<TestCommandSourcedEntity,DoCommand1> bi1 = TestCommandSourcedEntity::applied1;
     registerConsumer(TestCommandSourcedEntity.class, DoCommand1.class, bi1);
@@ -20,13 +23,23 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   private final Result result;
 
   public TestCommandSourcedEntity(final Result result) {
-    super("TestCommand123");
     this.result = result;
     apply(new DoCommand1());
   }
 
   public void doTest2() {
     apply(new DoCommand2());
+  }
+
+  @Override
+  public Completes<String> doTest3() {
+    apply(new DoCommand3(), () -> "hello");
+    return completes();
+  }
+
+  @Override
+  protected String streamName() {
+    return "TestCommand123";
   }
 
   private void applied1(final DoCommand1 command) {

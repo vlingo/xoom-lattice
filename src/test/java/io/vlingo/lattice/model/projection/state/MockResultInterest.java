@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.common.Outcome;
 import io.vlingo.symbio.State;
+import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ConfirmDispatchedResultInterest;
@@ -21,8 +22,8 @@ import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 
 public class MockResultInterest
-    implements ReadResultInterest<String>,
-               WriteResultInterest<String>,
+    implements ReadResultInterest<TextState>,
+               WriteResultInterest<TextState>,
                ConfirmDispatchedResultInterest {
 
   public AtomicInteger confirmDispatchedResultedIn = new AtomicInteger(0);
@@ -47,7 +48,7 @@ public class MockResultInterest
   }
 
   @Override
-  public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<String> state, final Object object) {
+  public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final TextState state, final Object object) {
     outcome
       .andThen(result -> {
         readTextResultedIn.incrementAndGet();
@@ -67,7 +68,7 @@ public class MockResultInterest
   }
 
   @Override
-  public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<String> state, final Object object) {
+  public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final TextState state, final Object object) {
     outcome
       .andThen(result -> {
         writeTextResultedIn.incrementAndGet();

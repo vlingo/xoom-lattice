@@ -7,9 +7,8 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import io.vlingo.common.Completes;
+import io.vlingo.lattice.model.Command;
 
-public interface Entity {
-  void doTest2();
-  Completes<String> doTest3();
+public class DoCommand3 extends Command {
+
 }
