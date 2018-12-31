@@ -21,7 +21,7 @@ import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 
-public abstract class StatefulEntity<S,R> extends Actor
+public abstract class StatefulEntity<S,R extends State<?>> extends Actor
     implements Stateful<S>, ReadResultInterest<R>, WriteResultInterest<R> {
 
   private final Info<S,R> info;
@@ -29,14 +29,14 @@ public abstract class StatefulEntity<S,R> extends Actor
   @Override
   @SuppressWarnings("unchecked")
   public void preserve(final S state, final String metadataValue, final String operation, final BiConsumer<S,Integer> consumer) {
-    final R raw = info.adapter.toRaw(state, stateVersion(), typeVersion());
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
+    final R raw = info.adapter.toRawState(state, stateVersion() + 1, metadata);
     if (info.isBinary()) {
       stowMessages(WriteResultInterest.class);
-      info.binaryStateStore().write(new BinaryState(id(), (Class<S>) stateType(), typeVersion(), (byte[]) raw, stateVersion() + 1, metadata), selfAs(WriteResultInterest.class), consumer);
+      info.binaryStateStore().write((BinaryState) raw, selfAs(WriteResultInterest.class), consumer);
     } else {
       stowMessages(WriteResultInterest.class);
-      info.textStateStore().write(new TextState(id(), (Class<S>) stateType(), typeVersion(), (String) raw, stateVersion() + 1, metadata), selfAs(WriteResultInterest.class), consumer);
+      info.textStateStore().write((TextState) raw, selfAs(WriteResultInterest.class), consumer);
     }
   }
 
@@ -57,10 +57,10 @@ public abstract class StatefulEntity<S,R> extends Actor
    */
   @Override
   @SuppressWarnings("unchecked")
-  final public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<R> state, final Object consumer) {
+  final public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final R state, final Object consumer) {
     outcome
       .andThen(result -> {
-        final S preserved = info.adapter.fromRaw(state.data, stateVersion(), typeVersion());
+        final S preserved = info.adapter.fromRawState(state);
         if (consumer != null) {
           ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
         } else {
@@ -78,10 +78,10 @@ public abstract class StatefulEntity<S,R> extends Actor
 
   @Override
   @SuppressWarnings("unchecked")
-  final public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final State<R> state, final Object consumer) {
+  final public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final R state, final Object consumer) {
     outcome
       .andThen(result -> {
-        final S preserved = info.adapter.fromRaw(state.data, stateVersion(), typeVersion());
+        final S preserved = info.adapter.fromRawState(state);
         if (consumer != null) {
           ((BiConsumer<S,Integer>) consumer).accept(preserved, state.dataVersion);
         } else {

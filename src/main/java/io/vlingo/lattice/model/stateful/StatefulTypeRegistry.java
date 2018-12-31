@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import io.vlingo.actors.World;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.State.BinaryState;
+import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.store.state.BinaryStateStore;
 import io.vlingo.symbio.store.state.StateStore;
@@ -28,8 +31,8 @@ public final class StatefulTypeRegistry {
   }
 
   @SuppressWarnings("unchecked")
-  public <S,R> Info<S,R> info(Class<?> type) {
-    return (Info<S,R>) stores.get(type);
+  public <S,RS extends State<?>> Info<S,RS> info(Class<?> type) {
+    return (Info<S,RS>) stores.get(type);
   }
 
   public StatefulTypeRegistry register(final Info<?,?> info) {
@@ -38,13 +41,13 @@ public final class StatefulTypeRegistry {
     return this;
   }
 
-  public static class Info<S,R> {
-    public final StateAdapter<S,R> adapter;
+  public static class Info<S,RS extends State<?>> {
+    public final StateAdapter<S,RS> adapter;
     public final StateStore store;
     public final String storeName;
     public final Class<S> storeType;
 
-    public Info(final StateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,R> adapter) {
+    public Info(final StateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,RS> adapter) {
       this.store = store;
       this.storeType = storeType;
       this.storeName = storeName;
@@ -68,8 +71,8 @@ public final class StatefulTypeRegistry {
     }
   }
 
-  public static class BinaryInfo<S> extends Info<S,byte[]> {
-    public BinaryInfo(final BinaryStateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,byte[]> adapter) {
+  public static class BinaryInfo<S> extends Info<S,BinaryState> {
+    public BinaryInfo(final BinaryStateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,BinaryState> adapter) {
       super(store, storeType, storeName, adapter);
     }
 
@@ -78,8 +81,8 @@ public final class StatefulTypeRegistry {
     }
   }
 
-  public static class TextInfo<S> extends Info<S,String> {
-    public TextInfo(final TextStateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,String> adapter) {
+  public static class TextInfo<S> extends Info<S,TextState> {
+    public TextInfo(final TextStateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,TextState> adapter) {
       super(store, storeType, storeName, adapter);
     }
 

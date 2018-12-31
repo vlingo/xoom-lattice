@@ -17,116 +17,82 @@ import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.EntryAdapter;
 import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.Source;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.StateAdapter;
+import io.vlingo.symbio.StateAdapterProvider;
 import io.vlingo.symbio.store.journal.Journal;
-import io.vlingo.symbio.store.journal.Journal.ObjectJournal;
-import io.vlingo.symbio.store.journal.Journal.TextJournal;
-import io.vlingo.symbio.store.state.BinaryStateStore;
-import io.vlingo.symbio.store.state.TextStateStore;
 
 public final class SourcedTypeRegistry {
   static final String INTERNAL_NAME = UUID.randomUUID().toString();
 
-  private final Map<Class<?>,Info<?,?>> stores = new ConcurrentHashMap<>();
+  private final Map<Class<?>,Info<?>> stores = new ConcurrentHashMap<>();
 
   public SourcedTypeRegistry(final World world) {
     world.registerDynamic(INTERNAL_NAME, this);
   }
 
-  @SuppressWarnings("unchecked")
-  public <S,R> Info<S,R> info(Class<S> type) {
-    return (Info<S,R>) stores.get(type);
+  public Info<?> info(final Class<?> type) {
+    return stores.get(type);
   }
 
-  public <S,R> SourcedTypeRegistry register(final Info<S,R> info) {
+  public <T> SourcedTypeRegistry register(final Info<T> info) {
     stores.put(info.sourcedType, info);
     return this;
   }
 
-  public static class Info<S,R> {
+  public static class Info<T> {
     public final EntryAdapterProvider entryAdapterProvider;
-    public final Journal<R> journal;
+    public final StateAdapterProvider stateAdapterProvider;
+    public final Journal<T> journal;
     public final String sourcedName;
-    public final Class<S> sourcedType;
+    public final Class<Sourced<T,?>> sourcedType;
 
-    public Info(final Journal<R> journal, final Class<S> sourcedType, final String sourcedName) {
+    public Info(final Journal<T> journal, final Class<Sourced<T,?>> sourcedType, final String sourcedName) {
       this.journal = journal;
       this.sourcedType = sourcedType;
       this.sourcedName = sourcedName;
       this.entryAdapterProvider = new EntryAdapterProvider();
+      this.stateAdapterProvider = new StateAdapterProvider();
     }
 
     public EntryAdapterProvider entryAdapterProvider() {
       return entryAdapterProvider;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> Journal<T> journal() {
-      return (Journal<T>) journal;
-    }
-
-    public BinaryStateStore binaryJournal() {
-      return (BinaryStateStore) journal;
+    public Journal<T> journal() {
+      return journal;
     }
 
     public boolean isBinary() {
       return false;
     }
 
-    public ObjectJournal objectJournal() {
-      return (ObjectJournal) journal;
-    }
-
     public boolean isObject() {
       return false;
-    }
-
-    public TextStateStore textJournal() {
-      return (TextStateStore) journal;
     }
 
     public boolean isText() {
       return false;
     }
 
-    public <T extends Source<?>,E extends Entry<?>> Info<S,R> register(final Class<T> sourceType, final EntryAdapter<T,E> adapter) {
+    public <S extends Source<?>,E extends Entry<?>> Info<T> register(final Class<S> sourceType, final EntryAdapter<S,E> adapter) {
       entryAdapterProvider.registerAdapter(sourceType, adapter);
       return this;
     }
 
-    public <T extends Source<?>,E extends Entry<?>> Info<S,R> register(final Class<T> sourceType, final EntryAdapter<T,E> adapter, final BiConsumer<Class<T>,EntryAdapter<T,E>> consumer) {
+    public <S extends Source<?>,E extends Entry<?>> Info<T> register(final Class<S> sourceType, final EntryAdapter<S,E> adapter, final BiConsumer<Class<S>,EntryAdapter<S,E>> consumer) {
       entryAdapterProvider.registerAdapter(sourceType, adapter, consumer);
       return this;
     }
-  }
 
-  public static class BinaryInfo<S> extends Info<S,byte[]> {
-    @SuppressWarnings("unchecked")
-    public BinaryInfo(final BinaryStateStore journal, final Class<S> sourcedType, final String sourcedName) {
-      super((Journal<byte[]>) journal, sourcedType, sourcedName);
+    public <S extends Sourced<T,?>,ST extends State<?>> Info<T> register(final Class<S> stateType, final StateAdapter<S,ST> adapter) {
+      stateAdapterProvider.registerAdapter(stateType, adapter);
+      return this;
     }
 
-    public boolean isBinary() {
-      return true;
-    }
-  }
-
-  public static class ObjectInfo<S> extends Info<S,Object> {
-    public ObjectInfo(final ObjectJournal journal, final Class<S> sourcedType, final String sourcedName) {
-      super((Journal<Object>) journal, sourcedType, sourcedName);
-    }
-
-    public boolean isObject() {
-      return true;
-    }
-  }
-
-  public static class TextInfo<S> extends Info<S,String> {
-    public TextInfo(final TextJournal journal, final Class<S> sourcedType, final String sourcedName) {
-      super((Journal<String>) journal, sourcedType, sourcedName);
-    }
-
-    public boolean isText() {
-      return true;
+    public <S extends Sourced<T,?>,ST extends State<?>> Info<T> register(final Class<S> stateType, final StateAdapter<S,ST> adapter, final BiConsumer<Class<S>,StateAdapter<S,ST>> consumer) {
+      stateAdapterProvider.registerAdapter(stateType, adapter, consumer);
+      return this;
     }
   }
 }

@@ -10,7 +10,7 @@ package io.vlingo.lattice.model.projection.state;
 import java.util.Collection;
 
 import io.vlingo.lattice.model.projection.ProjectionDispatcher;
-import io.vlingo.symbio.State;
+import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.store.state.TextStateStore.TextDispatcher;
 
 public class TextStateProjectionDispatcherActor extends StateProjectionDispatcherActor
@@ -25,7 +25,7 @@ public class TextStateProjectionDispatcherActor extends StateProjectionDispatche
   }
 
   @Override
-  public void dispatchText(final String dispatchId, final State<String> state) {
+  public void dispatchText(final String dispatchId, final TextState state) {
     if (hasProjectionsFor(state.metadata.operation)) {
       dispatch(dispatchId, new ProjectableTextState(state, dispatchId));
     }

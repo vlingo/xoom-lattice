@@ -9,8 +9,4 @@ package io.vlingo.lattice.model.sourcing;
 
 import io.vlingo.lattice.model.DomainEvent;
 
-public abstract class EventSourced extends Sourced<DomainEvent> {
-  protected EventSourced(final String... streamNameSegments) {
-    super(streamNameSegments);
-  }
-}
+public abstract class EventSourced<S> extends Sourced<DomainEvent,S> { }

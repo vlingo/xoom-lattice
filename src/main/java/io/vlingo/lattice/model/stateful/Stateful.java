@@ -16,7 +16,6 @@ public interface Stateful<S> {
   void state(final S state, final int stateVersion);
   Class<?> stateType();
   int stateVersion();
-  int typeVersion();
 
   default void preserve(final S state, final String operation, final BiConsumer<S,Integer> consumer) {
     preserve(state, "", operation, consumer);

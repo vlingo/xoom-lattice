@@ -9,8 +9,4 @@ package io.vlingo.lattice.model.sourcing;
 
 import io.vlingo.lattice.model.Command;
 
-public abstract class CommandSourced extends Sourced<Command> {
-  protected CommandSourced(final String... streamNameSegments) {
-    super(streamNameSegments);
-  }
-}
+public abstract class CommandSourced<S> extends Sourced<Command,S> { }
