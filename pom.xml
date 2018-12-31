@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.vlingo</groupId>
   <artifactId>vlingo-lattice</artifactId>
-  <version>0.7.6</version>
+  <version>0.7.7</version>
   <name>vlingo-lattice</name>
   <description>Tooling for reactive Domain-Driven Design projects that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, CQRS, and Event Sourcing support.</description>
   <url>https://github.com/vlingo/vlingo-lattice</url>
@@ -81,22 +81,22 @@
     <dependency>
       <groupId>io.vlingo</groupId>
       <artifactId>vlingo-common</artifactId>
-      <version>0.7.6</version>
+      <version>0.7.7</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo</groupId>
       <artifactId>vlingo-actors</artifactId>
-      <version>0.7.6</version>
+      <version>0.7.7</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo</groupId>
       <artifactId>vlingo-cluster</artifactId>
-      <version>0.7.6</version>
+      <version>0.7.7</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo</groupId>
       <artifactId>vlingo-symbio</artifactId>
-      <version>0.7.6</version>
+      <version>0.7.7</version>
     </dependency>
   </dependencies>
   <distributionManagement>
