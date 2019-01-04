@@ -38,10 +38,10 @@ public class MatchableProjections {
    * the projection such that later matches will be dispatched to the projection.
    * For example: final String whenMatchingCauses = "User:new;User:contact;User:name";
    * @param projection the Projection to which matches are dispatched
-   * @param whenMatchingCauses the one or more cause patterns separated by semicolons
+   * @param whenMatchingCauses the String[] with one or more cause patterns separated by semicolons
    */
-  public void mayDispatchTo(final Projection projection, final String whenMatchingCauses) {
-    for (final String whenMatchingCause : whenMatchingCauses.split(";")) {
+  public void mayDispatchTo(final Projection projection, final String[] whenMatchingCauses) {
+    for (final String whenMatchingCause : whenMatchingCauses) {
       final Cause cause = Cause.determineFor(whenMatchingCause);
       List<Projection> projections = mappedProjections.get(cause);
 
@@ -52,6 +52,11 @@ public class MatchableProjections {
 
       projections.add(projection);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "MatchableProjections[" + mappedProjections + "]";
   }
 
   private static abstract class Cause {
