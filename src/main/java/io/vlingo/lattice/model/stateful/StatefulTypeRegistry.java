@@ -16,10 +16,8 @@ import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.BinaryState;
 import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.StateAdapter;
-import io.vlingo.symbio.store.state.BinaryStateStore;
 import io.vlingo.symbio.store.state.StateStore;
 import io.vlingo.symbio.store.state.StateTypeStateStoreMap;
-import io.vlingo.symbio.store.state.TextStateStore;
 
 public final class StatefulTypeRegistry {
   static final String INTERNAL_NAME = UUID.randomUUID().toString();
@@ -54,16 +52,8 @@ public final class StatefulTypeRegistry {
       this.adapter = adapter;
     }
 
-    public BinaryStateStore binaryStateStore() {
-      return (BinaryStateStore) store;
-    }
-
     public boolean isBinary() {
       return false;
-    }
-
-    public TextStateStore textStateStore() {
-      return (TextStateStore) store;
     }
 
     public boolean isText() {
@@ -72,7 +62,7 @@ public final class StatefulTypeRegistry {
   }
 
   public static class BinaryInfo<S> extends Info<S,BinaryState> {
-    public BinaryInfo(final BinaryStateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,BinaryState> adapter) {
+    public BinaryInfo(final StateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,BinaryState> adapter) {
       super(store, storeType, storeName, adapter);
     }
 
@@ -82,7 +72,7 @@ public final class StatefulTypeRegistry {
   }
 
   public static class TextInfo<S> extends Info<S,TextState> {
-    public TextInfo(final TextStateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,TextState> adapter) {
+    public TextInfo(final StateStore store, final Class<S> storeType, final String storeName, final StateAdapter<S,TextState> adapter) {
       super(store, storeType, storeName, adapter);
     }
 
