@@ -11,10 +11,10 @@ import java.util.Collection;
 
 import io.vlingo.lattice.model.projection.ProjectionDispatcher;
 import io.vlingo.symbio.State;
-import io.vlingo.symbio.store.state.BinaryStateStore.BinaryDispatcher;
+import io.vlingo.symbio.store.state.StateStore.Dispatcher;
 
 public class BinaryStateProjectionDispatcherActor extends StateProjectionDispatcherActor
-    implements ProjectionDispatcher, BinaryDispatcher {
+    implements ProjectionDispatcher, Dispatcher {
 
   public BinaryStateProjectionDispatcherActor() {
     super();
@@ -25,9 +25,10 @@ public class BinaryStateProjectionDispatcherActor extends StateProjectionDispatc
   }
 
   @Override
-  public void dispatchBinary(final String dispatchId, final State<byte[]> state) {
+  @SuppressWarnings("unchecked")
+  public <S extends State<?>> void dispatch(final String dispatchId, final S state) {
     if (hasProjectionsFor(state.metadata.operation)) {
-      dispatch(dispatchId, new ProjectableBinaryState(state, dispatchId));
+      dispatch(dispatchId, new ProjectableBinaryState((State<byte[]>) state, dispatchId));
     }
   }
 
