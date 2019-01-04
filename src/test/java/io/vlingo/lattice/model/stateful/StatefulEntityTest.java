@@ -23,13 +23,13 @@ import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.StateAdapter;
-import io.vlingo.symbio.store.state.TextStateStore;
-import io.vlingo.symbio.store.state.inmemory.InMemoryTextStateStoreActor;
+import io.vlingo.symbio.store.state.StateStore;
+import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
 
 public class StatefulEntityTest {
   private MockTextDispatcher dispatcher;
   private StatefulTypeRegistry registry;
-  private TextStateStore store;
+  private StateStore store;
   private World world;
 
   @Test
@@ -112,7 +112,8 @@ public class StatefulEntityTest {
   public void setUp() {
     world = World.startWithDefaults("stateful-entity");
     dispatcher = new MockTextDispatcher();
-    store = world.actorFor(Definition.has(InMemoryTextStateStoreActor.class, Definition.parameters(dispatcher)), TextStateStore.class);
+    store = world.actorFor(Definition.has(InMemoryStateStoreActor.class, Definition.parameters(dispatcher)), StateStore.class);
+    store.registerAdapter(Entity1State.class, new Entity1StateAdapter());
     registry = new StatefulTypeRegistry(world);
     registry.register(
             new Info<Entity1State,State<String>>(
