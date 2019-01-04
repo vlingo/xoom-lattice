@@ -13,8 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.common.Outcome;
-import io.vlingo.symbio.State;
-import io.vlingo.symbio.State.TextState;
+import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ConfirmDispatchedResultInterest;
@@ -22,8 +21,8 @@ import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 
 public class MockResultInterest
-    implements ReadResultInterest<TextState>,
-               WriteResultInterest<TextState>,
+    implements ReadResultInterest,
+               WriteResultInterest,
                ConfirmDispatchedResultInterest {
 
   public AtomicInteger confirmDispatchedResultedIn = new AtomicInteger(0);
@@ -34,7 +33,8 @@ public class MockResultInterest
   public AtomicReference<Result> textReadResult = new AtomicReference<>();
   public AtomicReference<Result> textWriteResult = new AtomicReference<>();
   public ConcurrentLinkedQueue<Result> textWriteAccumulatedResults = new ConcurrentLinkedQueue<>();
-  public AtomicReference<State<String>> textState = new AtomicReference<>();
+  public AtomicReference<Object> stateHolder = new AtomicReference<>();
+  public AtomicReference<Metadata> metadataHolder = new AtomicReference<>();
   public ConcurrentLinkedQueue<Exception> errorCauses = new ConcurrentLinkedQueue<>();
 
   public MockResultInterest(final int testUntilHappenings) {
@@ -48,33 +48,36 @@ public class MockResultInterest
   }
 
   @Override
-  public void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final TextState state, final Object object) {
+  public <S> void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final Metadata metadata, final Object object) {
     outcome
       .andThen(result -> {
         readTextResultedIn.incrementAndGet();
         textReadResult.set(result);
-        textState.set(state);
+        stateHolder.set(state);
+        metadataHolder.set(metadata);
         until.happened();
         return result;
       })
       .otherwise(cause -> {
         readTextResultedIn.incrementAndGet();
         textReadResult.set(cause.result);
-        textState.set(state);
+        stateHolder.set(state);
+        metadataHolder.set(metadata);
         errorCauses.add(cause);
         until.happened();
         return cause.result;
       });
   }
 
+
   @Override
-  public void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final TextState state, final Object object) {
+  public <S> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final Object object) {
     outcome
       .andThen(result -> {
         writeTextResultedIn.incrementAndGet();
         textWriteResult.set(result);
         textWriteAccumulatedResults.add(result);
-        textState.set(state);
+        stateHolder.set(state);
         until.happened();
         return result;
       })
@@ -82,7 +85,7 @@ public class MockResultInterest
         writeTextResultedIn.incrementAndGet();
         textWriteResult.set(cause.result);
         textWriteAccumulatedResults.add(cause.result);
-        textState.set(state);
+        stateHolder.set(state);
         errorCauses.add(cause);
         until.happened();
         return cause.result;
