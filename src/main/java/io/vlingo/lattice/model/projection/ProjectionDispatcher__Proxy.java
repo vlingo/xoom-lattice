@@ -17,7 +17,7 @@ public class ProjectionDispatcher__Proxy implements io.vlingo.lattice.model.proj
     this.mailbox = mailbox;
   }
 
-  public void projectTo(io.vlingo.lattice.model.projection.Projection arg0, java.lang.String arg1) {
+  public void projectTo(io.vlingo.lattice.model.projection.Projection arg0, java.lang.String[] arg1) {
     if (!actor.isStopped()) {
       final java.util.function.Consumer<ProjectionDispatcher> consumer = (actor) -> actor.projectTo(arg0, arg1);
       if (mailbox.isPreallocated()) { mailbox.send(actor, ProjectionDispatcher.class, consumer, null, projectToRepresentation1); }
