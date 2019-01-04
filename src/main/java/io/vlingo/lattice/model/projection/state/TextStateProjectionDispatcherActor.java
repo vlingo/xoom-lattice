@@ -10,11 +10,11 @@ package io.vlingo.lattice.model.projection.state;
 import java.util.Collection;
 
 import io.vlingo.lattice.model.projection.ProjectionDispatcher;
-import io.vlingo.symbio.State.TextState;
-import io.vlingo.symbio.store.state.TextStateStore.TextDispatcher;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.store.state.StateStore.Dispatcher;
 
 public class TextStateProjectionDispatcherActor extends StateProjectionDispatcherActor
-    implements ProjectionDispatcher, TextDispatcher {
+    implements ProjectionDispatcher, Dispatcher {
 
   public TextStateProjectionDispatcherActor() {
     super();
@@ -25,9 +25,10 @@ public class TextStateProjectionDispatcherActor extends StateProjectionDispatche
   }
 
   @Override
-  public void dispatchText(final String dispatchId, final TextState state) {
+  @SuppressWarnings("unchecked")
+  public <S extends State<?>> void dispatch(final String dispatchId, final S state) {
     if (hasProjectionsFor(state.metadata.operation)) {
-      dispatch(dispatchId, new ProjectableTextState(state, dispatchId));
+      dispatch(dispatchId, new ProjectableTextState((State<String>) state, dispatchId));
     }
   }
 
