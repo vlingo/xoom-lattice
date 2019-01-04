@@ -10,13 +10,13 @@ package io.vlingo.lattice.model.projection;
 import io.vlingo.actors.Actor;
 
 public interface ProjectionDispatcher {
-  void projectTo(final Projection projection, final String becauseOf);
+  void projectTo(final Projection projection, final String[] becauseOf);
 
   public static class ProjectToDescription {
     public final Class<? extends Actor> projectionType;
-    public final String becauseOf;
+    public final String[] becauseOf;
 
-    public ProjectToDescription(final Class<? extends Actor> projectionType, final String becauseOf) {
+    public ProjectToDescription(final Class<? extends Actor> projectionType, final String... becauseOf) {
       if (!Projection.class.isAssignableFrom(projectionType)) {
         throw new IllegalArgumentException("Class of projectionType must extend Actor and implement Projection.");
       }
