@@ -13,14 +13,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.symbio.State;
-import io.vlingo.symbio.State.TextState;
+import io.vlingo.symbio.store.state.StateStore.Dispatcher;
 import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
-import io.vlingo.symbio.store.state.TextStateStore.TextDispatcher;
 
-public class MockTextDispatcher implements TextDispatcher {
+public class MockTextDispatcher implements Dispatcher {
   // public final ConfirmDispatchedResultInterest confirmDispatchedResultInterest;
   public DispatcherControl control;
-  public final Map<String,State<String>> dispatched = new HashMap<>();
+  public final Map<String,State<?>> dispatched = new HashMap<>();
   public final AtomicBoolean processDispatch = new AtomicBoolean(true);
   public TestUntil until = TestUntil.happenings(0);
 
@@ -33,15 +32,7 @@ public class MockTextDispatcher implements TextDispatcher {
   }
 
   @Override
-  public void dispatch(final String dispatchId, final TextState state) {
-    if (processDispatch.get()) {
-      dispatched.put(dispatchId, state);
-      until.happened();
-    }
-  }
-
-  @Override
-  public void dispatchText(final String dispatchId, final TextState state) {
+  public <S extends State<?>> void dispatch(final String dispatchId, final S state) {
     if (processDispatch.get()) {
       dispatched.put(dispatchId, state);
       until.happened();
