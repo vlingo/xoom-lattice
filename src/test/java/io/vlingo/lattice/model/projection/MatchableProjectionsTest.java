@@ -17,9 +17,9 @@ public class MatchableProjectionsTest {
   public void testThatEntireCauseMatches() {
     final MatchableProjections matchable = new MatchableProjections();
 
-    matchable.mayDispatchTo(new MockProjection(), "some-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "some-other-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "yet-another-matching-text");
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"some-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"some-other-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"yet-another-matching-text"});
 
     assertEquals(1, matchable.matchProjections("some-matching-text").size());
     assertEquals(1, matchable.matchProjections("some-other-matching-text").size());
@@ -30,15 +30,15 @@ public class MatchableProjectionsTest {
   public void testThatBeginsWithCauseMatches() {
     final MatchableProjections matchable = new MatchableProjections();
 
-    matchable.mayDispatchTo(new MockProjection(), "some-matching-*");
-    matchable.mayDispatchTo(new MockProjection(), "some-mat*");
-    matchable.mayDispatchTo(new MockProjection(), "some-other-matching-*");
-    matchable.mayDispatchTo(new MockProjection(), "some-other-*");
-    matchable.mayDispatchTo(new MockProjection(), "some-*");
-    matchable.mayDispatchTo(new MockProjection(), "yet-another-matching-*");
-    matchable.mayDispatchTo(new MockProjection(), "yet-another-*");
-    matchable.mayDispatchTo(new MockProjection(), "yet-*");
-    matchable.mayDispatchTo(new MockProjection(), "yet*"); // note matches whole text "yet"
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"some-matching-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"some-mat*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"some-other-matching-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"some-other-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"some-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"yet-another-matching-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"yet-another-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"yet-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"yet*"}); // note matches whole text "yet"
 
     assertEquals(3, matchable.matchProjections("some-matching-text").size());
     assertEquals(3, matchable.matchProjections("some-other-matching-text").size());
@@ -50,15 +50,15 @@ public class MatchableProjectionsTest {
   public void testThatEndsWithCauseMatches() {
     final MatchableProjections matchable = new MatchableProjections();
 
-    matchable.mayDispatchTo(new MockProjection(), "*-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "*-text");
-    matchable.mayDispatchTo(new MockProjection(), "*-other-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "*-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "*-text");
-    matchable.mayDispatchTo(new MockProjection(), "*-another-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "*-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "*-text");
-    matchable.mayDispatchTo(new MockProjection(), "*text"); // note matches whole text "text"
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-other-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-another-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*text"}); // note matches whole text "text"
 
     assertEquals(7, matchable.matchProjections("some-matching-text").size());
     assertEquals(8, matchable.matchProjections("some-other-matching-text").size());
@@ -70,11 +70,11 @@ public class MatchableProjectionsTest {
   public void testThatContainsCauseMatches() {
     final MatchableProjections matchable = new MatchableProjections();
 
-    matchable.mayDispatchTo(new MockProjection(), "*-matching-*");
-    matchable.mayDispatchTo(new MockProjection(), "*-other-matching-*");
-    matchable.mayDispatchTo(new MockProjection(), "*-another-matching-*");
-    matchable.mayDispatchTo(new MockProjection(), "*-*");
-    matchable.mayDispatchTo(new MockProjection(), "*text*");
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-matching-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-other-matching-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-another-matching-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*-*"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"*text*"});
 
     assertEquals(3, matchable.matchProjections("some-matching-text").size());
     assertEquals(4, matchable.matchProjections("some-other-matching-text").size());
@@ -86,10 +86,10 @@ public class MatchableProjectionsTest {
   public void testThatNothingMatches() {
     final MatchableProjections matchable = new MatchableProjections();
 
-    matchable.mayDispatchTo(new MockProjection(), "other-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "another-matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "matching-text");
-    matchable.mayDispatchTo(new MockProjection(), "text");
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"other-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"another-matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"matching-text"});
+    matchable.mayDispatchTo(new MockProjection(), new String[] {"text"});
 
     assertEquals(0, matchable.matchProjections("some-matching-text").size());
     assertEquals(0, matchable.matchProjections("some-other-matching-text").size());
