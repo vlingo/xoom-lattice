@@ -38,7 +38,7 @@ public class AbstractProjectionDispatcherActor extends Actor implements Projecti
   //=====================================
 
   @Override
-  public void projectTo(final Projection projection, final String whenMatchingCause) {
+  public void projectTo(final Projection projection, final String[] whenMatchingCause) {
     matchableProjections.mayDispatchTo(projection, whenMatchingCause);
   }
 
