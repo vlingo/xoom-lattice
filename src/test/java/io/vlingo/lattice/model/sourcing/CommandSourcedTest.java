@@ -14,7 +14,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.vlingo.actors.Definition;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
@@ -59,7 +58,7 @@ public class CommandSourcedTest {
     
     listener = new MockJournalListener();
 
-    journal = world.actorFor(Definition.has(InMemoryJournalActor.class, Definition.parameters(listener)), Journal.class);
+    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, listener);
 
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));
@@ -73,6 +72,6 @@ public class CommandSourcedTest {
 
 
     result = new Result();
-    entity = world.actorFor(Definition.has(TestCommandSourcedEntity.class, Definition.parameters(result)), Entity.class);
+    entity = world.actorFor(Entity.class, TestCommandSourcedEntity.class, result);
   }
 }

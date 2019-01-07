@@ -11,7 +11,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import io.vlingo.actors.Actor;
-import io.vlingo.actors.Definition;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
 import io.vlingo.lattice.model.projection.state.Entity1;
@@ -36,8 +35,8 @@ public abstract class ProjectionDispatcherTest {
 
     final Protocols dispatcherProtocols =
             world.actorFor(
-                    Definition.has(projectionDispatcherClass(), Definition.NoParameters),
-                    new Class<?>[] { dispatcherInterfaceClass(), ProjectionDispatcher.class });
+                    new Class<?>[] { dispatcherInterfaceClass(), ProjectionDispatcher.class },
+                    projectionDispatcherClass());
 
     final Protocols.Two<Dispatcher, ProjectionDispatcher> dispatchers = Protocols.two(dispatcherProtocols);
     dispatcher = dispatchers._1;
@@ -45,8 +44,9 @@ public abstract class ProjectionDispatcherTest {
 
     final Protocols storeProtocols =
             world.actorFor(
-                    Definition.has(InMemoryStateStoreActor.class, Definition.parameters(dispatcher)),
-                    new Class<?>[] { stateStoreInterfaceClass(), DispatcherControl.class });
+                    new Class<?>[] { stateStoreInterfaceClass(), DispatcherControl.class },
+                    InMemoryStateStoreActor.class,
+                    dispatcher);
 
     final Protocols.Two<StateStore, DispatcherControl> storeWithControl = Protocols.two(storeProtocols);
     store = storeWithControl._1;

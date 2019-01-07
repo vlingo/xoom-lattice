@@ -7,10 +7,11 @@
 
 package io.vlingo.lattice.model.stateful;
 
-import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
+import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State;
@@ -22,20 +23,22 @@ import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 public abstract class StatefulEntity<S,R extends State<?>> extends Actor
     implements Stateful<S>, ReadResultInterest, WriteResultInterest {
 
+  private int currentVersion;
   private final Info<S,R> info;
+  private final ReadResultInterest readInterest;
+  private final WriteResultInterest writeInterest;
 
   @Override
-  public void preserve(final S state, final String metadataValue, final String operation, final BiConsumer<S,Integer> consumer) {
+  public <RT> void preserve(final S state, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     stowMessages(WriteResultInterest.class);
-    info.store.write(id(), state, stateVersion() + 1, metadata, selfAs(WriteResultInterest.class), consumer);
+    info.store.write(id(), state, nextVersion(), metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public void restore(final BiConsumer<S,Integer> consumer) {
+  public void restore() {
     stowMessages(ReadResultInterest.class);
-    info.store.read(id(), (Class<S>) stateType(), selfAs(ReadResultInterest.class), consumer);
+    info.store.read(id(), (Class<S>) stateType(), readInterest);
   }
 
   /**
@@ -43,14 +46,11 @@ public abstract class StatefulEntity<S,R extends State<?>> extends Actor
    */
   @Override
   @SuppressWarnings("unchecked")
-  public <ST> void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final ST state, final int stateVersion, final Metadata metadata, Object consumer) {
+  final public <ST> void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final ST state, final int stateVersion, final Metadata metadata, final Object object) {
     outcome
       .andThen(result -> {
-        if (consumer != null) {
-          ((BiConsumer<ST,Integer>) consumer).accept(state, stateVersion);
-        } else {
-          state((S) state, stateVersion);
-        }
+        state((S) state);
+        currentVersion = stateVersion;
         disperseStowedMessages();
         return result;
       })
@@ -63,14 +63,12 @@ public abstract class StatefulEntity<S,R extends State<?>> extends Actor
 
   @Override
   @SuppressWarnings("unchecked")
-  public <ST> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final ST state, final int stateVersion, final Object consumer) {
+  final public <ST> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final ST state, final int stateVersion, final Object supplier) {
     outcome
     .andThen(result -> {
-      if (consumer != null) {
-        ((BiConsumer<ST,Integer>) consumer).accept(state, stateVersion);
-      } else {
-        state((S) state, stateVersion);
-      }
+      state((S) state);
+      currentVersion = stateVersion;
+      completeUsing(supplier);
       disperseStowedMessages();
       return result;
     })
@@ -82,6 +80,32 @@ public abstract class StatefulEntity<S,R extends State<?>> extends Actor
   }
 
   protected StatefulEntity() {
+    this.currentVersion = 0;
     this.info = stage().world().resolveDynamic(StatefulTypeRegistry.INTERNAL_NAME, StatefulTypeRegistry.class).info(stateType());
+    this.readInterest = selfAs(ReadResultInterest.class);
+    this.writeInterest = selfAs(WriteResultInterest.class);
+  }
+
+  /**
+   * Answer my currentVersion, which, if zero, indicates that the
+   * receiver is being initially constructed or reconstituted.
+   * @return int
+   */
+  protected int currentVersion() {
+    return currentVersion;
+  }
+
+  private void completeUsing(final Object supplier) {
+    if (supplier != null) {
+      ((CompletionSupplier<?>) supplier).complete();
+    }
+  }
+
+  /**
+   * Answer my nextVersion, which is one greater than my currentVersion.
+   * @return int
+   */
+  private int nextVersion() {
+    return currentVersion + 1;
   }
 }

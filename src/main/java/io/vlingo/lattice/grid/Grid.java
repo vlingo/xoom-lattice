@@ -36,7 +36,7 @@ public class Grid {
       throw new IllegalStateException("vlingo/lattice: Grid has stopped.");
     }
 
-    final T actor = stage.actorFor(definition, protocol);
+    final T actor = stage.actorFor(protocol, definition);
 
     return actor;
   }

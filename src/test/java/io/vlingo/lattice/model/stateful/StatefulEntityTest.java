@@ -9,11 +9,12 @@ package io.vlingo.lattice.model.stateful;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Random;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.vlingo.actors.Definition;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.common.Completes;
@@ -27,6 +28,7 @@ import io.vlingo.symbio.store.state.StateStore;
 import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
 
 public class StatefulEntityTest {
+  private final Random idGenerator = new Random();
   private MockTextDispatcher dispatcher;
   private StatefulTypeRegistry registry;
   private StateStore store;
@@ -34,36 +36,35 @@ public class StatefulEntityTest {
 
   @Test
   public void testThatStatefulEntityPreservesRestores() throws Exception {
-    final Entity1State state = new Entity1State("123", "Sally", 23);
+    final String entityId = "" + idGenerator.nextInt(10_000);
+    final Entity1State state = new Entity1State(entityId, "Sally", 23);
     final TestUntil until1 = TestUntil.happenings(3);
 
-    final Entity1 entity1 =
-            world.actorFor(Definition.has(Entity1Actor.class, Definition.parameters(state, until1)), Entity1.class);
+    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1Actor.class, state, until1);
 
-    entity1.current().andThenConsume((Entity1State current) -> assertEquals(state, current));
+    entity1.current().andThenConsume(current -> assertEquals(state, current));
 
     entity1.changeName("Sally Jane");
 
-    entity1.current().andThenConsume((Entity1State current) -> assertEquals("Sally Jane", current.name));
+    entity1.current().andThenConsume(current -> assertEquals("Sally Jane", current.name));
 
     entity1.increaseAge();
 
-    entity1.current().andThenConsume((Entity1State current) -> { assertEquals(24, current.age); until1.happened(); });
+    entity1.current().andThenConsume(current -> { assertEquals(24, current.age); until1.happened(); });
 
     until1.completes();
 
-    final Entity1State identityState = new Entity1State("123");
+    final Entity1State identityState = new Entity1State(entityId);
     final TestUntil until2 = TestUntil.happenings(1);
 
-    final Entity1 restoredEntity1 =
-            world.actorFor(Definition.has(Entity1Actor.class, Definition.parameters(identityState, until2)), Entity1.class);
+    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1Actor.class, identityState, until2);
 
     until2.completes();
 
     final TestUntil until3 = TestUntil.happenings(1);
 
     restoredEntity1.current().andThenConsume(current -> {
-      assertEquals(new Entity1State("123", "Sally Jane", 24), current);
+      assertEquals(new Entity1State(entityId, "Sally Jane", 24), current);
       until3.happened();
     });
 
@@ -72,36 +73,35 @@ public class StatefulEntityTest {
 
   @Test
   public void testThatMetadataCallbackPreservesRestores() throws Exception {
-    final Entity1State state = new Entity1State("123", "Sally", 23);
+    final String entityId = "" + idGenerator.nextInt(10_000);
+    final Entity1State state = new Entity1State(entityId, "Sally", 23);
     final TestUntil until1 = TestUntil.happenings(3);
 
-    final Entity1 entity1 =
-            world.actorFor(Definition.has(Entity1MetadataCallbackActor.class, Definition.parameters(state, until1)), Entity1.class);
+    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, state, until1);
 
-    entity1.current().andThenConsume((Entity1State current) -> assertEquals(state, current));
+    entity1.current().andThenConsume(current -> assertEquals(state, current));
 
     entity1.changeName("Sally Jane");
 
-    entity1.current().andThenConsume((Entity1State current) -> assertEquals("Sally Jane", current.name));
+    entity1.current().andThenConsume(current -> assertEquals("Sally Jane", current.name));
 
     entity1.increaseAge();
 
-    entity1.current().andThenConsume((Entity1State current) -> assertEquals(24, current.age));
+    entity1.current().andThenConsume(current -> assertEquals(24, current.age));
 
     until1.completes();
 
-    final Entity1State identityState = new Entity1State("123");
+    final Entity1State identityState = new Entity1State(entityId);
     final TestUntil until2 = TestUntil.happenings(1);
 
-    final Entity1 restoredEntity1 =
-            world.actorFor(Definition.has(Entity1MetadataCallbackActor.class, Definition.parameters(identityState, until2)), Entity1.class);
+    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, identityState, until2);
 
     until2.completes();
 
     final TestUntil until3 = TestUntil.happenings(1);
 
     restoredEntity1.current().andThenConsume(current -> {
-      assertEquals(new Entity1State("123", "Sally Jane", 24), current);
+      assertEquals(new Entity1State(entityId, "Sally Jane", 24), current);
       until3.happened();
     });
 
@@ -112,7 +112,7 @@ public class StatefulEntityTest {
   public void setUp() {
     world = World.startWithDefaults("stateful-entity");
     dispatcher = new MockTextDispatcher();
-    store = world.actorFor(Definition.has(InMemoryStateStoreActor.class, Definition.parameters(dispatcher)), StateStore.class);
+    store = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, dispatcher);
     store.registerAdapter(Entity1State.class, new Entity1StateAdapter());
     registry = new StatefulTypeRegistry(world);
     registry.register(
@@ -197,7 +197,6 @@ public class StatefulEntityTest {
 
   public static class Entity1Actor extends StatefulEntity<Entity1State,State<String>> implements Entity1 {
     private Entity1State state;
-    private int stateVersion = 0;
     private final TestUntil until;
 
     public Entity1Actor(final Entity1State state, final TestUntil until) {
@@ -246,25 +245,18 @@ public class StatefulEntityTest {
     }
 
     @Override
-    public void state(final Entity1State state, final int stateVersion) {
+    public void state(final Entity1State state) {
       this.state = state;
-      this.stateVersion = stateVersion;
     }
 
     @Override
     public Class<Entity1State> stateType() {
       return Entity1State.class;
     }
-
-    @Override
-    public int stateVersion() {
-      return stateVersion;
-    }
   }
 
   public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State,State<String>> implements Entity1 {
     private Entity1State state;
-    private int stateVersion = 0;
     private final TestUntil until;
 
     public Entity1MetadataCallbackActor(final Entity1State state, final TestUntil until) {
@@ -275,9 +267,9 @@ public class StatefulEntityTest {
     @Override
     public void start() {
       if (state.hasState()) {
-        preserve(state, "METADATA", "new", (state, version) -> state(state, version));
+        preserve(state, "METADATA", "new");
       } else {
-        restore((state, version) -> state(state, version));
+        restore();
       }
       until.happened();
     }
@@ -293,17 +285,13 @@ public class StatefulEntityTest {
 
     @Override
     public void changeName(final String name) {
-      preserve(state.withName(name), "METADATA", "changeName", (state, version) -> {
-        state(state, version);
-      });
+      preserve(state.withName(name), "METADATA", "changeName");
       until.happened();
     }
 
     @Override
     public void increaseAge() {
-      preserve(state.withAge(state.age + 1), "METADATA", "increaseAge", (state, version) -> {
-        state(state, version);
-      });
+      preserve(state.withAge(state.age + 1), "METADATA", "increaseAge");
       until.happened();
     }
 
@@ -317,19 +305,13 @@ public class StatefulEntityTest {
     }
 
     @Override
-    public void state(final Entity1State state, final int stateVersion) {
+    public void state(final Entity1State state) {
       this.state = state;
-      this.stateVersion = stateVersion;
     }
 
     @Override
     public Class<Entity1State> stateType() {
       return Entity1State.class;
-    }
-
-    @Override
-    public int stateVersion() {
-      return stateVersion;
     }
   }
 }

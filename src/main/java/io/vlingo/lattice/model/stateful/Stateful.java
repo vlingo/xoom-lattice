@@ -7,22 +7,25 @@
 
 package io.vlingo.lattice.model.stateful;
 
-import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 public interface Stateful<S> {
   String id();
-  void preserve(final S state, final String metadata, final String operation, final BiConsumer<S,Integer> consumer);
-  void restore(final BiConsumer<S,Integer> consumer);
-  void state(final S state, final int stateVersion);
-  Class<?> stateType();
-  int stateVersion();
+  <RT> void preserve(final S state, final String metadata, final String operation, final Supplier<RT> andThen);
+  void restore();
+  void state(final S state);
+  Class<S> stateType();
 
-  default void preserve(final S state, final String operation, final BiConsumer<S,Integer> consumer) {
-    preserve(state, "", operation, consumer);
+  default <RT> void preserve(final S state, final String operation, final Supplier<RT> andThen) {
+    preserve(state, "", operation, andThen);
   }
 
-  default void preserve(final S state, final BiConsumer<S,Integer> consumer) {
-    preserve(state, "", "", consumer);
+  default <RT> void preserve(final S state, final Supplier<RT> andThen) {
+    preserve(state, "", "", andThen);
+  }
+
+  default void preserve(final S state, final String metadata, final String operation) {
+    preserve(state, "", operation, null);
   }
 
   default void preserve(final S state, final String operation) {
@@ -30,10 +33,6 @@ public interface Stateful<S> {
   }
 
   default void preserve(final S state) {
-    preserve(state, null, null);
-  }
-
-  default void restore() {
-    restore(null);
+    preserve(state, null, null, null);
   }
 }

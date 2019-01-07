@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import io.vlingo.actors.Actor;
-import io.vlingo.actors.Definition;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.TestUntil;
@@ -66,11 +65,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     final ProjectToDescription description = new ProjectToDescription(DescribedProjection.class, "op1", "op2");
 
     final Dispatcher dispatcher =
-            world.actorFor(
-                    Definition.has(
-                            TextStateProjectionDispatcherActor.class,
-                            Definition.parameters(Arrays.asList(description))),
-                    Dispatcher.class);
+            world.actorFor(Dispatcher.class, TextStateProjectionDispatcherActor.class, Arrays.asList(description));
 
     final Outcome outcome = new Outcome(2);
     dispatcher.controlWith(outcome);
@@ -138,8 +133,9 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
       final Protocols projectionProtocols =
               world.actorFor(
-                      Definition.has(FilterProjectionDispatcherActor.class, Definition.parameters(filterOutcome)),
-                      new Class<?>[] { ProjectionDispatcher.class, Projection.class });
+                      new Class<?>[] { ProjectionDispatcher.class, Projection.class },
+                      FilterProjectionDispatcherActor.class,
+                      filterOutcome);
 
       final Protocols.Two<ProjectionDispatcher, Projection> projectionFilter = Protocols.two(projectionProtocols);
 

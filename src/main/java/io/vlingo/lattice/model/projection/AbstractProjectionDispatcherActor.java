@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 
 import io.vlingo.actors.Actor;
-import io.vlingo.actors.Definition;
 
 public class AbstractProjectionDispatcherActor extends Actor implements ProjectionDispatcher {
   private final MatchableProjections matchableProjections;
@@ -24,10 +23,7 @@ public class AbstractProjectionDispatcherActor extends Actor implements Projecti
     this();
 
     for (final ProjectToDescription discription : projectToDescriptions) {
-      final Projection projection =
-              stage().actorFor(
-                      Definition.has(discription.projectionType, Definition.NoParameters),
-                      Projection.class);
+      final Projection projection = stage().actorFor(Projection.class, discription.projectionType);
 
       projectTo(projection, discription.becauseOf);
     }
