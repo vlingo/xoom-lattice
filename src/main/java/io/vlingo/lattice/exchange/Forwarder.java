@@ -57,7 +57,7 @@ public class Forwarder {
   private Covey<?,?,?> ofExchangeMessage(final Object exchangeMessage) {
     for (final Covey<?,?,?> covey : coveys) {
       if (covey.adapter.supports(exchangeMessage)) {
-        return (Covey<?,?,?>) covey;
+        return covey;
       }
     }
     throw new IllegalArgumentException("Not a supported message type: " + exchangeMessage.getClass().getName());
@@ -72,7 +72,7 @@ public class Forwarder {
   private Covey<?,?,?> ofObjectType(final Class<?> objectType) {
     for (final Covey<?,?,?> covey : coveys) {
       if (covey.externalClass == objectType || covey.localClass == objectType) {
-        return (Covey<?,?,?>) covey;
+        return covey;
       }
     }
     throw new IllegalArgumentException("Not a supported object type: " + objectType.getName());
