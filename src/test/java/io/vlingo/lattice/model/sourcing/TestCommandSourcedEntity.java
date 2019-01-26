@@ -10,9 +10,8 @@ package io.vlingo.lattice.model.sourcing;
 import java.util.function.BiConsumer;
 
 import io.vlingo.common.Completes;
-import io.vlingo.symbio.State;
 
-public class TestCommandSourcedEntity extends CommandSourced<State<String>> implements Entity {
+public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   static {
     final BiConsumer<TestCommandSourcedEntity,DoCommand1> bi1 = TestCommandSourcedEntity::applied1;
     registerConsumer(TestCommandSourcedEntity.class, DoCommand1.class, bi1);

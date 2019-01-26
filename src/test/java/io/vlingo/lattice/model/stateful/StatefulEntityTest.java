@@ -83,11 +83,11 @@ public class StatefulEntityTest {
 
     entity1.changeName("Sally Jane");
 
-    entity1.current().andThenConsume(current -> assertEquals("Sally Jane", current.name));
+    assertEquals("Sally Jane", entity1.current().await().name);
 
     entity1.increaseAge();
 
-    entity1.current().andThenConsume(current -> assertEquals(24, current.age));
+    assertEquals(24, entity1.current().await().age);
 
     until1.completes();
 
@@ -169,6 +169,10 @@ public class StatefulEntityTest {
       this(id, null, 0);
     }
 
+    public Entity1State copy() {
+      return new Entity1State(id, name, age);
+    }
+
     public boolean hasState() {
       return id != null && name != null && age > 0;
     }
@@ -220,7 +224,7 @@ public class StatefulEntityTest {
 
     @Override
     public Completes<Entity1State> current() {
-      return completes().with(state);
+      return completes().with(state.copy());
     }
 
     @Override
@@ -280,7 +284,7 @@ public class StatefulEntityTest {
 
     @Override
     public Completes<Entity1State> current() {
-      return completes().with(state);
+      return completes().with(state.copy());
     }
 
     @Override

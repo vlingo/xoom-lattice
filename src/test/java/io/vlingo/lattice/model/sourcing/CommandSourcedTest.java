@@ -63,12 +63,12 @@ public class CommandSourcedTest {
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));
     registry.info(TestCommandSourcedEntity.class)
-      .register(DoCommand1.class, new DoCommand1Adapter(),
-              (type, adapter) -> journal.registerAdapter(type, adapter))
-      .register(DoCommand2.class, new DoCommand2Adapter(),
-              (type, adapter) -> journal.registerAdapter(type, adapter))
-      .register(DoCommand3.class, new DoCommand3Adapter(),
-              (type, adapter) -> journal.registerAdapter(type, adapter));
+      .registerEntryAdapter(DoCommand1.class, new DoCommand1Adapter(),
+              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+      .registerEntryAdapter(DoCommand2.class, new DoCommand2Adapter(),
+              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+      .registerEntryAdapter(DoCommand3.class, new DoCommand3Adapter(),
+              (type, adapter) -> journal.registerEntryAdapter(type, adapter));
 
 
     result = new Result();

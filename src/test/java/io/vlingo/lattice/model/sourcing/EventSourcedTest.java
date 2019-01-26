@@ -86,9 +86,9 @@ public class EventSourcedTest {
     listener = new MockJournalListener();
 
     journal = world.actorFor(Journal.class, InMemoryJournalActor.class, listener);
-    journal.registerAdapter(Test1Happened.class, new Test1HappenedAdapter());
-    journal.registerAdapter(Test2Happened.class, new Test2HappenedAdapter());
-    journal.registerAdapter(Test3Happened.class, new Test3HappenedAdapter());
+    journal.registerEntryAdapter(Test1Happened.class, new Test1HappenedAdapter());
+    journal.registerEntryAdapter(Test2Happened.class, new Test2HappenedAdapter());
+    journal.registerEntryAdapter(Test3Happened.class, new Test3HappenedAdapter());
 
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
