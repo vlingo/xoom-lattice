@@ -7,17 +7,20 @@
 
 package io.vlingo.lattice.model.sourcing;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
 import io.vlingo.common.Outcome;
-import io.vlingo.common.collection.ResettableReadOnlyList;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
@@ -30,7 +33,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();
 
-  private final ResettableReadOnlyList<Source<T>> applied;
+  private TestContext testContext;
   private int currentVersion;
   private SourcedTypeRegistry.Info<?> journalInfo;
   private AppendResultInterest interest;
@@ -59,15 +62,28 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
     restore();
   }
 
+  /*
+   * @see io.vlingo.actors.Actor#viewTestStateInitialization(io.vlingo.actors.testkit.TestContext)
+   */
+  @Override
+  public void viewTestStateInitialization(final TestContext context) {
+    if (context != null) {
+      testContext = context;
+      testContext.reference.set(new CopyOnWriteArrayList<>());
+    }
+  }
+
+  /*
+   * @see io.vlingo.actors.Actor#viewTestState()
+   */
   @Override
   public TestState viewTestState() {
     final TestState testState = new TestState();
-    testState.putValue("applied", applied);
+    testState.putValue("applied", testContext.reference.get());
     return testState;
   }
 
   protected Sourced() {
-    this.applied = new ResettableReadOnlyList<>();
     this.currentVersion = 0;
     this.journalInfo = stage().world().resolveDynamic(SourcedTypeRegistry.INTERNAL_NAME, SourcedTypeRegistry.class).info(getClass());
     this.interest = selfAs(AppendResultInterest.class);
@@ -78,9 +94,11 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   }
 
   final protected <R> void apply(final List<Source<T>> sources, final Supplier<R> andThen) {
+    final List<Source<T>> toApply = wrap(sources);
+    beforeApply(toApply);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), sources, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(streamName(), nextVersion(), toApply, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
 
   final protected void apply(final Source<T> source) {
@@ -88,10 +106,11 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   }
 
   final protected <R> void apply(final Source<T> source, final Supplier<R> andThen) {
-    applied.wrap(source);
+    final List<Source<T>> toApply = wrap(source);
+    beforeApply(toApply);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), applied, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(streamName(), nextVersion(), toApply, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
 
   /**
@@ -101,8 +120,23 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    */
   @SuppressWarnings("unchecked")
   protected List<Source<T>> asList(final Source<T>... sources) {
-    applied.wrap(sources);
-    return applied;
+    return Arrays.asList(sources);
+  }
+
+  /**
+   * Received prior to the evaluation of each {@code apply()} and by
+   * default adds all applied {@code Source<T>} {@code sources} to the
+   * {@code TestContext reference}, if currently testing. The concrete
+   * extender my override to implement different or additional behavior.
+   * @param sources the {@code List<Source<T>>} ready to be applied
+   */
+  protected void beforeApply(final List<Source<T>> sources) {
+    // override to be informed prior to apply evaluation
+    if (testContext != null) {
+      final List<Source<T>> all = testContext.reference();
+      all.addAll(sources);
+      testContext.until.happened();
+    }
   }
 
   /**
@@ -222,7 +256,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
         return result;
       })
       .otherwise(cause -> {
-        final String message = "Source (count " + applied.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+        final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
         logger().log(message, cause);
         disperseStowedMessages();
         throw new StorageException(cause.result, message, cause);
@@ -302,5 +336,18 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
 
   private String type() {
     return getClass().getSimpleName();
+  }
+
+  private List<Source<T>> wrap(final Source<T> source) {
+    return Arrays.asList(source);
+  }
+
+  @SuppressWarnings("unused")
+  private List<Source<T>> wrap(final Source<T>[] sources) {
+    return Arrays.asList(sources);
+  }
+
+  private List<Source<T>> wrap(final List<Source<T>> sources) {
+    return new ArrayList<>(sources);
   }
 }
