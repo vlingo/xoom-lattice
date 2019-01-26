@@ -26,30 +26,30 @@ import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
 
-public abstract class Sourced<T,ST> extends Actor implements AppendResultInterest<ST> {
-  private static final Map<Class<Sourced<Source<?>,?>>,Map<Class<Source<?>>, BiConsumer<Sourced<?,?>, Source<?>>>> registeredConsumers =
+public abstract class Sourced<T> extends Actor implements AppendResultInterest {
+  private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();
 
   private final ResettableReadOnlyList<Source<T>> applied;
   private int currentVersion;
   private SourcedTypeRegistry.Info<?> journalInfo;
-  private AppendResultInterest<T> interest;
+  private AppendResultInterest interest;
 
   @SuppressWarnings("unchecked")
   public static void registerConsumer(
-          Class<? extends Sourced<?,?>> sourcedType,
+          Class<? extends Sourced<?>> sourcedType,
           Class<? extends Source<?>> sourceType,
-          BiConsumer<? extends Sourced<?,?>, ? extends Source<?>> consumer) {
+          BiConsumer<? extends Sourced<?>, ? extends Source<?>> consumer) {
 
-    Map<Class<Source<?>>, BiConsumer<Sourced<?,?>, Source<?>>> sourcedTypeMap =
+    Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
             registeredConsumers.get(sourcedType);
 
     if (sourcedTypeMap == null) {
       sourcedTypeMap = new ConcurrentHashMap<>();
-      registeredConsumers.put((Class<Sourced<Source<?>,?>>) sourcedType, sourcedTypeMap);
+      registeredConsumers.put((Class<Sourced<Source<?>>>) sourcedType, sourcedTypeMap);
     }
 
-    sourcedTypeMap.put((Class<Source<?>>) sourceType, (BiConsumer<Sourced<?,?>, Source<?>>) consumer);
+    sourcedTypeMap.put((Class<Source<?>>) sourceType, (BiConsumer<Sourced<?>, Source<?>>) consumer);
   }
 
   @Override
@@ -66,7 +66,6 @@ public abstract class Sourced<T,ST> extends Actor implements AppendResultInteres
     return testState;
   }
 
-  @SuppressWarnings("unchecked")
   protected Sourced() {
     this.applied = new ResettableReadOnlyList<>();
     this.currentVersion = 0;
@@ -107,12 +106,20 @@ public abstract class Sourced<T,ST> extends Actor implements AppendResultInteres
   }
 
   /**
-   * Answer my currentVersion, which if zero indicates that the receiver
+   * Answer my {@code currentVersion}, which if zero indicates that the receiver
    * is being initially constructed or reconstituted.
    * @return int
    */
   protected int currentVersion() {
     return currentVersion;
+  }
+
+  /**
+   * Answer my next version, which if one greater then my {@code currentVersion}.
+   * @return int
+   */
+  protected int nextVersion() {
+    return currentVersion + 1;
   }
 
   /**
@@ -168,7 +175,7 @@ public abstract class Sourced<T,ST> extends Actor implements AppendResultInteres
    * FOR INTERNAL USE ONLY.
    */
   @Override
-  final public <STT> void appendResultedIn(
+  final public <STT,ST> void appendResultedIn(
           final Outcome<StorageException, Result> outcome,
           final String streamName,
           final int streamVersion,
@@ -196,7 +203,7 @@ public abstract class Sourced<T,ST> extends Actor implements AppendResultInteres
    * FOR INTERNAL USE ONLY.
    */
   @Override
-  final public <STT> void appendAllResultedIn(
+  final public <STT,ST> void appendAllResultedIn(
           final Outcome<StorageException, Result> outcome,
           final String streamName,
           final int streamVersion,
@@ -227,7 +234,7 @@ public abstract class Sourced<T,ST> extends Actor implements AppendResultInteres
   //==================================
 
   private <STT> void applyResultVersioned(final Source<STT> source) {
-    final Map<Class<Source<?>>, BiConsumer<Sourced<?,?>, Source<?>>> sourcedTypeMap =
+    final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
             registeredConsumers.get(getClass());
 
     if (sourcedTypeMap == null) {
@@ -235,15 +242,11 @@ public abstract class Sourced<T,ST> extends Actor implements AppendResultInteres
       throw new IllegalStateException("No such Sourced type.");
     }
 
-    BiConsumer<Sourced<?,?>, Source<?>> consumer = sourcedTypeMap.get(source.getClass());
+    BiConsumer<Sourced<?>, Source<?>> consumer = sourcedTypeMap.get(source.getClass());
 
     consumer.accept(this, source);
 
     ++currentVersion;
-  }
-
-  private int nextVersion() {
-    return currentVersion + 1;
   }
 
   private void completeUsing(final Object supplier) {
@@ -273,7 +276,7 @@ public abstract class Sourced<T,ST> extends Actor implements AppendResultInteres
   }
 
   private void restoreFrom(final List<Source<T>> stream, final int currentVersion) {
-    final Map<Class<Source<?>>, BiConsumer<Sourced<?,?>, Source<?>>> sourcedTypeMap =
+    final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
             registeredConsumers.get(getClass());
 
     if (sourcedTypeMap == null) {
