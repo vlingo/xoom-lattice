@@ -45,9 +45,9 @@ public final class SourcedTypeRegistry {
     public final StateAdapterProvider stateAdapterProvider;
     public final Journal<T> journal;
     public final String sourcedName;
-    public final Class<Sourced<T,?>> sourcedType;
+    public final Class<Sourced<T>> sourcedType;
 
-    public Info(final Journal<T> journal, final Class<Sourced<T,?>> sourcedType, final String sourcedName) {
+    public Info(final Journal<T> journal, final Class<Sourced<T>> sourcedType, final String sourcedName) {
       this.journal = journal;
       this.sourcedType = sourcedType;
       this.sourcedName = sourcedName;
@@ -57,6 +57,10 @@ public final class SourcedTypeRegistry {
 
     public EntryAdapterProvider entryAdapterProvider() {
       return entryAdapterProvider;
+    }
+
+    public StateAdapterProvider stateAdapterProvider() {
+      return stateAdapterProvider;
     }
 
     public Journal<T> journal() {
@@ -75,22 +79,22 @@ public final class SourcedTypeRegistry {
       return false;
     }
 
-    public <S extends Source<?>,E extends Entry<?>> Info<T> register(final Class<S> sourceType, final EntryAdapter<S,E> adapter) {
+    public <S extends Source<?>,E extends Entry<?>> Info<T> registerEntryAdapter(final Class<S> sourceType, final EntryAdapter<S,E> adapter) {
       entryAdapterProvider.registerAdapter(sourceType, adapter);
       return this;
     }
 
-    public <S extends Source<?>,E extends Entry<?>> Info<T> register(final Class<S> sourceType, final EntryAdapter<S,E> adapter, final BiConsumer<Class<S>,EntryAdapter<S,E>> consumer) {
+    public <S extends Source<?>,E extends Entry<?>> Info<T> registerEntryAdapter(final Class<S> sourceType, final EntryAdapter<S,E> adapter, final BiConsumer<Class<S>,EntryAdapter<S,E>> consumer) {
       entryAdapterProvider.registerAdapter(sourceType, adapter, consumer);
       return this;
     }
 
-    public <S extends Sourced<T,?>,ST extends State<?>> Info<T> register(final Class<S> stateType, final StateAdapter<S,ST> adapter) {
+    public <S,ST extends State<?>> Info<T> registerStateAdapter(final Class<S> stateType, final StateAdapter<S,ST> adapter) {
       stateAdapterProvider.registerAdapter(stateType, adapter);
       return this;
     }
 
-    public <S extends Sourced<T,?>,ST extends State<?>> Info<T> register(final Class<S> stateType, final StateAdapter<S,ST> adapter, final BiConsumer<Class<S>,StateAdapter<S,ST>> consumer) {
+    public <S,ST extends State<?>> Info<T> registerStateAdapter(final Class<S> stateType, final StateAdapter<S,ST> adapter, final BiConsumer<Class<S>,StateAdapter<S,ST>> consumer) {
       stateAdapterProvider.registerAdapter(stateType, adapter, consumer);
       return this;
     }
