@@ -17,5 +17,5 @@ public class Result {
   public boolean tested1;
   public boolean tested2;
   public boolean tested3;
-  public TestUntil until = TestUntil.happenings(1);
+  public TestUntil until = TestUntil.happenings(0);
 }

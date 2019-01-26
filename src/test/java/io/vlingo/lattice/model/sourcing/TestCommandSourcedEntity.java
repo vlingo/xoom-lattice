@@ -23,9 +23,14 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
 
   public TestCommandSourcedEntity(final Result result) {
     this.result = result;
+  }
+
+  @Override
+  public void doTest1() {
     apply(new DoCommand1());
   }
 
+  @Override
   public void doTest2() {
     apply(new DoCommand2());
   }

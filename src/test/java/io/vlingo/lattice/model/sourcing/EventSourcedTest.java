@@ -30,6 +30,8 @@ public class EventSourcedTest {
 
   @Test
   public void testThatCtorEmits() {
+    result.until = TestUntil.happenings(1);
+    entity.doTest1();
     result.until.completes();
     assertTrue(result.tested1);
     assertEquals(1, result.applied.size());
@@ -41,6 +43,8 @@ public class EventSourcedTest {
 
   @Test
   public void testThatCommandEmits() {
+    result.until = TestUntil.happenings(1);
+    entity.doTest1();
     result.until.completes();
     assertTrue(result.tested1);
     assertFalse(result.tested2);
@@ -59,6 +63,8 @@ public class EventSourcedTest {
 
   @Test
   public void testThatOutcomeCompletes() {
+    result.until = TestUntil.happenings(1);
+    entity.doTest1();
     result.until.completes();
     assertTrue(result.tested1);
     assertFalse(result.tested3);

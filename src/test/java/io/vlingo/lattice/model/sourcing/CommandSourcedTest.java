@@ -30,6 +30,8 @@ public class CommandSourcedTest {
 
   @Test
   public void testThatCtorEmits() {
+    result.until = TestUntil.happenings(1);
+    entity.doTest1();
     result.until.completes();
     assertTrue(result.tested1);
     assertEquals(1, result.applied.size());
@@ -39,6 +41,8 @@ public class CommandSourcedTest {
 
   @Test
   public void testThatEventEmits() {
+    result.until = TestUntil.happenings(1);
+    entity.doTest1();
     result.until.completes();
     assertTrue(result.tested1);
     assertFalse(result.tested2);
@@ -48,6 +52,7 @@ public class CommandSourcedTest {
     entity.doTest2();
     result.until.completes();
     assertEquals(2, result.applied.size());
+    System.out.println("APPLIED: " + result.applied);
     assertEquals(DoCommand2.class, result.applied.get(1).getClass());
   }
 

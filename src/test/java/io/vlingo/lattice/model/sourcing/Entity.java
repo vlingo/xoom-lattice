@@ -10,6 +10,7 @@ package io.vlingo.lattice.model.sourcing;
 import io.vlingo.common.Completes;
 
 public interface Entity {
+  void doTest1();
   void doTest2();
   Completes<String> doTest3();
 }

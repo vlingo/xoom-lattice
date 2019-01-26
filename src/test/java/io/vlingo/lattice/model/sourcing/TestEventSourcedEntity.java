@@ -25,6 +25,10 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
 
   public TestEventSourcedEntity(final Result result) {
     this.result = result;
+  }
+
+  @Override
+  public void doTest1() {
     apply(new Test1Happened());
   }
 
