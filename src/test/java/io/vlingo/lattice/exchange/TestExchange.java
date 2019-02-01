@@ -27,6 +27,21 @@ public class TestExchange implements Exchange, MessageQueueListener {
   }
 
   @Override
+  public <T> T channel() {
+    return null;
+  }
+
+  @Override
+  public <T> T connection() {
+    return null;
+  }
+
+  @Override
+  public String name() {
+    return "TestExchange";
+  }
+
+  @Override
   public <L,E,EX> Exchange register(final Covey<L,E,EX> covey) {
     forwarder.register(covey);
     return this;
