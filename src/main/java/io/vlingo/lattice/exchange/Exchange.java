@@ -20,6 +20,26 @@ public interface Exchange {
   void close();
 
   /**
+   * Answer my channel, which is implementation dependent.
+   * @param <T> the type of the channel
+   * @return T
+   */
+  <T> T channel();
+
+  /**
+   * Answer my connect, which is implementation dependent.
+   * @param <T> the type of the connection
+   * @return T
+   */
+  <T> T connection();
+
+  /**
+   * Answer my name.
+   * @return String
+   */
+  String name();
+
+  /**
    * Registers a {@code Covey<L,C,EX>} with this Exchange.
    * @param covey the {@code Covey<L,E,EX>} to register
    * @param <L> the local object type
