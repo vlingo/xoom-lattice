@@ -79,15 +79,21 @@ public class StatefulEntityTest {
 
     final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, state, until1);
 
-    entity1.current().andThenConsume(current -> assertEquals(state, current));
+    final Entity1State current1 = entity1.current().await();
+    
+    assertEquals(state, current1);
 
     entity1.changeName("Sally Jane");
 
-    assertEquals("Sally Jane", entity1.current().await().name);
+    final String modifiedName = entity1.current().await().name;
+
+    assertEquals("Sally Jane", modifiedName);
 
     entity1.increaseAge();
 
-    assertEquals(24, entity1.current().await().age);
+    final int age = entity1.current().await().age;
+
+    assertEquals(24, age);
 
     until1.completes();
 
@@ -199,7 +205,7 @@ public class StatefulEntityTest {
     }
   }
 
-  public static class Entity1Actor extends StatefulEntity<Entity1State,State<String>> implements Entity1 {
+  public static class Entity1Actor extends StatefulEntity<Entity1State> implements Entity1 {
     private Entity1State state;
     private final TestUntil until;
 
@@ -244,22 +250,22 @@ public class StatefulEntityTest {
     //===================================
 
     @Override
-    public String id() {
+    protected String id() {
       return state.id;
     }
 
     @Override
-    public void state(final Entity1State state) {
+    protected void state(final Entity1State state) {
       this.state = state;
     }
 
     @Override
-    public Class<Entity1State> stateType() {
+    protected Class<Entity1State> stateType() {
       return Entity1State.class;
     }
   }
 
-  public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State,State<String>> implements Entity1 {
+  public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State> implements Entity1 {
     private Entity1State state;
     private final TestUntil until;
 
@@ -304,17 +310,17 @@ public class StatefulEntityTest {
     //===================================
 
     @Override
-    public String id() {
+    protected String id() {
       return state.id;
     }
 
     @Override
-    public void state(final Entity1State state) {
+    protected void state(final Entity1State state) {
       this.state = state;
     }
 
     @Override
-    public Class<Entity1State> stateType() {
+    protected Class<Entity1State> stateType() {
       return Entity1State.class;
     }
   }
