@@ -23,4 +23,10 @@ public final class Test3HappenedAdapter implements EntryAdapter<Test3Happened,Te
     final String serialization = JsonSerialization.serialized(source);
     return new TextEntry(Test3Happened.class, 1, serialization, Metadata.nullMetadata());
   }
+
+  @Override
+  public TextEntry toEntry(final Test3Happened source, final String id) {
+    final String serialization = JsonSerialization.serialized(source);
+    return new TextEntry(id, Test3Happened.class, 1, serialization, Metadata.nullMetadata());
+  }
 }
