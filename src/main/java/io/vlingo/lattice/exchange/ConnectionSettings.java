@@ -56,6 +56,7 @@ public class ConnectionSettings {
    * @param virtualHost the String name of the virtual host
    * @param username the String name of the user, or null
    * @param password the String password of the user, or null
+   * @return ConnectionSettings
    */
   public static ConnectionSettings instance(final String hostName, final int port, final String virtualHost, final String username, final String password) {
     return new ConnectionSettings(hostName, port, virtualHost, username, password);
