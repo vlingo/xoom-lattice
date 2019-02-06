@@ -44,6 +44,13 @@ public abstract class StatefulEntity<S> extends Actor
     this.writeInterest = selfAs(WriteResultInterest.class);
   }
 
+  @Override
+  public void start() {
+    super.start();
+
+    restore(true); // ignore not found (possible first time start)
+  }
+
   /**
    * Answer my currentVersion, which, if zero, indicates that the
    * receiver is being initially constructed or reconstituted.
@@ -134,8 +141,7 @@ public abstract class StatefulEntity<S> extends Actor
    * Restore my current state, dispatching to {@code state(final S state)} when completed.
    */
   protected void restore() {
-    stowMessages(ReadResultInterest.class);
-    info.store.read(id(), (Class<S>) stateType(), readInterest);
+    restore(false);
   }
 
   /**
@@ -214,5 +220,15 @@ public abstract class StatefulEntity<S> extends Actor
    */
   private int nextVersion() {
     return currentVersion + 1;
+  }
+
+  /**
+   * Cause state restoration and indicate whether a not found
+   * condition can be safely ignored.
+   * @param ignoreNotFound the boolean indicating whether or not a not found condition may be ignored
+   */
+  private void restore(final boolean ignoreNotFound) {
+    stowMessages(ReadResultInterest.class);
+    info.store.read(id(), info.storeType, readInterest);
   }
 }
