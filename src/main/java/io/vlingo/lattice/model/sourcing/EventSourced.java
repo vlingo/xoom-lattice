@@ -9,4 +9,7 @@ package io.vlingo.lattice.model.sourcing;
 
 import io.vlingo.lattice.model.DomainEvent;
 
+/**
+ * A {@code Sourced<T>} for concrete types of {@code DomainEvent}.
+ */
 public abstract class EventSourced extends Sourced<DomainEvent> { }

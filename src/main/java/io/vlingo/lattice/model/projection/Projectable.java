@@ -7,15 +7,68 @@
 
 package io.vlingo.lattice.model.projection;
 
+/**
+ * Provides parts of the state to be projected.
+ */
 public interface Projectable {
+  /**
+   * Answer my reason for projection.
+   * @return String
+   */
   String becauseOf();
+
+  /**
+   * Answer my state as binary/bytes.
+   * @return byte[]
+   */
   byte[] dataAsBytes();
+
+  /**
+   * Answer my state as text.
+   * @return String
+   */
   String dataAsText();
+
+  /**
+   * Answer the version of my data.
+   * @return int
+   */
   int dataVersion();
+
+  /**
+   * Answer the unique id of my data.
+   * @return String
+   */
   String dataId();
+
+  /**
+   * Answer my associated metadata.
+   * @return String
+   */
   String metadata();
+
+  /**
+   * Answer my data as a specific {@code T} typed object.
+   * @param <T> the type expected of the object
+   * @return T
+   */
   <T> T object();
+
+  /**
+   * Answer the unique identity associated with the projection operation.
+   * @return String
+   */
   String projectionId();
+
+  /**
+   * Answer my type as a {@code String}.
+   * @return String
+   */
   String type();
+
+  /**
+   * Answer the version of my type.
+   * @return String
+   */
   int typeVersion();
 }

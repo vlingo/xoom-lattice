@@ -5,11 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.lattice.model.sourcing;
+package io.vlingo.lattice.model.process;
 
-import io.vlingo.lattice.model.Command;
+public class Chronicle {
 
-/**
- * A {@code Sourced<T>} for concrete types of {@code Command}.
- */
-public abstract class CommandSourced extends Sourced<Command> { }
+}

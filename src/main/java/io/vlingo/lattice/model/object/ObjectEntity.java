@@ -47,6 +47,9 @@ public abstract class ObjectEntity<T> extends Actor
     this.queryResultInterest = selfAs(QueryResultInterest.class);
   }
 
+  /*
+   * @see io.vlingo.actors.Actor#start()
+   */
   @Override
   public void start() {
     super.start();

@@ -9,11 +9,21 @@ package io.vlingo.lattice.model;
 
 import io.vlingo.symbio.Source;
 
+/**
+ * A abstract base for commands, which are considered a type of {@code Source}.
+ */
 public abstract class Command extends Source<Command> {
+  /**
+   * Construct my default state with a type version of 1.
+   */
   protected Command() {
     super();
   }
 
+  /**
+   * Construct my default state with a {@code commandTypeVersion} greater than 1.
+   * @param commandTypeVersion the int version of this command type
+   */
   protected Command(final int commandTypeVersion) {
     super(commandTypeVersion);
   }

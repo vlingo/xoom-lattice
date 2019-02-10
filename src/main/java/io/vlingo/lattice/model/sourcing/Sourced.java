@@ -29,6 +29,12 @@ import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
 
+/**
+ * Abstract base for all concrete types that support journaling and application of
+ * {@code Source<T>} instances. Provides abstracted {@code Journal} and and state
+ * transition control for my concrete extender.
+ * @param <T> the concrete type that is being sourced
+ */
 public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();
@@ -38,6 +44,13 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   private SourcedTypeRegistry.Info<?> journalInfo;
   private AppendResultInterest interest;
 
+  /**
+   * Register the means to apply {@code sourceType} instances for state transition
+   * of {@code sourcedType} by means of a given {@code consumer}.
+   * @param sourcedType the concrete {@code Class<? extends Sourced<?>>} type to which sourceType instances are applied
+   * @param sourceType the concrete {@code Class<? extends Source<?>>} type to apply
+   * @param consumer the {@code BiConsumer<? extends Sourced<?>, ? extends Source<?>>} used to perform the application of sourceType
+   */
   @SuppressWarnings("unchecked")
   public static void registerConsumer(
           Class<? extends Sourced<?>> sourcedType,
@@ -55,6 +68,9 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
     sourcedTypeMap.put((Class<Source<?>>) sourceType, (BiConsumer<Sourced<?>, Source<?>>) consumer);
   }
 
+  /*
+   * @see io.vlingo.actors.Actor#start()
+   */
   @Override
   public void start() {
     super.start();
@@ -83,16 +99,32 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
     return testState;
   }
 
+  /**
+   * Construct my default state.
+   */
   protected Sourced() {
     this.currentVersion = 0;
     this.journalInfo = stage().world().resolveDynamic(SourcedTypeRegistry.INTERNAL_NAME, SourcedTypeRegistry.class).info(getClass());
     this.interest = selfAs(AppendResultInterest.class);
   }
 
+  /**
+   * Apply all of the given {@code sources} to myself, which includes appending
+   * them to my journal and reflecting the representative changes to my state.
+   * @param sources the {@code List<Source<T>>} to apply
+   */
   final protected void apply(final List<Source<T>> sources) {
     apply(sources, null);
   }
 
+  /**
+   * Apply all of the given {@code sources} to myself, which includes appending
+   * them to my journal and reflecting the representative changes to my state,
+   * followed by the execution of a possible {@code andThen}.
+   * @param sources the {@code List<Source<T>>} to apply
+   * @param andThen the {@code Supplier<R>} executed following the application of sources
+   * @param <R> the return type of the andThen {@code Supplier<R>}
+   */
   final protected <R> void apply(final List<Source<T>> sources, final Supplier<R> andThen) {
     final List<Source<T>> toApply = wrap(sources);
     beforeApply(toApply);
@@ -101,10 +133,23 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
     journal.appendAllWith(streamName(), nextVersion(), toApply, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
 
+  /**
+   * Apply the given {@code source} to myself, which includes appending it
+   * to my journal and reflecting the representative changes to my state.
+   * @param source the {@code Source<T>} to apply
+   */
   final protected void apply(final Source<T> source) {
     apply(source, null);
   }
 
+  /**
+   * Apply the given {@code source} to myself, which includes appending it
+   * to my journal and reflecting the representative changes to my state,
+   * followed by the execution of a possible {@code andThen}.
+   * @param source the {@code Source<T>} to apply
+   * @param andThen the {@code Supplier<R>} executed following the application of sources
+   * @param <R> the return type of the andThen {@code Supplier<R>}
+   */
   final protected <R> void apply(final Source<T> source, final Supplier<R> andThen) {
     final List<Source<T>> toApply = wrap(source);
     beforeApply(toApply);
@@ -127,7 +172,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * Received prior to the evaluation of each {@code apply()} and by
    * default adds all applied {@code Source<T>} {@code sources} to the
    * {@code TestContext reference}, if currently testing. The concrete
-   * extender my override to implement different or additional behavior.
+   * extender may override to implement different or additional behavior.
    * @param sources the {@code List<Source<T>>} ready to be applied
    */
   protected void beforeApply(final List<Source<T>> sources) {
@@ -267,6 +312,11 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   // internal implementation
   //==================================
 
+  /**
+   * Apply an individual {@code source} onto my concrete extender by means of
+   * the {@code BiConsumer} of its registered {@code sourcedTypeMap}.
+   * @param source the {@code Source<STT>} to apply
+   */
   private <STT> void applyResultVersioned(final Source<STT> source) {
     final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
             registeredConsumers.get(getClass());
@@ -283,12 +333,20 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
     ++currentVersion;
   }
 
+  /**
+   * Given that the {@code supplier} is non-null, execute it by completing the {@code CompletionSupplier<?>}.
+   * @param supplier the {@code CompletionSupplier<?>} or null
+   */
   private void completeUsing(final Object supplier) {
     if (supplier != null) {
       ((CompletionSupplier<?>) supplier).complete();
     }
   }
 
+  /**
+   * Restore the state of my concrete extender from a possibly snaptshot
+   * and stream of events.
+   */
   private void restore() {
     stowMessages();
 
@@ -309,6 +367,12 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
       });
   }
 
+  /**
+   * Restore the state of my concrete extender from the {@code stream} and
+   * set my {@code currentVersion}.
+   * @param stream the {@code List<Source<T>> stream} from which state is restored
+   * @param currentVersion the int to set as my currentVersion
+   */
   private void restoreFrom(final List<Source<T>> stream, final int currentVersion) {
     final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
             registeredConsumers.get(getClass());
@@ -334,19 +398,38 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
     }
   }
 
+  /**
+   * Answer my type name.
+   * @return String
+   */
   private String type() {
     return getClass().getSimpleName();
   }
 
+  /**
+   * Answer {@code source} wrapped in a {@code List<Source<T>>}.
+   * @param source the {@code Source<T>} to wrap
+   * @return {@code List<Source<T>>}
+   */
   private List<Source<T>> wrap(final Source<T> source) {
     return Arrays.asList(source);
   }
 
+  /**
+   * Answer {@code sources} wrapped in a {@code List<Source<T>>}.
+   * @param source the {@code Source<T>[]} to wrap
+   * @return {@code List<Source<T>>}
+   */
   @SuppressWarnings("unused")
   private List<Source<T>> wrap(final Source<T>[] sources) {
     return Arrays.asList(sources);
   }
 
+  /**
+   * Answer {@code sources} wrapped in a {@code List<Source<T>>}.
+   * @param source the {@code List<Source<T>>} to wrap
+   * @return {@code List<Source<T>>}
+   */
   private List<Source<T>> wrap(final List<Source<T>> sources) {
     return new ArrayList<>(sources);
   }

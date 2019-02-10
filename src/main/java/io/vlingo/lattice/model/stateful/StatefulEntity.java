@@ -44,6 +44,9 @@ public abstract class StatefulEntity<S> extends Actor
     this.writeInterest = selfAs(WriteResultInterest.class);
   }
 
+  /*
+   * @see io.vlingo.actors.Actor#start()
+   */
   @Override
   public void start() {
     super.start();
