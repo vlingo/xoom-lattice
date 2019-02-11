@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.CompletionSupplier;
-import io.vlingo.lattice.model.object.ObjectEntityTypeRegistry.Info;
+import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.object.ListQueryExpression;
@@ -29,6 +29,7 @@ import io.vlingo.symbio.store.object.QueryExpression;
  * by means of the {@code ObjectStore}. The {@code ObjectStore}
  * is typically backed by some form of object-relational mapping,
  * whether formally or informally implemented.
+ * @param <T> the type of persistent object
  */
 public abstract class ObjectEntity<T> extends Actor 
   implements PersistResultInterest, QueryResultInterest {
@@ -42,7 +43,7 @@ public abstract class ObjectEntity<T> extends Actor
    * Construct my default state.
    */
   protected ObjectEntity() {
-    this.info = stage().world().resolveDynamic(ObjectEntityTypeRegistry.INTERNAL_NAME, ObjectEntityTypeRegistry.class).info(persistentObjectType());
+    this.info = stage().world().resolveDynamic(ObjectTypeRegistry.INTERNAL_NAME, ObjectTypeRegistry.class).info(persistentObjectType());
     this.persistResultInterest = selfAs(PersistResultInterest.class);
     this.queryResultInterest = selfAs(QueryResultInterest.class);
   }
