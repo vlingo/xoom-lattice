@@ -14,14 +14,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.vlingo.actors.World;
-import io.vlingo.lattice.model.object.ObjectEntityTypeRegistry.Info;
+import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.store.object.MapQueryExpression;
 import io.vlingo.symbio.store.object.ObjectStore;
 import io.vlingo.symbio.store.object.PersistentObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
 
 public class PersonEntityTest {
-  private ObjectEntityTypeRegistry registry;
+  private ObjectTypeRegistry registry;
   private ObjectStore objectStore;
   private World world;
 
@@ -55,7 +55,7 @@ public class PersonEntityTest {
     world = World.startWithDefaults("test-object-entity");
     objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class);
 
-    registry = new ObjectEntityTypeRegistry(world);
+    registry = new ObjectTypeRegistry(world);
 
     // NOTE: The InMemoryObjectStoreActor implementation currently
     // does not use PersistentObjectMapper, and thus the no-op decl.
