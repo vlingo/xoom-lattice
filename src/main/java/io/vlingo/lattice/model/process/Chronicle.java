@@ -7,6 +7,18 @@
 
 package io.vlingo.lattice.model.process;
 
-public class Chronicle {
+/**
+ * State machine state management.
+ * @param <S> the type of state this I maintain
+ */
+public class Chronicle<S> {
+  private final S state;
 
+  public Chronicle(final S state) {
+    this.state = state;
+  }
+
+  public Chronicle<S> transitionTo(final S state) {
+    return new Chronicle<>(state);
+  }
 }
