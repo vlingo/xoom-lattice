@@ -394,7 +394,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    */
   private void restoreSnapshot(final State<?> snapshot) {
     if (snapshot != null) {
-      this.restoreSnapshot(journalInfo.stateAdapterProvider.fromRaw(snapshot), currentVersion);
+      restoreSnapshot(journalInfo.stateAdapterProvider.fromRaw(snapshot), currentVersion);
     }
   }
 
