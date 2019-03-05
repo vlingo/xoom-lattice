@@ -41,5 +41,8 @@ public class DescribedProjection extends Actor implements Projection {
 
     @Override
     public void dispatchUnconfirmed() { }
+
+    @Override
+    public void stop() { }
   }
 }
