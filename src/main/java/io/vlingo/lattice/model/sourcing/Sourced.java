@@ -393,7 +393,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @param snapshot the {@code Optional<SNAPSHOT>} holding the {@code Sourced<T,ST>} initial state
    */
   private void restoreSnapshot(final State<?> snapshot) {
-    if (snapshot != null) {
+    if (snapshot != null && !snapshot.isNull()) {
       restoreSnapshot(journalInfo.stateAdapterProvider.fromRaw(snapshot), currentVersion);
     }
   }
