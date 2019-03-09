@@ -47,15 +47,17 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   /**
    * Register the means to apply {@code sourceType} instances for state transition
    * of {@code sourcedType} by means of a given {@code consumer}.
-   * @param sourcedType the concrete {@code Class<? extends Sourced<?>>} type to which sourceType instances are applied
-   * @param sourceType the concrete {@code Class<? extends Source<?>>} type to apply
-   * @param consumer the {@code BiConsumer<? extends Sourced<?>, ? extends Source<?>>} used to perform the application of sourceType
+   * @param sourcedType the concrete {@code Class<SOURCED>} type to which sourceType instances are applied
+   * @param sourceType the concrete {@code Class<SOURCE>} type to apply
+   * @param consumer the {@code BiConsumer<SOURCED, SOURCE>} used to perform the application of sourceType
+   * @param <SOURCED> the type {@code <? extends Sourced<?>>} of the sourced entity to apply to
+   * @param <SOURCE> the type {@code <? extends Source<?>>} of the source to be applied
    */
   @SuppressWarnings("unchecked")
-  public static void registerConsumer(
-          Class<? extends Sourced<?>> sourcedType,
-          Class<? extends Source<?>> sourceType,
-          BiConsumer<? extends Sourced<?>, ? extends Source<?>> consumer) {
+  public static <SOURCED extends Sourced<?>, SOURCE extends Source<?>> void registerConsumer(
+          final Class<SOURCED> sourcedType,
+          final Class<SOURCE> sourceType,
+          final BiConsumer<SOURCED, SOURCE> consumer) {
 
     Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
             registeredConsumers.get(sourcedType);
@@ -67,7 +69,6 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
 
     sourcedTypeMap.put((Class<Source<?>>) sourceType, (BiConsumer<Sourced<?>, Source<?>>) consumer);
   }
-
   /*
    * @see io.vlingo.actors.Actor#start()
    */
@@ -417,7 +418,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
 
   /**
    * Answer {@code sources} wrapped in a {@code List<Source<T>>}.
-   * @param source the {@code Source<T>[]} to wrap
+   * @param sources the {@code Source<T>[]} to wrap
    * @return {@code List<Source<T>>}
    */
   @SuppressWarnings("unused")
@@ -427,7 +428,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
 
   /**
    * Answer {@code sources} wrapped in a {@code List<Source<T>>}.
-   * @param source the {@code List<Source<T>>} to wrap
+   * @param sources the {@code List<Source<T>>} to wrap
    * @return {@code List<Source<T>>}
    */
   private List<Source<T>> wrap(final List<Source<T>> sources) {
