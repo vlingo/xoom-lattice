@@ -7,33 +7,51 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.journal.JournalListener;
 
 public final class MockJournalListener implements JournalListener<String> {
-  public List<Entry<String>> entries = new ArrayList<>();
+  
+  private AccessSafely access;
+
+  private List<Entry<String>> entries = new CopyOnWriteArrayList<>();
 
   @Override
   public void appended(Entry<String> entry) {
-    this.entries.add(entry);
+    access.writeUsing("appended", entry);
   }
 
   @Override
   public void appendedWith(Entry<String> entry, State<String> snapshot) {
-    this.entries.add(entry);
+    access.writeUsing("appended", entry);
   }
 
   @Override
   public void appendedAll(List<Entry<String>> entries) {
-    this.entries.addAll(entries);
+    access.writeUsing("appendedAll", entries);
   }
 
   @Override
   public void appendedAllWith(List<Entry<String>> entries, State<String> snapshot) {
-    this.entries.addAll(entries);
+    access.writeUsing("appendedAll", entries);
+  }
+  
+  public AccessSafely afterCompleting(final int times) {
+    access = AccessSafely
+      .afterCompleting(times)
+      
+      .writingWith("appended", (Entry<String> appended) -> { System.out.println("MockJournalListener WRITE appended"); entries.add(appended);})
+      .writingWith("appendedAll", (List<Entry<String>> appended) -> { System.out.println("MockJournalListener WRITE appended"); entries.addAll(appended);})
+      .readingWith("appendedAt", (Integer index) -> entries.get(index))
+      
+      .readingWith("entries", () -> entries)
+      .readingWith("entriesCount", () -> entries.size());
+
+    return access;
   }
 }
