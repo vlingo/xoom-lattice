@@ -49,20 +49,17 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
   }
 
   private void applied1(final Test1Happened event) {
-    result.tested1 = true;
-    result.applied.add(event);
-    result.until.happened();
+    result.access().writeUsing("tested1", true);
+    result.access().writeUsing("applied", event);
   }
 
   private void applied2(final Test2Happened event) {
-    result.tested2 = true;
-    result.applied.add(event);
-    result.until.happened();
+    result.access().writeUsing("tested2", true);
+    result.access().writeUsing("applied", event);
   }
 
   private void applied3(final Test3Happened event) {
-    result.tested3 = true;
-    result.applied.add(event);
-    result.until.happened();
+    result.access().writeUsing("tested3", true);
+    result.access().writeUsing("applied", event);
   }
 }
