@@ -18,6 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
 import io.vlingo.common.Outcome;
@@ -349,7 +350,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * and stream of events.
    */
   private void restore() {
-    stowMessages();
+    stowMessages(Stoppable.class);
 
     journalInfo.journal.streamReader(getClass().getSimpleName())
       .andThenTo(reader -> reader.streamFor(streamName()))
