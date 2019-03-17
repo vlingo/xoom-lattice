@@ -119,7 +119,7 @@ public final class ProcessTypeRegistry {
   /**
    * Holder of registration information for {@code SourcedProcess} types.
    */
-  public static class SourcedProcessInfo extends Info<SourcedProcess> {
+  public static class SourcedProcessInfo<T extends SourcedProcess> extends Info<T> {
     public final SourcedTypeRegistry registry;
 
     /**
@@ -129,7 +129,7 @@ public final class ProcessTypeRegistry {
      * @param exchange the Exchange
      * @param registry the SourcedTypeRegistry used by the SourcedProcess
      */
-    public SourcedProcessInfo(final Class<SourcedProcess> processType, final String processName, final Exchange exchange, final SourcedTypeRegistry registry) {
+    public SourcedProcessInfo(final Class<T> processType, final String processName, final Exchange exchange, final SourcedTypeRegistry registry) {
       super(processType, processName, exchange);
       this.registry = registry;
     }
@@ -140,7 +140,7 @@ public final class ProcessTypeRegistry {
      * @param processName the String name of the Process
      * @param registry the SourcedProcessInfo used by the ObjectEntityProcess
      */
-    public SourcedProcessInfo(final Class<SourcedProcess> processType, final String processName, final SourcedTypeRegistry registry) {
+    public SourcedProcessInfo(final Class<T> processType, final String processName, final SourcedTypeRegistry registry) {
       super(processType, processName);
       this.registry = registry;
     }
