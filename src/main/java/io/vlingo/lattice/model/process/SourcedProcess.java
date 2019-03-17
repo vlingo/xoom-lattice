@@ -13,7 +13,6 @@ import java.util.function.Supplier;
 
 import io.vlingo.lattice.model.Command;
 import io.vlingo.lattice.model.DomainEvent;
-import io.vlingo.lattice.model.process.ProcessTypeRegistry.SourcedProcessInfo;
 import io.vlingo.lattice.model.sourcing.Sourced;
 import io.vlingo.symbio.Source;
 
@@ -30,14 +29,14 @@ import io.vlingo.symbio.Source;
  * than the {@code emit()} behaviors.
  */
 public abstract class SourcedProcess extends Sourced<ProcessMessage> implements Process {
-  private final SourcedProcessInfo info;
+  private final ProcessTypeRegistry.Info<? extends SourcedProcess> info;
 
   /**
    * @see io.vlingo.lattice.model.process.Process#send(io.vlingo.lattice.model.Command)
    */
   @Override
   public void send(final Command command) {
-    // TODO: send
+    info.exchange.send(command);
   }
 
   /**
@@ -45,14 +44,14 @@ public abstract class SourcedProcess extends Sourced<ProcessMessage> implements 
    */
   @Override
   public void send(final DomainEvent event) {
-    // TODO: send
+    info.exchange.send(event);
   }
 
   /**
    * Construct my default state.
    */
   protected SourcedProcess() {
-    this.info = null; // TODO
+    this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
   }
 
   /**
@@ -98,7 +97,7 @@ public abstract class SourcedProcess extends Sourced<ProcessMessage> implements 
    * @param sources the {@code List<Source<?>>} of source instances to apply
    */
   protected void emitAll(final List<Source<?>> sources) {
-    apply((List<Source<ProcessMessage>>) wrap(sources));
+    apply(wrap(sources));
   }
 
   /**
@@ -109,7 +108,7 @@ public abstract class SourcedProcess extends Sourced<ProcessMessage> implements 
    * @param <R> the return type of the andThen {@code Supplier<R>}
    */
   protected <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
-    apply((List<Source<ProcessMessage>>) wrap(sources), andThen);
+    apply(wrap(sources), andThen);
   }
 
   /**
