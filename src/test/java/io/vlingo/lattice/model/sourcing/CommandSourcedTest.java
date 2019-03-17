@@ -9,13 +9,14 @@ package io.vlingo.lattice.model.sourcing;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import io.vlingo.actors.World;
-import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.inmemory.InMemoryJournalActor;
@@ -30,30 +31,39 @@ public class CommandSourcedTest {
 
   @Test
   public void testThatCtorEmits() {
-    result.until = TestUntil.happenings(1);
+    final AccessSafely access = result.afterCompleting(1);
+
     entity.doTest1();
-    result.until.completes();
-    assertTrue(result.tested1);
-    assertEquals(1, result.applied.size());
-    assertEquals(DoCommand1.class, result.applied.get(0).getClass());
-    assertFalse(result.tested2);
+    
+    assertTrue(access.readFrom("tested1"));
+    assertEquals(1, (int) access.readFrom("appliedCount"));
+    Object appliedAt0 = access.readFrom("appliedAt", 0);
+    assertNotNull(appliedAt0);
+    assertEquals(DoCommand1.class, appliedAt0.getClass());
+    assertFalse(access.readFrom("tested2"));
   }
 
   @Test
   public void testThatEventEmits() {
-    result.until = TestUntil.happenings(1);
+    final AccessSafely access = result.afterCompleting(1);
+    
     entity.doTest1();
-    result.until.completes();
-    assertTrue(result.tested1);
-    assertFalse(result.tested2);
-    assertEquals(1, result.applied.size());
-    assertEquals(DoCommand1.class, result.applied.get(0).getClass());
-    result.until = TestUntil.happenings(1);
+
+    assertTrue(access.readFrom("tested1"));
+    assertFalse(access.readFrom("tested2"));
+    assertEquals(1, (int) access.readFrom("appliedCount"));
+    Object appliedAt0 = access.readFrom("appliedAt", 0);
+    assertNotNull(appliedAt0);
+    assertEquals(DoCommand1.class, appliedAt0.getClass());
+    
+    final AccessSafely access2 = result.afterCompleting(1);
+    
     entity.doTest2();
-    result.until.completes();
-    assertEquals(2, result.applied.size());
-    System.out.println("APPLIED: " + result.applied);
-    assertEquals(DoCommand2.class, result.applied.get(1).getClass());
+
+    assertEquals(2, (int) access2.readFrom("appliedCount"));
+    Object appliedAt1 = access2.readFrom("appliedAt", 1);
+    assertNotNull(appliedAt1);
+    assertEquals(DoCommand2.class, appliedAt1.getClass());
   }
 
   @Before

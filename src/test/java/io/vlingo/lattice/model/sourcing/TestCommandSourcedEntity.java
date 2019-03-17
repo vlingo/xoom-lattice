@@ -47,14 +47,12 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   }
 
   private void applied1(final DoCommand1 command) {
-    result.tested1 = true;
-    result.applied.add(command);
-    result.until.happened();
+    result.access().writeUsing("tested1", true);
+    result.access().writeUsing("applied", command);
   }
 
   private void applied2(final DoCommand2 command) {
-    result.tested2 = true;
-    result.applied.add(command);
-    result.until.happened();
+    result.access().writeUsing("tested2", true);
+    result.access().writeUsing("applied", command);
   }
 }
