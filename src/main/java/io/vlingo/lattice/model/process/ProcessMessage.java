@@ -12,10 +12,12 @@ import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.symbio.Source;
 
 /**
- * A {@code Source} for both @{code Command} and {@code DomainEvent} types.
+ * A {@code Source} for both {@code Command} and {@code DomainEvent} types,
+ * but that supports other {@code Source} not previously known.
  */
 public class ProcessMessage extends Source<ProcessMessage> {
   public final Source<?> source;
+  public final String type;
 
   /**
    * Construct my default state with the {@code command} and a type version of 1.
@@ -25,6 +27,7 @@ public class ProcessMessage extends Source<ProcessMessage> {
     super();
 
     this.source = command;
+    this.type = command.getClass().getName();
   }
 
   /**
@@ -34,6 +37,7 @@ public class ProcessMessage extends Source<ProcessMessage> {
     super();
 
     this.source = event;
+    this.type = event.getClass().getName();
   }
 
   /**
@@ -43,5 +47,6 @@ public class ProcessMessage extends Source<ProcessMessage> {
     super();
 
     this.source = source;
+    this.type = source.getClass().getName();
   }
 }
