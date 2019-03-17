@@ -31,10 +31,10 @@ public class CommandSourcedTest {
 
   @Test
   public void testThatCtorEmits() {
-    final AccessSafely access = result.afterCompleting(1);
+    final AccessSafely access = result.afterCompleting(2);
 
     entity.doTest1();
-    
+
     assertTrue(access.readFrom("tested1"));
     assertEquals(1, (int) access.readFrom("appliedCount"));
     Object appliedAt0 = access.readFrom("appliedAt", 0);
@@ -45,8 +45,8 @@ public class CommandSourcedTest {
 
   @Test
   public void testThatEventEmits() {
-    final AccessSafely access = result.afterCompleting(1);
-    
+    final AccessSafely access = result.afterCompleting(2);
+
     entity.doTest1();
 
     assertTrue(access.readFrom("tested1"));
@@ -55,9 +55,9 @@ public class CommandSourcedTest {
     Object appliedAt0 = access.readFrom("appliedAt", 0);
     assertNotNull(appliedAt0);
     assertEquals(DoCommand1.class, appliedAt0.getClass());
-    
+
     final AccessSafely access2 = result.afterCompleting(1);
-    
+
     entity.doTest2();
 
     assertEquals(2, (int) access2.readFrom("appliedCount"));
@@ -70,7 +70,7 @@ public class CommandSourcedTest {
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public void setUp() {
     world = World.startWithDefaults("test-cs");
-    
+
     listener = new MockJournalListener();
 
     journal = world.actorFor(Journal.class, InMemoryJournalActor.class, listener);
