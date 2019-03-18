@@ -16,37 +16,45 @@ import io.vlingo.symbio.Source;
  * but that supports other {@code Source} not previously known.
  */
 public class ProcessMessage extends Source<ProcessMessage> {
-  public final Source<?> source;
-  public final String type;
+  public Source<?> source;
 
   /**
    * Construct my default state with the {@code command} and a type version of 1.
    * @param command the Command to set as my source
    */
-  ProcessMessage(final Command command) {
+  public ProcessMessage(final Command command) {
     super();
 
     this.source = command;
-    this.type = command.getClass().getName();
   }
 
   /**
    * Construct my default state with an {@code event} and a type version of 1.
+   * @param event the Event to set as my source
    */
-  ProcessMessage(final DomainEvent event) {
+  public ProcessMessage(final DomainEvent event) {
     super();
 
     this.source = event;
-    this.type = event.getClass().getName();
   }
 
   /**
    * Construct my default state with a {@code source} and a type version of 1.
+   * @param source the {@code Source<?>} to set as my source
    */
-  ProcessMessage(final Source<?> source) {
+  public ProcessMessage(final Source<?> source) {
     super();
 
     this.source = source;
-    this.type = source.getClass().getName();
+  }
+
+  public ProcessMessage() {
+    super();
+
+    this.source = null;
+  }
+
+  public String sourceTypeName() {
+    return source.getClass().getName();
   }
 }
