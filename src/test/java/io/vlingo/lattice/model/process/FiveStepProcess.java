@@ -18,9 +18,9 @@ public interface FiveStepProcess {
   void stepFourHappened();
   void stepFiveHappened();
 
+  public static class DoStepOne extends Command { }
   public static class DoStepTwo extends Command { }
   public static class DoStepThree extends Command { }
   public static class DoStepFour extends Command { }
   public static class DoStepFive extends Command { }
-  public static class MarkCompleted extends Command { }
 }
