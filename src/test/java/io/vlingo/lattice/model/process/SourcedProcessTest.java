@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.vlingo.actors.World;
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.message.AsyncMessageQueue;
 import io.vlingo.common.message.MessageQueue;
 import io.vlingo.lattice.exchange.Covey;
@@ -23,16 +24,16 @@ import io.vlingo.lattice.exchange.local.LocalExchangeMessage;
 import io.vlingo.lattice.exchange.local.LocalExchangeSender;
 import io.vlingo.lattice.model.process.EntryAdapters.DoStepFiveAdapter;
 import io.vlingo.lattice.model.process.EntryAdapters.DoStepFourAdapter;
+import io.vlingo.lattice.model.process.EntryAdapters.DoStepOneAdapter;
 import io.vlingo.lattice.model.process.EntryAdapters.DoStepThreeAdapter;
 import io.vlingo.lattice.model.process.EntryAdapters.DoStepTwoAdapter;
-import io.vlingo.lattice.model.process.EntryAdapters.MarkCompletedAdapter;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFive;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFour;
+import io.vlingo.lattice.model.process.FiveStepProcess.DoStepOne;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepThree;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
-import io.vlingo.lattice.model.process.FiveStepProcess.MarkCompleted;
 import io.vlingo.lattice.model.process.ProcessTypeRegistry.SourcedProcessInfo;
-import io.vlingo.lattice.model.sourcing.MockJournalListener;
+import io.vlingo.lattice.model.sourcing.Sourced;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
 import io.vlingo.symbio.store.journal.Journal;
@@ -41,20 +42,39 @@ import io.vlingo.symbio.store.journal.inmemory.InMemoryJournal;
 public class SourcedProcessTest {
   private Exchange exchange;
   private ExchangeReceivers exchangeReceivers;
+  private LocalExchangeSender exchangeSender;
   private Journal<String> journal;
-  private MockJournalListener listener;
+  private SendingJournalListener listener;
   private FiveStepProcess process;
   private ProcessTypeRegistry processTypeRegistry;
   private SourcedTypeRegistry sourcedTypeRegistry;
   private World world;
 
   @Test
-  public void testFiveStepSourcedProcess() {
-    process.stepOneHappened();
+  public void testFiveStepSendingProcess() {
+    process = world.actorFor(FiveStepProcess.class, FiveStepSendingProcess.class);
+    exchangeReceivers.process(process);
+
+    exchange.send(new DoStepOne());
 
     assertEquals(5, (int) exchangeReceivers.access.readFrom("stepCount"));
 
     assertEquals(5, (int) process.queryStepCount().await());
+  }
+
+  @Test
+  public void testFiveStepEmittingProcess() {
+    process = world.actorFor(FiveStepProcess.class, FiveStepEmittingProcess.class);
+    exchangeReceivers.process(process);
+    final AccessSafely listenerAccess = listener.afterCompleting(4);
+
+    exchange.send(new DoStepOne());
+
+    assertEquals(5, (int) exchangeReceivers.access.readFrom("stepCount"));
+
+    assertEquals(5, (int) process.queryStepCount().await());
+
+    assertEquals(4, (int) listenerAccess.readFrom("entriesCount")); // stepFiveHappened() doesn't emit
   }
 
   @Before
@@ -62,15 +82,74 @@ public class SourcedProcessTest {
   public void setUp() {
     world = World.startWithDefaults("five-step-process-test");
 
-    listener = new MockJournalListener();
-
+    final MessageQueue queue = new AsyncMessageQueue(null);
+    exchange = new LocalExchange(queue);
+    listener = new SendingJournalListener(exchange, new ProcessMessageTextAdapter());
     journal = new InMemoryJournal<>(listener);
 
     sourcedTypeRegistry = new SourcedTypeRegistry(world);
 
-    sourcedTypeRegistry.register(new Info(journal, FiveStepSourcedProcess.class, FiveStepSourcedProcess.class.getSimpleName()));
+    registerSourcedTypes(FiveStepSendingProcess.class);
+    registerSourcedTypes(FiveStepEmittingProcess.class);
 
-    sourcedTypeRegistry.info(FiveStepSourcedProcess.class)
+    exchangeReceivers = new ExchangeReceivers();
+    exchangeSender = new LocalExchangeSender(queue);
+
+    registerExchangeCoveys();
+
+    processTypeRegistry = new ProcessTypeRegistry(world);
+    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingProcess.class, FiveStepSendingProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
+    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingProcess.class, FiveStepEmittingProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
+  }
+
+  private void registerExchangeCoveys() {
+    exchange
+      .register(Covey.of(
+              exchangeSender,
+              exchangeReceivers.doStepOneReceiver,
+              new LocalExchangeAdapter<DoStepOne,DoStepOne>(DoStepOne.class),
+              DoStepOne.class,
+              DoStepOne.class,
+              LocalExchangeMessage.class))
+      .register(Covey.of(
+              exchangeSender,
+              exchangeReceivers.doStepTwoReceiver,
+              new LocalExchangeAdapter<DoStepTwo,DoStepTwo>(DoStepTwo.class),
+              DoStepTwo.class,
+              DoStepTwo.class,
+              LocalExchangeMessage.class))
+      .register(Covey.of(
+              exchangeSender,
+              exchangeReceivers.doStepThreeReceiver,
+              new LocalExchangeAdapter<DoStepThree,DoStepThree>(DoStepThree.class),
+              DoStepThree.class,
+              DoStepThree.class,
+              LocalExchangeMessage.class))
+      .register(Covey.of(
+              exchangeSender,
+              exchangeReceivers.doStepFourReceiver,
+              new LocalExchangeAdapter<DoStepFour,DoStepFour>(DoStepFour.class),
+              DoStepFour.class,
+              DoStepFour.class,
+              LocalExchangeMessage.class))
+      .register(Covey.of(
+              exchangeSender,
+              exchangeReceivers.doStepFiveReceiver,
+              new LocalExchangeAdapter<DoStepFive,DoStepFive>(DoStepFive.class),
+              DoStepFive.class,
+              DoStepFive.class,
+              LocalExchangeMessage.class));
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private <T extends Sourced<?>> void registerSourcedTypes(final Class<T> sourcedType) {
+    sourcedTypeRegistry.register(new Info(journal, sourcedType, sourcedType.getSimpleName()));
+
+    sourcedTypeRegistry.info(sourcedType)
+      .registerEntryAdapter(ProcessMessage.class, new ProcessMessageTextAdapter(),
+              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+      .registerEntryAdapter(DoStepOne.class, new DoStepOneAdapter(),
+              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
       .registerEntryAdapter(DoStepTwo.class, new DoStepTwoAdapter(),
               (type, adapter) -> journal.registerEntryAdapter(type, adapter))
       .registerEntryAdapter(DoStepThree.class, new DoStepThreeAdapter(),
@@ -78,49 +157,6 @@ public class SourcedProcessTest {
       .registerEntryAdapter(DoStepFour.class, new DoStepFourAdapter(),
               (type, adapter) -> journal.registerEntryAdapter(type, adapter))
       .registerEntryAdapter(DoStepFive.class, new DoStepFiveAdapter(),
-            (type, adapter) -> journal.registerEntryAdapter(type, adapter))
-      .registerEntryAdapter(MarkCompleted.class, new MarkCompletedAdapter(),
             (type, adapter) -> journal.registerEntryAdapter(type, adapter));
-
-    final MessageQueue queue = new AsyncMessageQueue(null);
-    exchange = new LocalExchange(queue);
-    exchangeReceivers = new ExchangeReceivers();
-
-    exchange
-      .register(Covey.of(
-              new LocalExchangeSender(queue),
-              exchangeReceivers.doStepTwoReceiver,
-              new LocalExchangeAdapter<DoStepTwo,DoStepTwo>(DoStepTwo.class),
-              DoStepTwo.class,
-              DoStepTwo.class,
-              LocalExchangeMessage.class))
-      .register(Covey.of(
-              new LocalExchangeSender(queue),
-              exchangeReceivers.doStepThreeReceiver,
-              new LocalExchangeAdapter<DoStepThree,DoStepThree>(DoStepThree.class),
-              DoStepThree.class,
-              DoStepThree.class,
-              LocalExchangeMessage.class))
-      .register(Covey.of(
-              new LocalExchangeSender(queue),
-              exchangeReceivers.doStepFourReceiver,
-              new LocalExchangeAdapter<DoStepFour,DoStepFour>(DoStepFour.class),
-              DoStepFour.class,
-              DoStepFour.class,
-              LocalExchangeMessage.class))
-      .register(Covey.of(
-              new LocalExchangeSender(queue),
-              exchangeReceivers.markCompletedReceiver,
-              new LocalExchangeAdapter<MarkCompleted,MarkCompleted>(MarkCompleted.class),
-              MarkCompleted.class,
-              MarkCompleted.class,
-              LocalExchangeMessage.class));
-
-    processTypeRegistry = new ProcessTypeRegistry(world);
-    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSourcedProcess.class, FiveStepSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
-
-    process = world.actorFor(FiveStepProcess.class, FiveStepSourcedProcess.class);
-
-    exchangeReceivers.process(process);
   }
 }
