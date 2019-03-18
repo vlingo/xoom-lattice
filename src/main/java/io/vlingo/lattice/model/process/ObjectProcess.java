@@ -7,15 +7,67 @@
 
 package io.vlingo.lattice.model.process;
 
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.vlingo.lattice.model.Command;
 import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.lattice.model.object.ObjectEntity;
+import io.vlingo.symbio.Source;
 
 /**
  * Abstract base definition for all concrete object process types.
  * @param <T> the type of ObjectEntity
  */
 public abstract class ObjectProcess<T> extends ObjectEntity<T> implements Process {
+
+  /**
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command)
+   */
+  @Override
+  public void emit(final Command command) {
+    // TODO: emit
+  }
+
+  /**
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command, java.util.function.Supplier)
+   */
+  @Override
+  public <R> void emit(final Command command, final Supplier<R> andThen) {
+    // TODO: emit
+  }
+
+  /**
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent)
+   */
+  @Override
+  public void emit(final DomainEvent event) {
+    // TODO: emit
+  }
+
+  /**
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent, java.util.function.Supplier)
+   */
+  @Override
+  public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
+    // TODO: emit
+  }
+
+  /**
+   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List)
+   */
+  @Override
+  public void emitAll(final List<Source<?>> sources) {
+    // TODO: emit
+  }
+
+  /**
+   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List, java.util.function.Supplier)
+   */
+  @Override
+  public <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
+    // TODO: emit
+  }
 
   /**
    * @see io.vlingo.lattice.model.process.Process#send(io.vlingo.lattice.model.Command)
