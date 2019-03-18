@@ -26,10 +26,65 @@ import io.vlingo.symbio.Source;
  * dual sourced, my state is comprised of a stream of all emitted instances of
  * {@code Source<T>} types. In case you do not desire a given {@code Source<T>}
  * to contribute to my state, use the {@code send()} behaviors for those rather
- * than the {@code emit()} behaviors.
+ * than the {@code emit()} behaviors. Note, however, that {@code send()} is
+ * subject to failures of the underlying {@code Exchange} mechanism.
  */
 public abstract class SourcedProcess extends Sourced<ProcessMessage> implements Process {
   private final ProcessTypeRegistry.Info<? extends SourcedProcess> info;
+
+  /**
+   * Uses the underlying {@code Journal} for Event Sourcing semantics.
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command)
+   */
+  @Override
+  public void emit(final Command command) {
+    apply(new ProcessMessage(command));
+  }
+
+  /**
+   * Uses the underlying {@code Journal} for Event Sourcing semantics.
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command, java.util.function.Supplier)
+   */
+  @Override
+  public <R> void emit(final Command command, final Supplier<R> andThen) {
+    apply(new ProcessMessage(command), andThen);
+  }
+
+  /**
+   * Uses the underlying {@code Journal} for Event Sourcing semantics.
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent)
+   */
+  @Override
+  public void emit(final DomainEvent event) {
+    apply(new ProcessMessage(event));
+  }
+
+  /**
+   * Uses the underlying {@code Journal} for Event Sourcing semantics.
+   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent, java.util.function.Supplier)
+   */
+  @Override
+  public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
+    apply(new ProcessMessage(event), andThen);
+  }
+
+  /**
+   * Uses the underlying {@code Journal} for Event Sourcing semantics.
+   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List)
+   */
+  @Override
+  public void emitAll(final List<Source<?>> sources) {
+    apply(wrap(sources));
+  }
+
+  /**
+   * Uses the underlying {@code Journal} for Event Sourcing semantics.
+   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List, java.util.function.Supplier)
+   */
+  @Override
+  public <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
+    apply(wrap(sources), andThen);
+  }
 
   /**
    * @see io.vlingo.lattice.model.process.Process#send(io.vlingo.lattice.model.Command)
@@ -52,63 +107,6 @@ public abstract class SourcedProcess extends Sourced<ProcessMessage> implements 
    */
   protected SourcedProcess() {
     this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
-  }
-
-  /**
-   * Emit the {@code command} by applying it to myself.
-   * @param command the Command to apply
-   */
-  protected void emit(final Command command) {
-    apply(new ProcessMessage(command));
-  }
-
-  /**
-   * Emit the {@code command} by applying it to myself, followed by
-   * the execution of a possible {@code andThen}.
-   * @param command the Command to apply
-   * @param andThen the {@code Supplier<R>} executed following the application of command
-   * @param <R> the return type of the andThen {@code Supplier<R>}
-   */
-  protected <R> void emit(final Command command, final Supplier<R> andThen) {
-    apply(new ProcessMessage(command), andThen);
-  }
-
-  /**
-   * Emit the {@code event} by applying it to myself.
-   * @param event the DomainEvent to apply
-   */
-  protected void emit(final DomainEvent event) {
-    apply(new ProcessMessage(event));
-  }
-
-  /**
-   * Emit the {@code event} by applying it to myself, followed by
-   * the execution of a possible {@code andThen}.
-   * @param event the DomainEvent to apply
-   * @param andThen the {@code Supplier<R>} executed following the application of event
-   * @param <R> the return type of the andThen {@code Supplier<R>}
-   */
-  protected <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
-    apply(new ProcessMessage(event), andThen);
-  }
-
-  /**
-   * Emit all {@code sources} by applying them to myself.
-   * @param sources the {@code List<Source<?>>} of source instances to apply
-   */
-  protected void emitAll(final List<Source<?>> sources) {
-    apply(wrap(sources));
-  }
-
-  /**
-   * Emit all {@code sources} by applying them to myself, followed by
-   * the execution of a possible {@code andThen}.
-   * @param sources the {@code List<Source<?>>} of source instances to apply
-   * @param andThen the {@code Supplier<R>} executed following the application of sources
-   * @param <R> the return type of the andThen {@code Supplier<R>}
-   */
-  protected <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
-    apply(wrap(sources), andThen);
   }
 
   /**
