@@ -10,14 +10,33 @@ package io.vlingo.lattice.model.process;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFive;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFour;
+import io.vlingo.lattice.model.process.FiveStepProcess.DoStepOne;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepThree;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
-import io.vlingo.lattice.model.process.FiveStepProcess.MarkCompleted;
 import io.vlingo.symbio.Entry.TextEntry;
 import io.vlingo.symbio.EntryAdapter;
 import io.vlingo.symbio.Metadata;
 
 public class EntryAdapters {
+  public static final class DoStepOneAdapter implements EntryAdapter<DoStepOne,TextEntry> {
+    @Override
+    public DoStepOne fromEntry(final TextEntry entry) {
+      return JsonSerialization.deserialized(entry.entryData, DoStepOne.class);
+    }
+
+    @Override
+    public TextEntry toEntry(final DoStepOne source) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(DoStepOne.class, 1, serialization, Metadata.nullMetadata());
+    }
+
+    @Override
+    public TextEntry toEntry(final DoStepOne source, final String id) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, DoStepOne.class, 1, serialization, Metadata.nullMetadata());
+    }
+  }
+
   public static final class DoStepTwoAdapter implements EntryAdapter<DoStepTwo,TextEntry> {
     @Override
     public DoStepTwo fromEntry(final TextEntry entry) {
@@ -91,25 +110,6 @@ public class EntryAdapters {
     public TextEntry toEntry(final DoStepFive source, final String id) {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, DoStepFive.class, 1, serialization, Metadata.nullMetadata());
-    }
-  }
-
-  public static final class MarkCompletedAdapter implements EntryAdapter<MarkCompleted,TextEntry> {
-    @Override
-    public MarkCompleted fromEntry(final TextEntry entry) {
-      return JsonSerialization.deserialized(entry.entryData, MarkCompleted.class);
-    }
-
-    @Override
-    public TextEntry toEntry(final MarkCompleted source) {
-      final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(MarkCompleted.class, 1, serialization, Metadata.nullMetadata());
-    }
-
-    @Override
-    public TextEntry toEntry(final MarkCompleted source, final String id) {
-      final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(id, MarkCompleted.class, 1, serialization, Metadata.nullMetadata());
     }
   }
 }
