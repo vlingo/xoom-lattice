@@ -11,31 +11,34 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.exchange.ExchangeReceiver;
+import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFive;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFour;
+import io.vlingo.lattice.model.process.FiveStepProcess.DoStepOne;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepThree;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
-import io.vlingo.lattice.model.process.FiveStepProcess.MarkCompleted;
 
 public class ExchangeReceivers {
   public final AccessSafely access;
 
+  public final DoStepOneReceiver doStepOneReceiver;
   public final DoStepTwoReceiver doStepTwoReceiver;
   public final DoStepThreeReceiver doStepThreeReceiver;
   public final DoStepFourReceiver doStepFourReceiver;
-  public final MarkCompletedReceiver markCompletedReceiver;
+  public final DoStepFiveReceiver doStepFiveReceiver;
 
   private final AtomicInteger stepCount;
   private FiveStepProcess process;
 
   public ExchangeReceivers() {
+    this.doStepOneReceiver = new DoStepOneReceiver();
     this.doStepTwoReceiver = new DoStepTwoReceiver();
     this.doStepThreeReceiver = new DoStepThreeReceiver();
     this.doStepFourReceiver = new DoStepFourReceiver();
-    this.markCompletedReceiver = new MarkCompletedReceiver();
+    this.doStepFiveReceiver = new DoStepFiveReceiver();
 
-    this.stepCount = new AtomicInteger(1);
+    this.stepCount = new AtomicInteger(0);
 
-    this.access = AccessSafely.afterCompleting(4);
+    this.access = AccessSafely.afterCompleting(5);
     this.access
       .writingWith("stepCount", (Integer delta) -> stepCount.set(stepCount.get() + delta))
       .readingWith("stepCount", () -> stepCount.get());
@@ -43,6 +46,14 @@ public class ExchangeReceivers {
 
   public void process(final FiveStepProcess process) {
     this.process = process;
+  }
+
+  public final class DoStepOneReceiver implements ExchangeReceiver<DoStepOne> {
+    @Override
+    public void receive(final DoStepOne message) {
+      process.stepOneHappened();
+      access.writeUsing("stepCount", 1);
+    }
   }
 
   public final class DoStepTwoReceiver implements ExchangeReceiver<DoStepTwo> {
@@ -69,9 +80,9 @@ public class ExchangeReceivers {
     }
   }
 
-  public final class MarkCompletedReceiver implements ExchangeReceiver<MarkCompleted> {
+  public final class DoStepFiveReceiver implements ExchangeReceiver<DoStepFive> {
     @Override
-    public void receive(final MarkCompleted message) {
+    public void receive(final DoStepFive message) {
       process.stepFiveHappened();
       access.writeUsing("stepCount", 1);
     }
