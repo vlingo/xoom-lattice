@@ -67,7 +67,7 @@ public class EventSourcedTest {
     assertNotNull(appendeAt0);
     assertEquals(Test1Happened.class.getName(), appendeAt0.type);
 
-    final AccessSafely resultAccess2 = result.afterCompleting(1);
+    final AccessSafely resultAccess2 = result.afterCompleting(2);
     final AccessSafely listenerAccess2 = listener.afterCompleting(1);
 
     entity.doTest2();
