@@ -56,7 +56,7 @@ public class CommandSourcedTest {
     assertNotNull(appliedAt0);
     assertEquals(DoCommand1.class, appliedAt0.getClass());
 
-    final AccessSafely access2 = result.afterCompleting(1);
+    final AccessSafely access2 = result.afterCompleting(2);
 
     entity.doTest2();
 
