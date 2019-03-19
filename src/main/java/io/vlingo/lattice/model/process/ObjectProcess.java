@@ -75,6 +75,7 @@ public abstract class ObjectProcess<T> extends ObjectEntity<T> implements Proces
   @Override
   public void send(final Command command) {
     // TODO: send
+    // info.exchange.send(command);
   }
 
   /**
@@ -83,5 +84,6 @@ public abstract class ObjectProcess<T> extends ObjectEntity<T> implements Proces
   @Override
   public void send(final DomainEvent event) {
     // TODO: send
+    // info.exchange.send(event);
   }
 }
