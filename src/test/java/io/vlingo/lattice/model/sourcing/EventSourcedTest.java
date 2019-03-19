@@ -36,7 +36,7 @@ public class EventSourcedTest {
     final AccessSafely listenerAccess = listener.afterCompleting(1);
 
     entity.doTest1();
-    
+
     assertTrue(resultAccess.readFrom("tested1"));
     assertEquals(1, (int) resultAccess.readFrom("appliedCount"));
     assertEquals(1, (int) listenerAccess.readFrom("entriesCount"));
@@ -55,7 +55,7 @@ public class EventSourcedTest {
     final AccessSafely listenerAccess = listener.afterCompleting(1);
 
     entity.doTest1();
-    
+
     assertTrue(resultAccess.readFrom("tested1"));
     assertFalse(resultAccess.readFrom("tested2"));
     assertEquals(1, (int) resultAccess.readFrom("appliedCount"));
@@ -66,12 +66,12 @@ public class EventSourcedTest {
     Entry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
     assertEquals(Test1Happened.class.getName(), appendeAt0.type);
-    
+
     final AccessSafely resultAccess2 = result.afterCompleting(1);
     final AccessSafely listenerAccess2 = listener.afterCompleting(1);
-    
+
     entity.doTest2();
-    
+
     assertEquals(2, (int) resultAccess2.readFrom("appliedCount"));
     assertEquals(2, (int) listenerAccess.readFrom("entriesCount"));
     Object appliedAt1 = resultAccess2.readFrom("appliedAt", 1);
@@ -84,11 +84,11 @@ public class EventSourcedTest {
 
   @Test
   public void testThatOutcomeCompletes() {
-    final AccessSafely resultAccess = result.afterCompleting(1);
+    final AccessSafely resultAccess = result.afterCompleting(2);
     final AccessSafely listenerAccess = listener.afterCompleting(1);
-    
+
     entity.doTest1();
-    
+
     assertTrue(resultAccess.readFrom("tested1"));
     assertFalse(resultAccess.readFrom("tested3"));
     assertEquals(1, (int) resultAccess.readFrom("appliedCount"));
@@ -99,14 +99,14 @@ public class EventSourcedTest {
     Entry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
     assertEquals(Test1Happened.class.getName(), appendeAt0.type);
-    
+
     final AccessSafely resultAccess2 = result.afterCompleting(2);
     final AccessSafely listenerAccess2 = listener.afterCompleting(1);
-    
+
     entity.doTest3().andThenConsume(greeting -> {
       assertEquals("hello", greeting);
     });
-    
+
     assertEquals(2, (int) resultAccess2.readFrom("appliedCount"));
     assertEquals(2, (int) listenerAccess2.readFrom("entriesCount"));
     Object appliedAt1 = resultAccess2.readFrom("appliedAt", 1);
@@ -121,7 +121,7 @@ public class EventSourcedTest {
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public void setUp() {
     world = World.startWithDefaults("test-es");
-    
+
     listener = new MockJournalListener();
 
     journal = world.actorFor(Journal.class, InMemoryJournalActor.class, listener);
