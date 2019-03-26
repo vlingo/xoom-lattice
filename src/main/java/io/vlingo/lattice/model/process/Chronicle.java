@@ -12,7 +12,7 @@ package io.vlingo.lattice.model.process;
  * @param <S> the type of state this I maintain
  */
 public class Chronicle<S> {
-  private final S state;
+  public final S state;
 
   public Chronicle(final S state) {
     this.state = state;
