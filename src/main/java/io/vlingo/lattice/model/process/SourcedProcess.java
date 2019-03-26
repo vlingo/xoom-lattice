@@ -28,9 +28,18 @@ import io.vlingo.symbio.Source;
  * to contribute to my state, use the {@code send()} behaviors for those rather
  * than the {@code emit()} behaviors. Note, however, that {@code send()} is
  * subject to failures of the underlying {@code Exchange} mechanism.
+ * @param <T> the type of the process state and used by the {@code Chronicle<T>}
  */
-public abstract class SourcedProcess extends Sourced<ProcessMessage> implements Process {
-  private final ProcessTypeRegistry.Info<? extends SourcedProcess> info;
+public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implements Process<T> {
+  private final ProcessTypeRegistry.Info<? extends SourcedProcess<T>> info;
+
+  /**
+   * @see io.vlingo.lattice.model.process.Process#chronicle()
+   */
+  @Override
+  public Chronicle<T> chronicle() {
+    return snapshot();
+  }
 
   /**
    * Uses the underlying {@code Journal} for Event Sourcing semantics.
