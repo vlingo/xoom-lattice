@@ -9,7 +9,7 @@ package io.vlingo.lattice.model.process;
 
 import io.vlingo.common.Completes;
 
-public class FiveStepSendingProcess extends SourcedProcess implements FiveStepProcess {
+public class FiveStepSendingProcess extends SourcedProcess<Object> implements FiveStepProcess {
   private int stepCount;
 
   public FiveStepSendingProcess() { }
