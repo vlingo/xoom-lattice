@@ -119,7 +119,7 @@ public final class ProcessTypeRegistry {
   /**
    * Holder of registration information for {@code SourcedProcess} types.
    */
-  public static class SourcedProcessInfo<T extends SourcedProcess> extends Info<T> {
+  public static class SourcedProcessInfo<T extends SourcedProcess<T>> extends Info<T> {
     public final SourcedTypeRegistry registry;
 
     /**
