@@ -7,14 +7,11 @@
 
 package io.vlingo.lattice.model.process;
 
-import java.util.function.BiConsumer;
-
 import io.vlingo.common.Completes;
 
-public class FiveStepEmittingProcess extends SourcedProcess implements FiveStepProcess {
+public class FiveStepEmittingProcess extends SourcedProcess<Object> implements FiveStepProcess {
   static {
-    final BiConsumer<FiveStepEmittingProcess,ProcessMessage> pm = FiveStepEmittingProcess::applyProcessMessage;
-    registerConsumer(FiveStepEmittingProcess.class, ProcessMessage.class, pm);
+    registerConsumer(FiveStepEmittingProcess.class, ProcessMessage.class, FiveStepEmittingProcess::applyProcessMessage);
   }
 
   private int stepCount;
