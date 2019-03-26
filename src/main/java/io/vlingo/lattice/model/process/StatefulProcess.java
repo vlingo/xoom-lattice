@@ -19,14 +19,14 @@ import io.vlingo.symbio.Source;
  * Abstract base definition for all concrete stateful process types.
  * @param <T> the type of StatefulEntity
  */
-public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Process {
-
+public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Process<T> {
   /**
    * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command)
    */
   @Override
   public void emit(final Command command) {
     // TODO: emit
+    preserve(chronicle().state);
   }
 
   /**
@@ -35,6 +35,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public <R> void emit(final Command command, final Supplier<R> andThen) {
     // TODO: emit
+    preserve(chronicle().state, andThen);
   }
 
   /**
@@ -43,6 +44,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public void emit(final DomainEvent event) {
     // TODO: emit
+    preserve(chronicle().state);
   }
 
   /**
@@ -51,6 +53,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
     // TODO: emit
+    preserve(chronicle().state, andThen);
   }
 
   /**
@@ -59,6 +62,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public void emitAll(final List<Source<?>> sources) {
     // TODO: emit
+    preserve(chronicle().state);
   }
 
   /**
@@ -67,6 +71,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
     // TODO: emit
+    preserve(chronicle().state, andThen);
   }
 
   /**
@@ -75,6 +80,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public void send(final Command command) {
     // TODO: send
+    // info.exchange.send(command);
   }
 
   /**
@@ -83,5 +89,10 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public void send(final DomainEvent event) {
     // TODO: send
+    // info.exchange.send(event);
+  }
+
+  protected StatefulProcess() {
+
   }
 }
