@@ -19,7 +19,7 @@ import io.vlingo.symbio.Source;
  * Abstract base definition for all concrete object process types.
  * @param <T> the type of ObjectEntity
  */
-public abstract class ObjectProcess<T> extends ObjectEntity<T> implements Process {
+public abstract class ObjectProcess<T> extends ObjectEntity<T> implements Process<T> {
 
   /**
    * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command)
