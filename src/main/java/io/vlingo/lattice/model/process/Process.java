@@ -16,8 +16,15 @@ import io.vlingo.symbio.Source;
 
 /**
  * Definition for a long-running process.
+ * @param <T> my state type
  */
-public interface Process {
+public interface Process<T> {
+  /**
+   * Answer my state as a {@code Chronicle<T>}.
+   * @return {@code Chronicle<T>}
+   */
+  Chronicle<T> chronicle();
+
   /**
    * Answer my id, which is used for correlation among my collaborators.
    * @return String
