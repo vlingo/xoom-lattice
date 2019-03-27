@@ -157,6 +157,11 @@ public class StatefulEntityTest {
       final String serialization = JsonSerialization.serialized(state);
       return new TextState(state.id, Entity1State.class, typeVersion(), serialization, stateVersion);
     }
+
+    @Override
+    public <ST> ST fromRawState(State<String> raw, Class<ST> stateType) {
+      return JsonSerialization.deserialized(raw.data, stateType);
+    }
   }
 
   public static interface Entity1 {
