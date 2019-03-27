@@ -80,7 +80,7 @@ public class StatefulEntityTest {
     final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, state, until1);
 
     final Entity1State current1 = entity1.current().await();
-    
+
     assertEquals(state, current1);
 
     entity1.changeName("Sally Jane");
@@ -143,6 +143,11 @@ public class StatefulEntityTest {
     }
 
     @Override
+    public <ST> ST fromRawState(final State<String> raw, final Class<ST> stateType) {
+      return JsonSerialization.deserialized(raw.data, stateType);
+    }
+
+    @Override
     public State<String> toRawState(final Entity1State state, final int stateVersion) {
       return this.toRawState(state, stateVersion, Metadata.nullMetadata());
     }
@@ -183,6 +188,7 @@ public class StatefulEntityTest {
       return id != null && name != null && age > 0;
     }
 
+    @Override
     public String toString() {
       return "Entity1State[id=" + id + " name=" + name + " age=" + age + "]";
     }
