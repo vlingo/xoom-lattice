@@ -9,8 +9,8 @@ package io.vlingo.lattice.model.projection.state;
 
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.symbio.Metadata;
-import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.State.TextState;
+import io.vlingo.symbio.StateAdapter;
 
 public class Entity1 {
   public final String id;
@@ -49,6 +49,11 @@ public class Entity1 {
     @Override
     public Entity1 fromRawState(final TextState raw) {
       return JsonSerialization.deserialized(raw.data, raw.typed());
+    }
+
+    @Override
+    public <ST> ST fromRawState(final TextState raw, final Class<ST> stateType) {
+      return JsonSerialization.deserialized(raw.data, stateType);
     }
 
     @Override
