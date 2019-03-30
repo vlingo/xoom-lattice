@@ -20,10 +20,12 @@ import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.common.Completes;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
+import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.StateAdapter;
+import io.vlingo.symbio.StateAdapterProvider;
 import io.vlingo.symbio.store.state.StateStore;
 import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
 
@@ -118,15 +120,15 @@ public class StatefulEntityTest {
   public void setUp() {
     world = World.startWithDefaults("stateful-entity");
     dispatcher = new MockTextDispatcher();
-    store = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, dispatcher);
-    store.registerAdapter(Entity1State.class, new Entity1StateAdapter());
+
+    final StateAdapterProvider stateAdapterProvider = new StateAdapterProvider(world);
+    stateAdapterProvider.registerAdapter(Entity1State.class, new Entity1StateAdapter());
+    new EntryAdapterProvider(world);
     registry = new StatefulTypeRegistry(world);
-    registry.register(
-            new Info<Entity1State,State<String>>(
-                    store,
-                    Entity1State.class,
-                    Entity1State.class.getSimpleName(),
-                    new Entity1StateAdapter()));
+
+    store = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, dispatcher);
+
+    registry.register(new Info<>(store, Entity1State.class, Entity1State.class.getSimpleName()));
   }
 
   @After
@@ -149,13 +151,13 @@ public class StatefulEntityTest {
 
     @Override
     public State<String> toRawState(final Entity1State state, final int stateVersion) {
-      return this.toRawState(state, stateVersion, Metadata.nullMetadata());
+      return toRawState(state.id, state, stateVersion, Metadata.nullMetadata());
     }
 
     @Override
-    public State<String> toRawState(final Entity1State state, final int stateVersion, final Metadata metadata) {
+    public State<String> toRawState(final String id, final Entity1State state, final int stateVersion, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(state);
-      return new TextState(state.id, Entity1State.class, typeVersion(), serialization, stateVersion);
+      return new TextState(id, Entity1State.class, typeVersion(), serialization, stateVersion);
     }
   }
 

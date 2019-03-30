@@ -7,11 +7,13 @@
 
 package io.vlingo.lattice.model.stateful;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.state.StateStore.Dispatcher;
 import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
@@ -32,7 +34,7 @@ public class MockTextDispatcher implements Dispatcher {
   }
 
   @Override
-  public <S extends State<?>> void dispatch(final String dispatchId, final S state) {
+  public <S extends State<?>, C extends Source<?>> void dispatch(final String dispatchId, final S state, final Collection<C> sources) {
     if (processDispatch.get()) {
       dispatched.put(dispatchId, state);
       until.happened();

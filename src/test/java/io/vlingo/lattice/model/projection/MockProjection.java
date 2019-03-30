@@ -9,17 +9,31 @@ package io.vlingo.lattice.model.projection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.actors.testkit.AccessSafely;
 
 public class MockProjection implements Projection {
   public List<String> projectedDataIds = new ArrayList<>();
-  public TestUntil until = TestUntil.happenings(0);
+  public AccessSafely access = AccessSafely.afterCompleting(0);
+  private AtomicInteger projections = new AtomicInteger(0);
 
   @Override
   public void projectWith(final Projectable projectable, final ProjectionControl control) {
-    projectedDataIds.add(projectable.dataId());
-    control.confirmProjected(projectable.projectionId());
-    until.happened();
+    access.writeUsing("projections", 1, projectable.dataId());
+  }
+
+  public AccessSafely afterCompleting(final int times) {
+    access = AccessSafely.afterCompleting(times);
+
+    access
+      .writingWith("projections", (Integer val, String id) -> {
+        projections.set(projections.get() + val);
+        projectedDataIds.add(id);
+      })
+      .readingWith("projections", () -> projections.get())
+      .readingWith("projectionId", (Integer index) -> projectedDataIds.get(index));
+
+    return access;
   }
 }

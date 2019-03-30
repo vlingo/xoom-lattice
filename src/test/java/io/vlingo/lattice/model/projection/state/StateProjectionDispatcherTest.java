@@ -10,6 +10,7 @@ package io.vlingo.lattice.model.projection.state;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -17,6 +18,7 @@ import org.junit.Test;
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.lattice.model.projection.MockProjection;
 import io.vlingo.lattice.model.projection.Projectable;
@@ -27,6 +29,7 @@ import io.vlingo.lattice.model.projection.ProjectionDispatcher.ProjectToDescript
 import io.vlingo.lattice.model.projection.ProjectionDispatcherTest;
 import io.vlingo.lattice.model.projection.state.DescribedProjection.Outcome;
 import io.vlingo.symbio.Metadata;
+import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.store.state.StateStore;
@@ -42,22 +45,20 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
     final MockProjection projection = new MockProjection();
 
+    final AccessSafely access = projection.afterCompleting(2);
+
     projectionDispatcher.projectTo(projection, new String[] { "op1" });
     projectionDispatcher.projectTo(projection, new String[] { "op2" });
 
     final Entity1 entity1 = new Entity1("123-1", 1);
     final Entity1 entity2 = new Entity1("123-2", 2);
 
-    projection.until = TestUntil.happenings(2);
-
     store.write(entity1.id, entity1, 1, Metadata.with("value1", "op1"), interest);
     store.write(entity2.id, entity2, 1, Metadata.with("value2", "op2"), interest);
 
-    projection.until.completes();
-
-    assertEquals(2, projection.projectedDataIds.size());
-    assertEquals("123-1", projection.projectedDataIds.get(0));
-    assertEquals("123-2", projection.projectedDataIds.get(1));
+    assertEquals(2, (int) access.readFrom("projections"));
+    assertEquals("123-1", access.readFrom("projectionId", 0));
+    assertEquals("123-2", access.readFrom("projectionId", 1));
   }
 
   @Test
@@ -122,7 +123,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     private final FilterOutcome outcome;
 
     @Override
-    public <S extends State<?>> void dispatch(final String dispatchId, final S state) {
+    public <S extends State<?>, C extends Source<?>> void dispatch(final String dispatchId, final S state, final Collection<C> sources) {
     }
 
     public static ProjectionDispatcher filterFor(

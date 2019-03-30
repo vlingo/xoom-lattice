@@ -14,8 +14,11 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
 import io.vlingo.lattice.model.projection.state.Entity1;
-import io.vlingo.lattice.model.projection.state.Entity1.Entity1StateAdapter;
 import io.vlingo.lattice.model.projection.state.Entity2;
+import io.vlingo.lattice.model.stateful.StatefulEntityTest.Entity1State;
+import io.vlingo.lattice.model.stateful.StatefulEntityTest.Entity1StateAdapter;
+import io.vlingo.symbio.EntryAdapterProvider;
+import io.vlingo.symbio.StateAdapterProvider;
 import io.vlingo.symbio.store.state.StateStore;
 import io.vlingo.symbio.store.state.StateStore.Dispatcher;
 import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
@@ -32,6 +35,13 @@ public abstract class ProjectionDispatcherTest {
   @Before
   public void setUp() {
     world = World.startWithDefaults("test-store");
+
+    final StateAdapterProvider stateAdapterProvider = new StateAdapterProvider(world);
+    stateAdapterProvider.registerAdapter(Entity1State.class, new Entity1StateAdapter());
+    new EntryAdapterProvider(world);
+
+    StateTypeStateStoreMap.stateTypeToStoreName(Entity1.class, Entity1.class.getSimpleName());
+    StateTypeStateStoreMap.stateTypeToStoreName(Entity2.class, Entity2.class.getSimpleName());
 
     final Protocols dispatcherProtocols =
             world.actorFor(
@@ -50,11 +60,7 @@ public abstract class ProjectionDispatcherTest {
 
     final Protocols.Two<StateStore, DispatcherControl> storeWithControl = Protocols.two(storeProtocols);
     store = storeWithControl._1;
-    store.registerAdapter(Entity1.class, new Entity1StateAdapter());
     dispatcherControl = storeWithControl._2;
-
-    StateTypeStateStoreMap.stateTypeToStoreName(Entity1.class, Entity1.class.getSimpleName());
-    StateTypeStateStoreMap.stateTypeToStoreName(Entity2.class, Entity2.class.getSimpleName());
   }
 
   @After

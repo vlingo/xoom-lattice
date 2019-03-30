@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.model.stateful;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
@@ -14,7 +15,7 @@ import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
-import io.vlingo.symbio.State;
+import io.vlingo.symbio.Source;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
@@ -30,7 +31,7 @@ public abstract class StatefulEntity<S> extends Actor
     implements ReadResultInterest, WriteResultInterest {
 
   private int currentVersion;
-  private final Info<S,State<?>> info;
+  private final Info<S> info;
   private final ReadResultInterest readInterest;
   private final WriteResultInterest writeInterest;
 
@@ -190,7 +191,7 @@ public abstract class StatefulEntity<S> extends Actor
    */
   @Override
   @SuppressWarnings("unchecked")
-  final public <ST> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final ST state, final int stateVersion, final Object supplier) {
+  final public <ST,C> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final ST state, final int stateVersion, final List<Source<C>> sources, final Object supplier) {
     outcome
       .andThen(result -> {
         state((S) state);
