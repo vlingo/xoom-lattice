@@ -18,10 +18,10 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.object.ListQueryExpression;
 import io.vlingo.symbio.store.object.MapQueryExpression;
-import io.vlingo.symbio.store.object.ObjectStore.PersistResultInterest;
-import io.vlingo.symbio.store.object.ObjectStore.QueryMultiResults;
-import io.vlingo.symbio.store.object.ObjectStore.QueryResultInterest;
-import io.vlingo.symbio.store.object.ObjectStore.QuerySingleResult;
+import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
+import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
+import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
+import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
 import io.vlingo.symbio.store.object.QueryExpression;
 
 /**
