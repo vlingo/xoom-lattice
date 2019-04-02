@@ -12,8 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.exchange.Exchange;
+import io.vlingo.symbio.BaseEntry.TextEntry;
 import io.vlingo.symbio.Entry;
-import io.vlingo.symbio.Entry.TextEntry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.journal.JournalListener;
 

@@ -13,7 +13,7 @@ import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFour;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepOne;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepThree;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
-import io.vlingo.symbio.Entry.TextEntry;
+import io.vlingo.symbio.BaseEntry.TextEntry;
 import io.vlingo.symbio.EntryAdapter;
 import io.vlingo.symbio.Metadata;
 
@@ -21,7 +21,7 @@ public class EntryAdapters {
   public static final class DoStepOneAdapter implements EntryAdapter<DoStepOne,TextEntry> {
     @Override
     public DoStepOne fromEntry(final TextEntry entry) {
-      return JsonSerialization.deserialized(entry.entryData, DoStepOne.class);
+      return JsonSerialization.deserialized(entry.entryData(), DoStepOne.class);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class EntryAdapters {
   public static final class DoStepTwoAdapter implements EntryAdapter<DoStepTwo,TextEntry> {
     @Override
     public DoStepTwo fromEntry(final TextEntry entry) {
-      return JsonSerialization.deserialized(entry.entryData, DoStepTwo.class);
+      return JsonSerialization.deserialized(entry.entryData(), DoStepTwo.class);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class EntryAdapters {
   public static final class DoStepThreeAdapter implements EntryAdapter<DoStepThree,TextEntry> {
     @Override
     public DoStepThree fromEntry(final TextEntry entry) {
-      return JsonSerialization.deserialized(entry.entryData, DoStepThree.class);
+      return JsonSerialization.deserialized(entry.entryData(), DoStepThree.class);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class EntryAdapters {
   public static final class DoStepFourAdapter implements EntryAdapter<DoStepFour,TextEntry> {
     @Override
     public DoStepFour fromEntry(final TextEntry entry) {
-      return JsonSerialization.deserialized(entry.entryData, DoStepFour.class);
+      return JsonSerialization.deserialized(entry.entryData(), DoStepFour.class);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class EntryAdapters {
   public static final class DoStepFiveAdapter implements EntryAdapter<DoStepFive,TextEntry> {
     @Override
     public DoStepFive fromEntry(final TextEntry entry) {
-      return JsonSerialization.deserialized(entry.entryData, DoStepFive.class);
+      return JsonSerialization.deserialized(entry.entryData(), DoStepFive.class);
     }
 
     @Override
