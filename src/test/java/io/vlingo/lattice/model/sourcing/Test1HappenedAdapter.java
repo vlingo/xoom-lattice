@@ -10,12 +10,12 @@ package io.vlingo.lattice.model.sourcing;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.symbio.EntryAdapter;
 import io.vlingo.symbio.Metadata;
-import io.vlingo.symbio.Entry.TextEntry;
+import io.vlingo.symbio.BaseEntry.TextEntry;
 
 public final class Test1HappenedAdapter implements EntryAdapter<Test1Happened,TextEntry> {
   @Override
   public Test1Happened fromEntry(final TextEntry entry) {
-    return JsonSerialization.deserialized(entry.entryData, Test1Happened.class);
+    return JsonSerialization.deserialized(entry.entryData(), Test1Happened.class);
   }
 
   @Override

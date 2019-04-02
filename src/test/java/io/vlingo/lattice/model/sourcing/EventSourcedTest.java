@@ -18,7 +18,7 @@ import org.junit.Test;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
-import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.BaseEntry;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.inmemory.InMemoryJournalActor;
 
@@ -43,9 +43,9 @@ public class EventSourcedTest {
     Object appliedAt0 = resultAccess.readFrom("appliedAt", 0);
     assertNotNull(appliedAt0);
     assertEquals(Test1Happened.class, appliedAt0.getClass());
-    Entry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
+    BaseEntry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
-    assertEquals(Test1Happened.class.getName(), appendeAt0.type);
+    assertEquals(Test1Happened.class.getName(), appendeAt0.type());
     assertFalse(resultAccess.readFrom("tested2"));
   }
 
@@ -63,9 +63,9 @@ public class EventSourcedTest {
     Object appliedAt0 = resultAccess.readFrom("appliedAt", 0);
     assertNotNull(appliedAt0);
     assertEquals(Test1Happened.class, appliedAt0.getClass());
-    Entry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
+    BaseEntry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
-    assertEquals(Test1Happened.class.getName(), appendeAt0.type);
+    assertEquals(Test1Happened.class.getName(), appendeAt0.type());
 
     final AccessSafely resultAccess2 = result.afterCompleting(2);
     final AccessSafely listenerAccess2 = listener.afterCompleting(1);
@@ -77,9 +77,9 @@ public class EventSourcedTest {
     Object appliedAt1 = resultAccess2.readFrom("appliedAt", 1);
     assertNotNull(appliedAt1);
     assertEquals(Test2Happened.class, appliedAt1.getClass());
-    Entry<String> appendeAt1 = listenerAccess2.readFrom("appendedAt", 1);
+    BaseEntry<String> appendeAt1 = listenerAccess2.readFrom("appendedAt", 1);
     assertNotNull(appendeAt1);
-    assertEquals(Test2Happened.class.getName(), appendeAt1.type);
+    assertEquals(Test2Happened.class.getName(), appendeAt1.type());
   }
 
   @Test
@@ -96,9 +96,9 @@ public class EventSourcedTest {
     Object appliedAt0 = resultAccess.readFrom("appliedAt", 0);
     assertNotNull(appliedAt0);
     assertEquals(Test1Happened.class, appliedAt0.getClass());
-    Entry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
+    BaseEntry<String> appendeAt0 = listenerAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
-    assertEquals(Test1Happened.class.getName(), appendeAt0.type);
+    assertEquals(Test1Happened.class.getName(), appendeAt0.type());
 
     final AccessSafely resultAccess2 = result.afterCompleting(2);
     final AccessSafely listenerAccess2 = listener.afterCompleting(1);
@@ -112,9 +112,9 @@ public class EventSourcedTest {
     Object appliedAt1 = resultAccess2.readFrom("appliedAt", 1);
     assertNotNull(appliedAt1);
     assertEquals(Test3Happened.class, appliedAt1.getClass());
-    Entry<String> appendeAt1 = listenerAccess.readFrom("appendedAt", 1);
+    BaseEntry<String> appendeAt1 = listenerAccess.readFrom("appendedAt", 1);
     assertNotNull(appendeAt1);
-    assertEquals(Test3Happened.class.getName(), appendeAt1.type);
+    assertEquals(Test3Happened.class.getName(), appendeAt1.type());
   }
 
   @Before

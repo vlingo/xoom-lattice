@@ -8,7 +8,7 @@
 package io.vlingo.lattice.model.process;
 
 import io.vlingo.common.serialization.JsonSerialization;
-import io.vlingo.symbio.Entry.TextEntry;
+import io.vlingo.symbio.BaseEntry.TextEntry;
 import io.vlingo.symbio.EntryAdapter;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
@@ -17,7 +17,7 @@ public class ProcessMessageTextAdapter implements EntryAdapter<ProcessMessage,Te
   @Override
   public ProcessMessage fromEntry(final TextEntry entry) {
     try {
-      final SerializableProcessMessage serializedMessage = JsonSerialization.deserialized(entry.entryData, SerializableProcessMessage.class);
+      final SerializableProcessMessage serializedMessage = JsonSerialization.deserialized(entry.entryData(), SerializableProcessMessage.class);
       final Class<?> sourceType = Class.forName(serializedMessage.type);
       final Source<?> source = (Source<?>) JsonSerialization.deserialized(serializedMessage.source, sourceType);
     return new ProcessMessage(source);
