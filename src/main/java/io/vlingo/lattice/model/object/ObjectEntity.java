@@ -67,6 +67,7 @@ public abstract class ObjectEntity<T> extends Actor
    * @param sources the {@code List<Source<C>>} instances to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
   protected <C,RT> void apply(final Object state, final List<Source<C>> sources, final Supplier<RT> andThen) {
@@ -81,6 +82,7 @@ public abstract class ObjectEntity<T> extends Actor
    * @param source the {@code Source<C>} to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
   protected <C,RT> void apply(final Object state, final Source<C> source, final Supplier<RT> andThen) {
