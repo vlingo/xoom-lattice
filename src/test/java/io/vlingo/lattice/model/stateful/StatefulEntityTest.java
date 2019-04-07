@@ -225,7 +225,7 @@ public class StatefulEntityTest {
     @Override
     public void start() {
       if (state.hasState()) {
-        preserve(state);
+        apply(state);
       } else {
         restore();
       }
@@ -243,13 +243,13 @@ public class StatefulEntityTest {
 
     @Override
     public void changeName(final String name) {
-      preserve(state.withName(name));
+      apply(state.withName(name));
       until.happened();
     }
 
     @Override
     public void increaseAge() {
-      preserve(state.withAge(state.age + 1));
+      apply(state.withAge(state.age + 1));
       until.happened();
     }
 
@@ -285,7 +285,7 @@ public class StatefulEntityTest {
     @Override
     public void start() {
       if (state.hasState()) {
-        preserve(state, "METADATA", "new");
+        apply(state, "METADATA", "new");
       } else {
         restore();
       }
@@ -303,13 +303,13 @@ public class StatefulEntityTest {
 
     @Override
     public void changeName(final String name) {
-      preserve(state.withName(name), "METADATA", "changeName");
+      apply(state.withName(name), "METADATA", "changeName");
       until.happened();
     }
 
     @Override
     public void increaseAge() {
-      preserve(state.withAge(state.age + 1), "METADATA", "increaseAge");
+      apply(state.withAge(state.age + 1), "METADATA", "increaseAge");
       until.happened();
     }
 

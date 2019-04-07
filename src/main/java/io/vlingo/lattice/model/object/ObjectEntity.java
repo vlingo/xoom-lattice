@@ -8,12 +8,14 @@
 package io.vlingo.lattice.model.object;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
+import io.vlingo.symbio.Source;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.object.ListQueryExpression;
@@ -31,7 +33,7 @@ import io.vlingo.symbio.store.object.QueryExpression;
  * whether formally or informally implemented.
  * @param <T> the type of persistent object
  */
-public abstract class ObjectEntity<T> extends Actor 
+public abstract class ObjectEntity<T> extends Actor
   implements PersistResultInterest, QueryResultInterest {
 
   private final Info<T> info;
@@ -59,6 +61,58 @@ public abstract class ObjectEntity<T> extends Actor
   }
 
   /**
+   * Apply {@code state} and {@code sources}, dispatching to {@code state(final S state)} when completed
+   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * @param state the Object state to preserve
+   * @param sources the {@code List<Source<C>>} instances to apply
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   */
+  protected <C,RT> void apply(final Object state, final List<Source<C>> sources, final Supplier<RT> andThen) {
+    stowMessages(PersistResultInterest.class);
+    info.store.persist(state, sources, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+  }
+
+  /**
+   * Apply {@code state} and {@code source}, dispatching to {@code state(final S state)} when completed
+   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * @param state the Object state to preserve
+   * @param source the {@code Source<C>} to apply
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   */
+  protected <C,RT> void apply(final Object state, final Source<C> source, final Supplier<RT> andThen) {
+    stowMessages(PersistResultInterest.class);
+    info.store.persist(state, asList(source), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+  }
+
+  /**
+   * Preserve my current state dispatching to {@code state(final S state)} when completed
+   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * @param state the Object state to preserve
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   */
+  protected <RT> void apply(final Object state, final Supplier<RT> andThen) {
+    stowMessages(PersistResultInterest.class);
+    info.store.persist(state, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+  }
+
+  /**
+   * Answer a {@code List<Source<C>>} from the varargs {@code sources}.
+   * @param sources the varargs {@code Source<C>} of sources to answer as a {@code List<Source<C>>}
+   * @param <C> the type of Source
+   * @return {@code List<Source<C>>}
+   */
+  @SafeVarargs
+  protected final <C> List<Source<C>> asList(final Source<C>... sources) {
+    return Arrays.asList(sources);
+  }
+
+  /**
    * Answer my unique identity, which much be provided by
    * my concrete extender by overriding.
    * @return String
@@ -78,19 +132,6 @@ public abstract class ObjectEntity<T> extends Actor
    * @return {@code Class<S>}
    */
   protected abstract Class<T> persistentObjectType();
-
-  /**
-   * Preserve my current state dispatching to {@code state(final S state)} when completed
-   * and supply an eventual outcome by means of the given {@code andThen} function.
-   * @param state the Object state to preserve
-   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
-   * and which will used to answer an eventual outcome to the client of this entity
-   * @param <RT> the return type of the Supplier function, which is the type of the completed state
-   */
-  protected <RT> void preserve(final Object state, final Supplier<RT> andThen) {
-    stowMessages(PersistResultInterest.class);
-    info.store.persist(state, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-  }
 
   /**
    * Restore my current state, dispatching to {@code state(final S state)} when completed.

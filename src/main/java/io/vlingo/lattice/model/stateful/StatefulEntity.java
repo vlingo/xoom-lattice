@@ -72,73 +72,155 @@ public abstract class StatefulEntity<S> extends Actor
   protected abstract String id();
 
   /**
-   * Preserve my current {@code state} and {@code metadataValye} that was modified
+   * Apply my current {@code state} and {@code metadataValye} that was modified
+   * due to the descriptive {@code operation}, along with {@code sources}, and
+   * supply an eventual outcome by means of the given {@code andThen} function.
+   * @param state the S typed state to apply
+   * @param sources the {@code List<Source>} instances to apply
+   * @param metadataValue the String metadata value to apply along with the state
+   * @param operation the String descriptive name of the operation that caused the state modification
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   */
+  protected <C,RT> void apply(final S state, final List<Source<C>> sources, final String metadataValue, final String operation, final Supplier<RT> andThen) {
+    final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
+    stowMessages(WriteResultInterest.class);
+    info.store.write(id(), state, nextVersion(), sources, metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+  }
+
+  /**
+   * Apply my current {@code state} and {@code metadataValye} that was modified
    * due to the descriptive {@code operation} and supply an eventual outcome by means
    * of the given {@code andThen} function.
-   * @param state the S typed state to preserve
-   * @param metadataValue the String metadata value to preserve along with the state
+   * @param state the S typed state to apply
+   * @param metadataValue the String metadata value to apply along with the state
    * @param operation the String descriptive name of the operation that caused the state modification
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
-  protected <RT> void preserve(final S state, final String metadataValue, final String operation, final Supplier<RT> andThen) {
+  protected <RT> void apply(final S state, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     stowMessages(WriteResultInterest.class);
     info.store.write(id(), state, nextVersion(), metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
 
   /**
-   * Preserve my current {@code state} that was modified due to the descriptive {@code operation}
+   * Apply my current {@code state} that was modified due to the descriptive {@code operation}
    * and supply an eventual outcome by means of the given {@code andThen} function.
-   * @param state the S typed state to preserve
+   * @param state the S typed state to apply
+   * @param sources the {@code List<Source>} instances to apply
+   * @param operation the String descriptive name of the operation that caused the state modification
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   */
+  protected <C,RT> void apply(final S state, final List<Source<C>> sources, final String operation, final Supplier<RT> andThen) {
+    apply(state, "", operation, andThen);
+  }
+
+  /**
+   * Apply my current {@code state} that was modified due to the descriptive {@code operation}
+   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * @param state the S typed state to apply
    * @param operation the String descriptive name of the operation that caused the state modification
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
-  protected <RT> void preserve(final S state, final String operation, final Supplier<RT> andThen) {
-    preserve(state, "", operation, andThen);
+  protected <RT> void apply(final S state, final String operation, final Supplier<RT> andThen) {
+    apply(state, "", operation, andThen);
   }
 
   /**
-   * Preserve my current {@code state} and supply an eventual outcome by means of the given
+   * Apply my current {@code state} and supply an eventual outcome by means of the given
    * {@code andThen} function.
-   * @param state the S typed state to preserve
+   * @param state the S typed state to apply
+   * @param sources the {@code List<Source>} instances to apply
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   */
+  protected <C,RT> void apply(final S state, final List<Source<C>> sources, final Supplier<RT> andThen) {
+    apply(state, sources, "", "", andThen);
+  }
+
+  /**
+   * Apply my current {@code state} and supply an eventual outcome by means of the given
+   * {@code andThen} function.
+   * @param state the S typed state to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
-  protected <RT> void preserve(final S state, final Supplier<RT> andThen) {
-    preserve(state, "", "", andThen);
+  protected <RT> void apply(final S state, final Supplier<RT> andThen) {
+    apply(state, "", "", andThen);
   }
 
   /**
-   * Preserve my current {@code state} and {@code metadataValye} that was modified
+   * Apply my current {@code state} and {@code metadataValye} that was modified
    * due to the descriptive {@code operation}.
-   * @param state the S typed state to preserve
-   * @param metadataValue the String metadata value to preserve along with the state
+   * @param state the S typed state to apply
+   * @param sources the {@code List<Source>} instances to apply
+   * @param metadataValue the String metadata value to apply along with the state
    * @param operation the String descriptive name of the operation that caused the state modification
+   * @param <C> the type of Source
    */
-  protected void preserve(final S state, final String metadataValue, final String operation) {
-    preserve(state, metadataValue, operation, null);
+  protected <C> void apply(final S state, final List<Source<C>> sources, final String metadataValue, final String operation) {
+    apply(state, sources, metadataValue, operation, null);
   }
 
   /**
-   * Preserve my current {@code state} that was modified due to the descriptive {@code operation}.
-   * @param state the S typed state to preserve
+   * Apply my current {@code state} and {@code metadataValye} that was modified
+   * due to the descriptive {@code operation}.
+   * @param state the S typed state to apply
+   * @param metadataValue the String metadata value to apply along with the state
    * @param operation the String descriptive name of the operation that caused the state modification
    */
-  protected void preserve(final S state, final String operation) {
-    preserve(state, "", operation, null);
+  protected void apply(final S state, final String metadataValue, final String operation) {
+    apply(state, metadataValue, operation, null);
   }
 
   /**
-   * Preserve my current {@code state}.
-   * @param state the S typed state to preserve
+   * Apply my current {@code state} that was modified due to the descriptive {@code operation}.
+   * @param state the S typed state to apply
+   * @param sources the {@code List<Source>} instances to apply
+   * @param operation the String descriptive name of the operation that caused the state modification
+   * @param <C> the type of Source
    */
-  protected void preserve(final S state) {
-    preserve(state, "", "", null);
+  protected <C> void apply(final S state, final List<Source<C>> sources, final String operation) {
+    apply(state, "", operation, null);
+  }
+
+  /**
+   * Apply my current {@code state} that was modified due to the descriptive {@code operation}.
+   * @param state the S typed state to apply
+   * @param operation the String descriptive name of the operation that caused the state modification
+   */
+  protected void apply(final S state, final String operation) {
+    apply(state, "", operation, null);
+  }
+
+  /**
+   * Apply my current {@code state}.
+   * @param state the S typed state to apply
+   * @param sources the {@code List<Source>} instances to apply
+   * @param <C> the type of Source
+   */
+  protected <C> void apply(final S state, final List<Source<C>> sources) {
+    apply(state, sources, "", "", null);
+  }
+
+  /**
+   * Apply my current {@code state}.
+   * @param state the S typed state to apply
+   */
+  protected void apply(final S state) {
+    apply(state, "", "", null);
   }
 
   /**
@@ -149,7 +231,7 @@ public abstract class StatefulEntity<S> extends Actor
   }
 
   /**
-   * Received by my extender when my current state has been preserved and restored.
+   * Received by my extender when my current state has been applied and restored.
    * Must be overridden by my extender.
    * @param state the S typed state
    */
@@ -201,7 +283,7 @@ public abstract class StatefulEntity<S> extends Actor
         return result;
       })
       .otherwise(cause -> {
-        final String message = "State not preserved for: " + getClass() + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
+        final String message = "State not applied for: " + getClass() + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
         logger().log(message, cause);
         throw new IllegalStateException(message, cause);
       });

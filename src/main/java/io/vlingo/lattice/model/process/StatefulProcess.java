@@ -26,7 +26,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public void emit(final Command command) {
     // TODO: emit
-    preserve(chronicle().state);
+    apply(chronicle().state);
   }
 
   /**
@@ -35,7 +35,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public <R> void emit(final Command command, final Supplier<R> andThen) {
     // TODO: emit
-    preserve(chronicle().state, andThen);
+    apply(chronicle().state, andThen);
   }
 
   /**
@@ -44,7 +44,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public void emit(final DomainEvent event) {
     // TODO: emit
-    preserve(chronicle().state);
+    apply(chronicle().state);
   }
 
   /**
@@ -53,7 +53,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
     // TODO: emit
-    preserve(chronicle().state, andThen);
+    apply(chronicle().state, andThen);
   }
 
   /**
@@ -62,7 +62,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public void emitAll(final List<Source<?>> sources) {
     // TODO: emit
-    preserve(chronicle().state);
+    apply(chronicle().state);
   }
 
   /**
@@ -71,7 +71,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   @Override
   public <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
     // TODO: emit
-    preserve(chronicle().state, andThen);
+    apply(chronicle().state, andThen);
   }
 
   /**

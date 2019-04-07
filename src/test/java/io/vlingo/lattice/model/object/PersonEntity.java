@@ -27,19 +27,19 @@ public class PersonEntity extends ObjectEntity<PersonState> implements Person {
 
   @Override
   public Completes<PersonState> identify(final String name, final int age) {
-    preserve(new PersonState(name, age), () -> person);
+    apply(new PersonState(name, age), () -> person);
     return completes();
   }
 
   @Override
   public Completes<PersonState> change(String name) {
-    preserve(person.with(name), () -> person);
+    apply(person.with(name), () -> person);
     return completes();
   }
 
   @Override
   public Completes<PersonState> increaseAge() {
-    preserve(person.with(person.age + 1), () -> person);
+    apply(person.with(person.age + 1), () -> person);
     return completes();
   }
 
