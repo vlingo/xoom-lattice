@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Collection;
+
+import io.vlingo.symbio.Entry;
+
 /**
  * Provides parts of the state to be projected.
  */
@@ -40,6 +44,12 @@ public interface Projectable {
    * @return String
    */
   String dataId();
+
+  /**
+   * Answer the {@code Collection<Entry<?>>} instances.
+   * @return {@code Collection<Entry<?>>}
+   */
+  Collection<Entry<?>> entries();
 
   /**
    * Answer my associated metadata.
