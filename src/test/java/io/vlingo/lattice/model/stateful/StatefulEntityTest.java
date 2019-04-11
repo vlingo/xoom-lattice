@@ -8,15 +8,17 @@
 package io.vlingo.lattice.model.stateful;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Random;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import io.vlingo.actors.World;
-import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.Completes;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
@@ -33,6 +35,7 @@ public class StatefulEntityTest {
   private final Random idGenerator = new Random();
   private MockTextDispatcher dispatcher;
   private StatefulTypeRegistry registry;
+  private StateAdapterProvider stateAdapterProvider;
   private StateStore store;
   private World world;
 
@@ -40,46 +43,48 @@ public class StatefulEntityTest {
   public void testThatStatefulEntityPreservesRestores() throws Exception {
     final String entityId = "" + idGenerator.nextInt(10_000);
     final Entity1State state = new Entity1State(entityId, "Sally", 23);
-    final TestUntil until1 = TestUntil.happenings(3);
+    final AccessSafely access = dispatcher.afterCompleting(3);
 
-    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1Actor.class, state, until1);
+    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1Actor.class, state);
 
-    entity1.current().andThenConsume(current -> assertEquals(state, current));
+    assertEquals(state, entity1.current().await());
 
     entity1.changeName("Sally Jane");
 
-    entity1.current().andThenConsume(current -> assertEquals("Sally Jane", current.name));
+    assertEquals("Sally Jane", entity1.current().await().name);
 
     entity1.increaseAge();
 
-    entity1.current().andThenConsume(current -> { assertEquals(24, current.age); until1.happened(); });
-
-    until1.completes();
+    assertEquals(24, entity1.current().await().age);
 
     final Entity1State identityState = new Entity1State(entityId);
-    final TestUntil until2 = TestUntil.happenings(1);
 
-    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1Actor.class, identityState, until2);
+    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1Actor.class, identityState);
 
-    until2.completes();
+    final Entity1State restoredEntity1State = restoredEntity1.current().await();
 
-    final TestUntil until3 = TestUntil.happenings(1);
+    assertNotNull(restoredEntity1State);
+
+    assertEquals(1, (int) access.readFrom("dispatchedStateCount"));
+    Set<String> ids = access.readFrom("dispatchedIds");
+    assertEquals(1, ids.size());
+
+    final TextState flatState = access.readFrom("dispatchedState", ids.iterator().next());
+
+    assertEquals(new Entity1State(entityId, "Sally Jane", 24), stateAdapterProvider.fromRaw(flatState));
 
     restoredEntity1.current().andThenConsume(current -> {
       assertEquals(new Entity1State(entityId, "Sally Jane", 24), current);
-      until3.happened();
     });
-
-    until3.completes();
   }
 
   @Test
   public void testThatMetadataCallbackPreservesRestores() throws Exception {
     final String entityId = "" + idGenerator.nextInt(10_000);
     final Entity1State state = new Entity1State(entityId, "Sally", 23);
-    final TestUntil until1 = TestUntil.happenings(3);
+    dispatcher.afterCompleting(3);
 
-    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, state, until1);
+    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, state);
 
     final Entity1State current1 = entity1.current().await();
 
@@ -97,23 +102,13 @@ public class StatefulEntityTest {
 
     assertEquals(24, age);
 
-    until1.completes();
-
     final Entity1State identityState = new Entity1State(entityId);
-    final TestUntil until2 = TestUntil.happenings(1);
 
-    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, identityState, until2);
-
-    until2.completes();
-
-    final TestUntil until3 = TestUntil.happenings(1);
+    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, identityState);
 
     restoredEntity1.current().andThenConsume(current -> {
       assertEquals(new Entity1State(entityId, "Sally Jane", 24), current);
-      until3.happened();
     });
-
-    until3.completes();
   }
 
   @Before
@@ -121,7 +116,7 @@ public class StatefulEntityTest {
     world = World.startWithDefaults("stateful-entity");
     dispatcher = new MockTextDispatcher();
 
-    final StateAdapterProvider stateAdapterProvider = new StateAdapterProvider(world);
+    stateAdapterProvider = new StateAdapterProvider(world);
     stateAdapterProvider.registerAdapter(Entity1State.class, new Entity1StateAdapter());
     new EntryAdapterProvider(world);
     registry = new StatefulTypeRegistry(world);
@@ -215,11 +210,9 @@ public class StatefulEntityTest {
 
   public static class Entity1Actor extends StatefulEntity<Entity1State> implements Entity1 {
     private Entity1State state;
-    private final TestUntil until;
 
-    public Entity1Actor(final Entity1State state, final TestUntil until) {
+    public Entity1Actor(final Entity1State state) {
       this.state = state;
-      this.until = until;
     }
 
     @Override
@@ -229,7 +222,6 @@ public class StatefulEntityTest {
       } else {
         restore();
       }
-      until.happened();
     }
 
     //===================================
@@ -244,13 +236,11 @@ public class StatefulEntityTest {
     @Override
     public void changeName(final String name) {
       apply(state.withName(name));
-      until.happened();
     }
 
     @Override
     public void increaseAge() {
       apply(state.withAge(state.age + 1));
-      until.happened();
     }
 
     //===================================
@@ -275,11 +265,9 @@ public class StatefulEntityTest {
 
   public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State> implements Entity1 {
     private Entity1State state;
-    private final TestUntil until;
 
-    public Entity1MetadataCallbackActor(final Entity1State state, final TestUntil until) {
+    public Entity1MetadataCallbackActor(final Entity1State state) {
       this.state = state;
-      this.until = until;
     }
 
     @Override
@@ -289,7 +277,6 @@ public class StatefulEntityTest {
       } else {
         restore();
       }
-      until.happened();
     }
 
     //===================================
@@ -304,13 +291,11 @@ public class StatefulEntityTest {
     @Override
     public void changeName(final String name) {
       apply(state.withName(name), "METADATA", "changeName");
-      until.happened();
     }
 
     @Override
     public void increaseAge() {
       apply(state.withAge(state.age + 1), "METADATA", "increaseAge");
-      until.happened();
     }
 
     //===================================
