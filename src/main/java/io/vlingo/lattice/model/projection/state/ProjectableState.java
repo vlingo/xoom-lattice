@@ -7,15 +7,20 @@
 
 package io.vlingo.lattice.model.projection.state;
 
+import java.util.Collection;
+
 import io.vlingo.lattice.model.projection.Projectable;
+import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
 
 public abstract class ProjectableState implements Projectable {
+  private final Collection<Entry<?>> entries;
   private final String projectionId;
   private final State<?> state;
 
-  public ProjectableState(final State<?> state, final String projectionId) {
+  public ProjectableState(final State<?> state, final Collection<Entry<?>> entries, final String projectionId) {
     this.state = state;
+    this.entries = entries;
     this.projectionId = projectionId;
   }
 
@@ -42,6 +47,11 @@ public abstract class ProjectableState implements Projectable {
   @Override
   public String dataId() {
     return state.id;
+  }
+
+  @Override
+  public Collection<Entry<?>> entries() {
+    return entries;
   }
 
   @Override
