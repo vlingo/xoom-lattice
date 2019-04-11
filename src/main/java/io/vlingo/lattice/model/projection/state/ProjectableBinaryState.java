@@ -7,11 +7,14 @@
 
 package io.vlingo.lattice.model.projection.state;
 
+import java.util.Collection;
+
+import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
 
 public class ProjectableBinaryState extends ProjectableState {
-  public ProjectableBinaryState(final State<byte[]> state, final String projectionId) {
-    super(state, projectionId);
+  public ProjectableBinaryState(final State<byte[]> state, final Collection<Entry<?>> entries, final String projectionId) {
+    super(state, entries, projectionId);
   }
 
   @Override
