@@ -9,6 +9,8 @@ package io.vlingo.lattice.model.projection.state;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
 import io.vlingo.lattice.model.projection.Projectable;
@@ -22,7 +24,7 @@ public class ProjectableTextStateTest {
     final String textState = "test-state";
     final TextState state =
             new TextState("123", String.class, 1, textState, 1, Metadata.with("value", "op"));
-    final Projectable projectable = new ProjectableTextState(state, "p123");
+    final Projectable projectable = new ProjectableTextState(state, Collections.emptyList(), "p123");
 
     assertEquals("op", projectable.becauseOf());
     assertEquals(textState, projectable.dataAsText());
@@ -39,7 +41,7 @@ public class ProjectableTextStateTest {
     final String textState = "test-state";
     final TextState state =
             new TextState("123", String.class, 1, textState, 1, Metadata.with("value", "op"));
-    final Projectable projectable = new ProjectableTextState(state, "p123");
+    final Projectable projectable = new ProjectableTextState(state, Collections.emptyList(), "p123");
     projectable.dataAsBytes();
   }
 }
