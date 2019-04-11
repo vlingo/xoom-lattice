@@ -28,8 +28,8 @@ import io.vlingo.lattice.model.projection.ProjectionDispatcher;
 import io.vlingo.lattice.model.projection.ProjectionDispatcher.ProjectToDescription;
 import io.vlingo.lattice.model.projection.ProjectionDispatcherTest;
 import io.vlingo.lattice.model.projection.state.DescribedProjection.Outcome;
+import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.Metadata;
-import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.store.state.StateStore;
@@ -123,7 +123,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     private final FilterOutcome outcome;
 
     @Override
-    public <S extends State<?>, C extends Source<?>> void dispatch(final String dispatchId, final S state, final Collection<C> sources) {
+    public <S extends State<?>, E extends Entry<?>> void dispatch(final String dispatchId, final S state, final Collection<E> sources) {
     }
 
     public static ProjectionDispatcher filterFor(
