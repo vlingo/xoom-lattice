@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
+import io.vlingo.common.Tuple3;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
@@ -52,7 +53,13 @@ public abstract class StatefulEntity<S> extends Actor
   public void start() {
     super.start();
 
-    restore(true); // ignore not found (possible first time start)
+    final Tuple3<S,List<Source<String>>,String> newState = whenNewState();
+
+    if (newState == null) {
+      restore(true); // ignore not found (possible first time start)
+    } else {
+      apply(newState._1, newState._2, "", newState._3, null);
+    }
   }
 
   /**
@@ -221,6 +228,19 @@ public abstract class StatefulEntity<S> extends Actor
    */
   protected void apply(final S state) {
     apply(state, "", "", null);
+  }
+
+  /**
+   * Answer my new {@code state}, {@code sources}, and {@code operation} as a
+   * {@code Tuple3<S,List<Source<C>>,String>}, or {@code null} if not new.
+   * Used each time I am started to determine whether restoration is necessary
+   * or otherwise initial state persistence. By default I always attempt to
+   * restore my state while ignoring non-existence.
+   * @param <C> the type of Source
+   * @return {@code Tuple3<S,List<Source<C>>,String>}
+   */
+  protected <C> Tuple3<S,List<Source<C>>,String> whenNewState() {
+    return null;
   }
 
   /**
