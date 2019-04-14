@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
+import io.vlingo.common.Tuple2;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.Source;
@@ -57,7 +58,13 @@ public abstract class ObjectEntity<T> extends Actor
   public void start() {
     super.start();
 
-    restore(true); // ignore not found (possible first time start)
+    final Tuple2<T,List<Source<String>>> newState = whenNewState();
+
+    if (newState == null) {
+      restore(true); // ignore not found (possible first time start)
+    } else {
+      apply(newState._1, newState._2, null);
+    }
   }
 
   /**
@@ -140,6 +147,18 @@ public abstract class ObjectEntity<T> extends Actor
    */
   protected void restore() {
     restore(false);
+  }
+
+  /**
+   * Answer my new {@code state} and {@code sources} as a {@code Tuple2<S,List<Source<C>>},
+   * or {@code null} if not new. Used each time I am started to determine
+   * whether restoration is necessary or otherwise initial state persistence.
+   * By default I always attempt to restore my state while ignoring non-existence.
+   * @param <C> the type of Source
+   * @return {@code Tuple2<T,List<Source<C>>}
+   */
+  protected <C> Tuple2<T,List<Source<C>>> whenNewState() {
+    return null;
   }
 
   //=====================================
