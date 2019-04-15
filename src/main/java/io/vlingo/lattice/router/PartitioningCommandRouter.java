@@ -12,6 +12,7 @@ import io.vlingo.actors.Definition;
 import io.vlingo.actors.Routee;
 import io.vlingo.actors.RouterSpecification;
 import io.vlingo.actors.Routing;
+import io.vlingo.lattice.model.Command;
 
 /**
  * The {@code CommandRouter} implementation for partitioning on the {@code RoutableCommand}.
@@ -38,7 +39,7 @@ public class PartitioningCommandRouter extends ContentBasedRouter<CommandRouter>
    * @see io.vlingo.lattice.router.CommandRouter#route(io.vlingo.lattice.router.RoutableCommand)
    */
   @Override
-  public <P, A> void route(final RoutableCommand<P, A> command) {
+  public <P,C extends Command,A> void route(final RoutableCommand<P,C,A> command) {
     final int partition = command.hashCode() % totalRoutees;
     currentRoutee = routeeAt(partition);
     dispatchCommand(CommandRouter::route, command);
