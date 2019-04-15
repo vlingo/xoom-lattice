@@ -12,7 +12,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +20,7 @@ import io.vlingo.actors.Address;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.World;
 import io.vlingo.common.Completes;
+import io.vlingo.lattice.model.Command;
 import io.vlingo.lattice.router.CommandRouter.Type;
 import io.vlingo.lattice.router.Solver.Stuff;
 
@@ -31,11 +31,12 @@ public class CommandRouterTest {
 
   @Test
   public void testThatCommandIsHandled() throws Exception {
-    RoutableCommand<Solver,Completes<Integer>> command =
+    final RoutableCommand<Solver,SolveStuff,Completes<Stuff>> command =
             RoutableCommand
               .speaks(Solver.class)
               .to(SolverActor.class)
               .at(address.idString())
+              .delivers(SolveStuff.with("123", 21))
               .answers(completes)
               .handledBy(SolverHandler.newInstance(new Result()));
 
@@ -52,12 +53,12 @@ public class CommandRouterTest {
 
     final Result result = new Result();
 
-    RoutableCommand<Solver,Completes<Integer>> command =
+    final RoutableCommand<Solver,SolveStuff,Completes<Stuff>> command =
             RoutableCommand
               .speaks(Solver.class)
               .to(SolverActor.class)
               .at(address.idString())
-              .identity("123")
+              .delivers(SolveStuff.with("123", 21))
               .answers(completes)
               .handledBy(SolverHandler.newInstance(result));
 
@@ -92,12 +93,12 @@ public class CommandRouterTest {
 
       final SolverHandler partitionSolverHandler = solverHandlers[idx % totalPartitions];
 
-      RoutableCommand<Solver,Completes<Integer>> command =
+      final RoutableCommand<Solver,SolveStuff,Completes<Stuff>> command =
               RoutableCommand
                 .speaks(Solver.class)
                 .to(SolverActor.class)
                 .at(address.idString())
-                .identity("" + idx)
+                .delivers(SolveStuff.with("" + idx, 21))
                 .answers(completes[idx])
                 .handledBy(partitionSolverHandler);
 
@@ -138,12 +139,12 @@ public class CommandRouterTest {
 
       final SolverHandler partitionSolverHandler = solverHandlers[idx % totalRoutees];
 
-      RoutableCommand<Solver,Completes<Integer>> command =
+      final RoutableCommand<Solver,SolveStuff,Completes<Stuff>> command =
               RoutableCommand
                 .speaks(Solver.class)
                 .to(SolverActor.class)
                 .at(address.idString())
-                .identity("" + idx)
+                .delivers(SolveStuff.with("" + idx, 21))
                 .answers(completes[idx])
                 .handledBy(partitionSolverHandler);
 
@@ -184,12 +185,12 @@ public class CommandRouterTest {
 
       final SolverHandler partitionSolverHandler = solverHandlers[idx % totalRoutees];
 
-      RoutableCommand<Solver,Completes<Integer>> command =
+      final RoutableCommand<Solver,SolveStuff,Completes<Stuff>> command =
               RoutableCommand
                 .speaks(Solver.class)
                 .to(SolverActor.class)
                 .at(address.idString())
-                .identity("" + idx)
+                .delivers(SolveStuff.with("" + idx, 21))
                 .answers(completes[idx])
                 .handledBy(partitionSolverHandler);
 
@@ -220,7 +221,26 @@ public class CommandRouterTest {
     completes = Completes.using(world.stage().scheduler());
   }
 
-  public static class SolverHandler implements BiConsumer<Solver,Completes<Integer>> {
+  public static class SolveStuff extends Command {
+    public final String id;
+    public final int value;
+
+    public static SolveStuff with(final String id, final int value) {
+      return new SolveStuff(id, value);
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    private SolveStuff(final String id, final int value) {
+      this.id = id;
+      this.value = value;
+    }
+  }
+
+  public static class SolverHandler implements CommandDispatcher<Solver,SolveStuff,Completes<Stuff>> {
     private final int handlerId;
     private final Result result;
 
@@ -229,9 +249,9 @@ public class CommandRouterTest {
     }
 
     @Override
-    public void accept(final Solver component, final Completes<Integer> answer) {
+    public void accept(final Solver component, final SolveStuff command, final Completes<Stuff> answer) {
       result.countTimes(handlerId);
-      component.solveStuff().andThen(stuff -> answer.with(stuff));
+      component.solveStuff(command.value).andThen(stuff -> answer.with(stuff));
     }
 
     private SolverHandler(final Result result) {
