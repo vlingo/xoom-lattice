@@ -10,6 +10,7 @@ package io.vlingo.lattice.router;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.RoundRobinRouter;
 import io.vlingo.actors.RouterSpecification;
+import io.vlingo.lattice.model.Command;
 
 /**
  * The {@code CommandRouter} implementation for round-robin routing.
@@ -31,7 +32,7 @@ public class RoundRobinCommandRouter extends RoundRobinRouter<CommandRouter> imp
    * @see io.vlingo.lattice.router.CommandRouter#route(io.vlingo.lattice.router.RoutableCommand)
    */
   @Override
-  public <P, A> void route(final RoutableCommand<P, A> command) {
+  public <P,C extends Command,A> void route(final RoutableCommand<P,C,A> command) {
     dispatchCommand(CommandRouter::route, command);
   }
 }
