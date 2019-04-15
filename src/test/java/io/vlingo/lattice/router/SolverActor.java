@@ -13,7 +13,7 @@ import io.vlingo.common.Completes;
 public class SolverActor extends Actor implements Solver {
 
   @Override
-  public Completes<Stuff> solveStuff() {
-    return completes().with(new Stuff(42));
+  public Completes<Stuff> solveStuff(final int value) {
+    return completes().with(new Stuff(value * 2));
   }
 }
