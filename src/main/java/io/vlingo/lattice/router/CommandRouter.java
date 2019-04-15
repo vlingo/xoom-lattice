@@ -8,6 +8,7 @@
 package io.vlingo.lattice.router;
 
 import io.vlingo.actors.Stage;
+import io.vlingo.lattice.model.Command;
 
 public interface CommandRouter {
   static CommandRouter of(final Stage stage, final Type type, final int totalRoutees) {
@@ -22,7 +23,7 @@ public interface CommandRouter {
     throw new IllegalArgumentException("The command router type is not mapped: " + type);
   }
 
-  <P,A> void route(final RoutableCommand<P,A> command);
+  <P,C extends Command,A> void route(final RoutableCommand<P,C,A> command);
 
   enum Type { LoadBalancing, Partitioning, RoundRobin };
 }
