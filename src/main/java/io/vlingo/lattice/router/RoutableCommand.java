@@ -7,8 +7,6 @@
 
 package io.vlingo.lattice.router;
 
-import java.util.function.BiConsumer;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.AddressFactory;
 import io.vlingo.actors.Definition;
@@ -18,64 +16,87 @@ import io.vlingo.lattice.grid.Grid;
 import io.vlingo.lattice.model.Command;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class RoutableCommand<P,A> extends Command {
+public class RoutableCommand<P,C extends Command,A> extends Command {
   private Class<? extends Actor> actorType;
   private String address;
   private Completes<A> answer;
-  private BiConsumer<P,Completes<A>> handler;
-  private String id;
+  private C command;
+  private CommandDispatcher<P,C,Completes<A>> handler;
   private Class<P> protocol;
 
-  public static <P,A> RoutableCommand<P,A> speaks(final Class<P> protocol) {
+  public static <P,C extends Command,A> RoutableCommand<P,C,A> speaks(final Class<P> protocol) {
+    assert(protocol != null);
     return new RoutableCommand<>(protocol);
   }
 
-  public RoutableCommand<P,A> to(final Class<? extends Actor> actorType) {
+  public RoutableCommand<P,C,A> to(final Class<? extends Actor> actorType) {
+    assert(actorType != null);
     this.actorType = actorType;
     return this;
   }
 
-  public RoutableCommand<P,A> at(final String address) {
+  public RoutableCommand<P,C,A> at(final String address) {
+    assert(address != null);
     this.address = address;
     return this;
   }
 
-  public RoutableCommand<P,A> identity(final String id) {
-    this.id = id;
+  public RoutableCommand<P,C,A> delivers(final C command) {
+    assert(command != null);
+    this.command = command;
     return this;
+  }
+
+  public C command() {
+    return command;
   }
 
   @Override
   public String id() {
-    return (id == null || id.isEmpty() ? super.id() : id);
+    return (command == null || command.id().isEmpty() ? super.id() : command.id());
   }
 
-  public <PROTOCOL,ANSWER> RoutableCommand<PROTOCOL,ANSWER> answers(final Completes<ANSWER> answer) {
+  public <PROTOCOL,COMMAND extends Command,ANSWER> RoutableCommand<PROTOCOL,COMMAND,ANSWER> answers(final Completes<ANSWER> answer) {
+    assert(answer != null);
     this.answer = (Completes<A>) answer;
-    return (RoutableCommand<PROTOCOL,ANSWER>) this;
+    return (RoutableCommand<PROTOCOL,COMMAND,ANSWER>) this;
   }
 
-  public <PROTOCOL,ANSWER> RoutableCommand<PROTOCOL,ANSWER> handledBy(final BiConsumer handler) {
+  public Completes<A> answer() {
+    return answer;
+  }
+
+  public <PROTOCOL,COMMAND extends Command,ANSWER> RoutableCommand<PROTOCOL,COMMAND,ANSWER> handledBy(final CommandDispatcher handler) {
+    assert(handler != null);
     this.handler = handler;
-    return (RoutableCommand<PROTOCOL,ANSWER>) this;
+    return (RoutableCommand<PROTOCOL,COMMAND,ANSWER>) this;
   }
 
   public void handleWithin(final Grid grid) {
+    check();
     final AddressFactory addressFactory = grid.addressFactory;
     grid.actorOf(protocol, addressFactory.from(address))
         .otherwise(noActor -> grid.actorFor(protocol, Definition.has(actorType, Definition.NoParameters), addressFactory.from(address)))
-        .andThenConsume(actor -> handler.accept(actor, answer));
+        .andThenConsume(actor -> handler.accept(actor, command, answer));
   }
 
   public void handleWithin(final Stage stage) {
+    check();
     final AddressFactory addressFactory = stage.world().addressFactory();
     stage.actorOf(protocol, addressFactory.from(address))
          .otherwise(noActor -> stage.actorFor(protocol, Definition.has(actorType, Definition.NoParameters), addressFactory.from(address)))
-         .andThenConsume(actor -> handler.accept(actor, answer));
+         .andThenConsume(actor -> handler.accept(actor, command, answer));
   }
 
-  private RoutableCommand(final Class<P> protocol) {
+  protected RoutableCommand(final Class<P> protocol) {
     this.protocol = protocol;
-    this.id = "";
+  }
+
+  private void check() {
+    assert(protocol != null);
+    assert(actorType != null);
+    assert(address != null);
+    assert(command != null);
+    assert(handler != null);
   }
 }
