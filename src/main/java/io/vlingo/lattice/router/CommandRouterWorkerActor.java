@@ -9,6 +9,7 @@ package io.vlingo.lattice.router;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Stage;
+import io.vlingo.lattice.model.Command;
 
 /**
  * The routee actor responsible for routing commands to its handler.
@@ -27,7 +28,7 @@ public class CommandRouterWorkerActor extends Actor implements CommandRouter {
    * @see io.vlingo.lattice.router.CommandRouter#route(io.vlingo.lattice.router.RoutableCommand)
    */
   @Override
-  public <P, A> void route(final RoutableCommand<P, A> command) {
+  public <P,C extends Command,A> void route(final RoutableCommand<P,C,A> command) {
     command.handleWithin(stage);
   }
 }
