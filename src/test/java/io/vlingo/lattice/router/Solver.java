@@ -10,7 +10,7 @@ package io.vlingo.lattice.router;
 import io.vlingo.common.Completes;
 
 public interface Solver {
-  Completes<Stuff> solveStuff();
+  Completes<Stuff> solveStuff(final int value);
 
   public static final class Stuff {
     public final int value;
