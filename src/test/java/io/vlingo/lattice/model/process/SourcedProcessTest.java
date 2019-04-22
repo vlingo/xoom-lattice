@@ -36,6 +36,7 @@ import io.vlingo.lattice.model.process.ProcessTypeRegistry.SourcedProcessInfo;
 import io.vlingo.lattice.model.sourcing.Sourced;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
+import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.inmemory.InMemoryJournal;
 
@@ -85,7 +86,7 @@ public class SourcedProcessTest {
     final MessageQueue queue = new AsyncMessageQueue(null);
     exchange = new LocalExchange(queue);
     listener = new SendingJournalListener(exchange, new ProcessMessageTextAdapter());
-    journal = new InMemoryJournal<>(listener);
+    journal = new InMemoryJournal<>(listener, world);
 
     sourcedTypeRegistry = new SourcedTypeRegistry(world);
 
@@ -143,20 +144,22 @@ public class SourcedProcessTest {
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private <T extends Sourced<?>> void registerSourcedTypes(final Class<T> sourcedType) {
+    EntryAdapterProvider entryAdapterProvider = EntryAdapterProvider.instance(world);
+
     sourcedTypeRegistry.register(new Info(journal, sourcedType, sourcedType.getSimpleName()));
 
     sourcedTypeRegistry.info(sourcedType)
       .registerEntryAdapter(ProcessMessage.class, new ProcessMessageTextAdapter(),
-              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
       .registerEntryAdapter(DoStepOne.class, new DoStepOneAdapter(),
-              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
       .registerEntryAdapter(DoStepTwo.class, new DoStepTwoAdapter(),
-              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
       .registerEntryAdapter(DoStepThree.class, new DoStepThreeAdapter(),
-              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
       .registerEntryAdapter(DoStepFour.class, new DoStepFourAdapter(),
-              (type, adapter) -> journal.registerEntryAdapter(type, adapter))
+              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
       .registerEntryAdapter(DoStepFive.class, new DoStepFiveAdapter(),
-            (type, adapter) -> journal.registerEntryAdapter(type, adapter));
+            (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter));
   }
 }
