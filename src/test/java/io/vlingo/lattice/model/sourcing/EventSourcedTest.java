@@ -19,6 +19,7 @@ import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
 import io.vlingo.symbio.BaseEntry;
+import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.inmemory.InMemoryJournalActor;
 
@@ -124,10 +125,12 @@ public class EventSourcedTest {
 
     listener = new MockJournalListener();
 
+    EntryAdapterProvider entryAdapterProvider = EntryAdapterProvider.instance(world);
+
     journal = world.actorFor(Journal.class, InMemoryJournalActor.class, listener);
-    journal.registerEntryAdapter(Test1Happened.class, new Test1HappenedAdapter());
-    journal.registerEntryAdapter(Test2Happened.class, new Test2HappenedAdapter());
-    journal.registerEntryAdapter(Test3Happened.class, new Test3HappenedAdapter());
+    entryAdapterProvider.registerAdapter(Test1Happened.class, new Test1HappenedAdapter());
+    entryAdapterProvider.registerAdapter(Test2Happened.class, new Test2HappenedAdapter());
+    entryAdapterProvider.registerAdapter(Test3Happened.class, new Test3HappenedAdapter());
 
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
