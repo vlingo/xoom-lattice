@@ -87,7 +87,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   public void viewTestStateInitialization(final TestContext context) {
     if (context != null) {
       testContext = context;
-      testContext.reference.set(new CopyOnWriteArrayList<>());
+      testContext.initialReferenceValueOf(new CopyOnWriteArrayList<>());
     }
   }
 
@@ -97,7 +97,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   @Override
   public TestState viewTestState() {
     final TestState testState = new TestState();
-    testState.putValue("applied", testContext.reference.get());
+    testState.putValue("applied", testContext.referenceValue());
     return testState;
   }
 
@@ -180,9 +180,9 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   protected void beforeApply(final List<Source<T>> sources) {
     // override to be informed prior to apply evaluation
     if (testContext != null) {
-      final List<Source<T>> all = testContext.reference();
+      final List<Source<T>> all = testContext.referenceValue();
       all.addAll(sources);
-      testContext.until.happened();
+      testContext.referenceValueTo(all);
     }
   }
 
