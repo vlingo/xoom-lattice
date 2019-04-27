@@ -25,6 +25,7 @@ import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
+import io.vlingo.symbio.store.object.PersistentObject;
 import io.vlingo.symbio.store.object.QueryExpression;
 
 /**
@@ -34,7 +35,7 @@ import io.vlingo.symbio.store.object.QueryExpression;
  * whether formally or informally implemented.
  * @param <T> the type of persistent object
  */
-public abstract class ObjectEntity<T> extends Actor
+public abstract class ObjectEntity<T extends PersistentObject> extends Actor
   implements PersistResultInterest, QueryResultInterest {
 
   private final Info<T> info;
@@ -77,7 +78,7 @@ public abstract class ObjectEntity<T> extends Actor
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
-  protected <C,RT> void apply(final Object state, final List<Source<C>> sources, final Supplier<RT> andThen) {
+  protected <C,RT> void apply(final T state, final List<Source<C>> sources, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
     info.store.persist(state, sources, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
@@ -92,7 +93,7 @@ public abstract class ObjectEntity<T> extends Actor
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
-  protected <C,RT> void apply(final Object state, final Source<C> source, final Supplier<RT> andThen) {
+  protected <C,RT> void apply(final T state, final Source<C> source, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
     info.store.persist(state, asList(source), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
@@ -105,7 +106,7 @@ public abstract class ObjectEntity<T> extends Actor
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
    */
-  protected <RT> void apply(final Object state, final Supplier<RT> andThen) {
+  protected <RT> void apply(final T state, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
     info.store.persist(state, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
@@ -199,17 +200,10 @@ public abstract class ObjectEntity<T> extends Actor
       });
   }
 
-  /*
-   * @see io.vlingo.symbio.store.object.ObjectStore.PersistResultInterest#persistResultedIn(io.vlingo.common.Outcome, java.lang.Object, int, int, java.lang.Object)
-   */
+  /* @see io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest#persistResultedIn(io.vlingo.common.Outcome, io.vlingo.symbio.store.object.PersistentObject, int, int, java.lang.Object) */
   @Override
   @SuppressWarnings("unchecked")
-  final public void persistResultedIn(
-          final Outcome<StorageException, Result> outcome,
-          final Object persistentObject,
-          final int possible,
-          final int actual,
-          final Object supplier) {
+  public void persistResultedIn(final Outcome<StorageException, Result> outcome, final Object persistentObject, final int possible, final int actual, final Object supplier) {
     outcome
     .andThen(result -> {
       persistentObject((T) persistentObject);
