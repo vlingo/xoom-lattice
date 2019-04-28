@@ -51,11 +51,15 @@ public class StatefulEntityTest {
 
     entity1.changeName("Sally Jane");
 
-    assertEquals("Sally Jane", entity1.current().await().name);
+    Entity1State newState = entity1.current().await();
+
+    assertEquals("Sally Jane", newState.name);
 
     entity1.increaseAge();
 
-    assertEquals(24, entity1.current().await().age);
+    newState = entity1.current().await();
+
+    assertEquals(24, newState.age);
 
     final Entity1State identityState = new Entity1State(entityId);
 
@@ -92,15 +96,15 @@ public class StatefulEntityTest {
 
     entity1.changeName("Sally Jane");
 
-    final String modifiedName = entity1.current().await().name;
+    Entity1State newState = entity1.current().await();
 
-    assertEquals("Sally Jane", modifiedName);
+    assertEquals("Sally Jane", newState.name);
 
     entity1.increaseAge();
 
-    final int age = entity1.current().await().age;
+    newState = entity1.current().await();
 
-    assertEquals(24, age);
+    assertEquals(24, newState.age);
 
     final Entity1State identityState = new Entity1State(entityId);
 
