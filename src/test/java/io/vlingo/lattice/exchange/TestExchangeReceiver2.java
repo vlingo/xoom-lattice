@@ -21,10 +21,20 @@ public class TestExchangeReceiver2 implements ExchangeReceiver<LocalType2> {
     this.results = results;
   }
 
+  public TestExchangeReceiver2(final ConcurrentLinkedQueue<Object> results) {
+	this.until = null;
+	this.results = results;
+  }
+
   @Override
   public void receive(final LocalType2 message) {
     System.out.println("TestExchangeReceiver2 receiving: " + message);
     results.add(message);
+
+    if (until == null) {
+      return;
+    }
+
     until.happened();
   }
 }

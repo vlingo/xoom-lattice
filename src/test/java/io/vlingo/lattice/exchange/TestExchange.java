@@ -7,18 +7,25 @@
 
 package io.vlingo.lattice.exchange;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.message.Message;
 import io.vlingo.common.message.MessageQueue;
 import io.vlingo.common.message.MessageQueueListener;
 
 public class TestExchange implements Exchange, MessageQueueListener {
+  private AccessSafely access = AccessSafely.afterCompleting(0);
+
   private final MessageQueue queue;
   private final Forwarder forwarder;
+  private AtomicInteger sentCount = new AtomicInteger(0);
 
   public TestExchange(final MessageQueue queue) {
     this.queue = queue;
     queue.registerListener(this);
     this.forwarder = new Forwarder();
+    this.access = AccessSafely.afterCompleting(0);
   }
 
   @Override
@@ -57,5 +64,16 @@ public class TestExchange implements Exchange, MessageQueueListener {
   final public void handleMessage(final Message message) throws Exception {
     System.out.println("Exchange receiving: " + message);
     forwarder.forwardToReceiver(message);
+    access.writeUsing("sentCount", 1);
   }
+
+  public AccessSafely afterCompleting(final int times) {
+    access = AccessSafely.afterCompleting(times);
+    access
+        .writingWith("sentCount", (Integer increment) -> sentCount.addAndGet(increment))
+        .readingWith("sentCount", () -> sentCount.get());
+
+    return access;
+  }
+
 }

@@ -21,10 +21,20 @@ public class TestExchangeReceiver1 implements ExchangeReceiver<LocalType1> {
     this.results = results;
   }
 
+  public TestExchangeReceiver1(final ConcurrentLinkedQueue<Object> results) {
+    this.until = null;
+    this.results = results;
+  }
+
   @Override
   public void receive(final LocalType1 message) {
     System.out.println("TestExchangeReceiver1 receiving: " + message);
     results.add(message);
+
+    if (until == null) {
+      return;
+    }
+
     until.happened();
   }
 }
