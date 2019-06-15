@@ -27,17 +27,22 @@ public class ExchangeTest {
     final TestExchange exchange = new TestExchange(queue);
     final AccessSafely accessExchange = exchange.afterCompleting(2);
 
+    final TestExchangeReceiver1 exchangeReceiver1 = new TestExchangeReceiver1(results);
+    final AccessSafely accessExchangeReceiver1 = exchangeReceiver1.afterCompleting(1);
+    final TestExchangeReceiver2 exchangeReceiver2 = new TestExchangeReceiver2(results);
+    final AccessSafely accessExchangeReceiver2 = exchangeReceiver2.afterCompleting(1);
+
     exchange
       .register(Covey.of(
               new TestExchangeSender(queue),
-              new TestExchangeReceiver1(results),
+              exchangeReceiver1,
               new TestExchangeAdapter1(),
               LocalType1.class,
               ExternalType1.class,
               ExchangeMessage.class))
       .register(Covey.of(
               new TestExchangeSender(queue),
-              new TestExchangeReceiver2(results),
+              exchangeReceiver2,
               new TestExchangeAdapter2(),
               LocalType2.class,
               ExternalType2.class,
@@ -50,8 +55,8 @@ public class ExchangeTest {
     exchange.send(local2);
 
     assertEquals(2, (int) accessExchange.readFrom("sentCount"));
-    assertEquals(local1, results.poll());
-    assertEquals(local2, results.poll());
+    assertEquals(local1, accessExchangeReceiver1.readFrom("getMessage"));
+    assertEquals(local2, accessExchangeReceiver2.readFrom("getMessage"));
 
     exchange.close();
   }

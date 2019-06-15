@@ -9,32 +9,31 @@ package io.vlingo.lattice.exchange;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.exchange.ExchangeReceiver;
 
 public class TestExchangeReceiver2 implements ExchangeReceiver<LocalType2> {
-  private final TestUntil until;
+  private AccessSafely access = AccessSafely.afterCompleting(0);
   private final ConcurrentLinkedQueue<Object> results;
 
-  public TestExchangeReceiver2(final TestUntil until, final ConcurrentLinkedQueue<Object> results) {
-    this.until = until;
-    this.results = results;
-  }
-
   public TestExchangeReceiver2(final ConcurrentLinkedQueue<Object> results) {
-	this.until = null;
-	this.results = results;
+    this.results = results;
+    this.access = AccessSafely.afterCompleting(0);
   }
 
   @Override
   public void receive(final LocalType2 message) {
     System.out.println("TestExchangeReceiver2 receiving: " + message);
-    results.add(message);
-
-    if (until == null) {
-      return;
-    }
-
-    until.happened();
+    access.writeUsing("addMessage", message);
   }
+
+  public AccessSafely afterCompleting(final int times) {
+    access = AccessSafely.afterCompleting(times);
+    access
+     .writingWith("addMessage", (LocalType2 message) -> results.add(message))
+     .readingWith("getMessage", () -> results.poll());
+
+    return access;
+  }
+
 }
