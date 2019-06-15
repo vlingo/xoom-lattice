@@ -19,7 +19,6 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
-import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.lattice.model.projection.MockProjection;
 import io.vlingo.lattice.model.projection.Projectable;
 import io.vlingo.lattice.model.projection.Projection;
@@ -69,14 +68,13 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
             world.actorFor(Dispatcher.class, TextStateProjectionDispatcherActor.class, Arrays.asList(description));
 
     final Outcome outcome = new Outcome(2);
+    final AccessSafely accessOutcome = outcome.afterCompleting(2);
     dispatcher.controlWith(outcome);
 
     dispatcher.dispatch("123", new TextState("123", Object.class, 1, "blah1", 1, Metadata.with("", "op1")));
     dispatcher.dispatch("123", new TextState("123", Object.class, 1, "blah2", 1, Metadata.with("", "op2")));
 
-    outcome.until.completes();
-
-    assertEquals(2, outcome.count.get());
+    assertEquals(2, (int) accessOutcome.readFrom("count"));
   }
 
   @Test
@@ -84,6 +82,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     final StateStore store = store();
 
     final FilterOutcome filterOutcome = new FilterOutcome(3);
+    final AccessSafely filterOutcomeAccess = filterOutcome.afterCompleting(3);
 
     ProjectionDispatcher filter1 =
             FilterProjectionDispatcherActor.filterFor(world, projectionDispatcher, new String[] {"op-1"}, filterOutcome);
@@ -97,9 +96,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
     store.write(entity1.id, entity1, 1, Metadata.with("value1", "op-1"), new MockResultInterest(0));
 
-    filterOutcome.until.completes();
-
-    assertEquals(3, filterOutcome.filterCount.get());
+    assertEquals(3, (int) filterOutcomeAccess.readFrom("filterCount"));
   }
 
   @Override
@@ -151,10 +148,9 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
     @Override
     public void projectWith(final Projectable projectable, final ProjectionControl control) {
-      outcome.filterCount.incrementAndGet();
+      outcome.increment();
       control.confirmProjected(projectable.projectionId());
       dispatch(projectable.projectionId(), projectable);
-      outcome.until.happened();
     }
 
     @Override
@@ -165,11 +161,24 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
   private static final class FilterOutcome {
     public final AtomicInteger filterCount;
-    public final TestUntil until;
+    private AccessSafely access = AccessSafely.afterCompleting(0);
 
     FilterOutcome(final int testUntilHappenings) {
       this.filterCount = new AtomicInteger(0);
-      this.until = TestUntil.happenings(testUntilHappenings);
+      this.access = AccessSafely.afterCompleting(testUntilHappenings);
+    }
+
+    public void increment() {
+      access.writeUsing("filterCount", 1);
+    }
+
+    public AccessSafely afterCompleting(final int times) {
+      access = AccessSafely.afterCompleting(times);
+      access
+        .writingWith("filterCount", (Integer increment) -> filterCount.addAndGet(increment))
+        .readingWith("filterCount", () -> filterCount.get());
+
+      return access;
     }
   }
 }
