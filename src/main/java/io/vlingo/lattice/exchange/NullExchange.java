@@ -52,6 +52,6 @@ public class NullExchange implements Exchange {
    */
   @Override
   public <L> void send(final L local) {
-    logger.log("NullExchange: Sending nowhere: " + local);
+    logger.error("NullExchange: Sending nowhere: " + local);
   }
 }

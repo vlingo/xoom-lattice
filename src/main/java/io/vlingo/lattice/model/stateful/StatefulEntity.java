@@ -7,9 +7,6 @@
 
 package io.vlingo.lattice.model.stateful;
 
-import java.util.List;
-import java.util.function.Supplier;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple3;
@@ -21,6 +18,9 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Abstract base for all entity types that require the id-clob/blob state storage
@@ -283,7 +283,7 @@ public abstract class StatefulEntity<S> extends Actor
       })
       .otherwise(cause -> {
         final String message = "State not restored for: " + getClass() + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().log(message, cause);
+        logger().error(message, cause);
         throw new IllegalStateException(message, cause);
       });
   }
@@ -304,7 +304,7 @@ public abstract class StatefulEntity<S> extends Actor
       })
       .otherwise(cause -> {
         final String message = "State not applied for: " + getClass() + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().log(message, cause);
+        logger().error(message, cause);
         throw new IllegalStateException(message, cause);
       });
   }

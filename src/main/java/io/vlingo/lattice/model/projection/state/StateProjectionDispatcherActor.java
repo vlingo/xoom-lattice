@@ -7,9 +7,6 @@
 
 package io.vlingo.lattice.model.projection.state;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import io.vlingo.lattice.model.projection.AbstractProjectionDispatcherActor;
 import io.vlingo.lattice.model.projection.Projectable;
 import io.vlingo.lattice.model.projection.Projection;
@@ -19,6 +16,9 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.state.StateStore.ConfirmDispatchedResultInterest;
 import io.vlingo.symbio.store.state.StateStore.Dispatcher;
 import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public abstract class StateProjectionDispatcherActor extends AbstractProjectionDispatcherActor
     implements Dispatcher, ProjectionDispatcher, ConfirmDispatchedResultInterest {
@@ -41,7 +41,7 @@ public abstract class StateProjectionDispatcherActor extends AbstractProjectionD
         if (control != null) {
           control.confirmDispatched(projectionId, interest);
         } else if (requiresDispatchedConfirmation()) {
-          logger().log("WARNING: ProjectionDispatcher control is not set; unconfirmed: " + projectionId);
+          logger().error("WARNING: ProjectionDispatcher control is not set; unconfirmed: " + projectionId);
         }
       }
     };
