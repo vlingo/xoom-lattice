@@ -7,16 +7,6 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
@@ -29,6 +19,16 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 /**
  * Abstract base for all concrete types that support journaling and application of
@@ -275,7 +275,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
       .otherwise(cause -> {
         disperseStowedMessages();
         final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().log(message, cause);
+        logger().error(message, cause);
         throw new StorageException(cause.result, message, cause);
       });
   }
@@ -304,7 +304,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
       })
       .otherwise(cause -> {
         final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().log(message, cause);
+        logger().error(message, cause);
         disperseStowedMessages();
         throw new StorageException(cause.result, message, cause);
       });
