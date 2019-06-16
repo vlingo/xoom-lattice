@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.Test;
 
-import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.message.AsyncMessageQueue;
 import io.vlingo.common.message.MessageQueue;
 import io.vlingo.lattice.exchange.Covey;
@@ -22,23 +22,28 @@ public class LocalExchangeTest {
 
   @Test
   public void testThatExchangeSendsTyped() {
-    final TestUntil until = TestUntil.happenings(2);
     final ConcurrentLinkedQueue<Object> results = new ConcurrentLinkedQueue<>();
 
     final MessageQueue queue = new AsyncMessageQueue(null);
     final Exchange exchange = new LocalExchange(queue);
 
+    final TestExchangeReceiver1 receiver1 = new TestExchangeReceiver1(results);
+    final AccessSafely access1 = receiver1.afterCompleting(1);
+
+    final TestExchangeReceiver2 receiver2 = new TestExchangeReceiver2(results);
+    final AccessSafely access2 = receiver2.afterCompleting(1);
+
     exchange
       .register(Covey.of(
               new LocalExchangeSender(queue),
-              new TestExchangeReceiver1(until, results),
+              receiver1,
               new LocalExchangeAdapter<LocalType1,ExternalType1>(LocalType1.class),
               LocalType1.class,
               ExternalType1.class,
               LocalExchangeMessage.class))
       .register(Covey.of(
               new LocalExchangeSender(queue),
-              new TestExchangeReceiver2(until, results),
+              receiver2,
               new LocalExchangeAdapter<LocalType2,ExternalType2>(LocalType2.class),
               LocalType2.class,
               ExternalType2.class,
@@ -50,11 +55,8 @@ public class LocalExchangeTest {
     final LocalType2 local2 = new LocalType2("DEF", 456);
     exchange.send(local2);
 
-    until.completes();
-
-    assertEquals(2, results.size());
-    assertEquals(local1, results.poll());
-    assertEquals(local2, results.poll());
+    assertEquals(local1, access1.readFrom("getMessage"));
+    assertEquals(local2, access2.readFrom("getMessage"));
 
     exchange.close();
   }
