@@ -86,7 +86,7 @@ public class StatefulEntityTest {
   public void testThatMetadataCallbackPreservesRestores() throws Exception {
     final String entityId = "" + idGenerator.nextInt(10_000);
     final Entity1State state = new Entity1State(entityId, "Sally", 23);
-    dispatcher.afterCompleting(3);
+    final AccessSafely access = dispatcher.afterCompleting(3);
 
     final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, state);
 
@@ -109,6 +109,18 @@ public class StatefulEntityTest {
     final Entity1State identityState = new Entity1State(entityId);
 
     final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, identityState);
+
+    final Entity1State restoredEntity1State = restoredEntity1.current().await();
+
+    assertNotNull(restoredEntity1State);
+
+    assertEquals(1, (int) access.readFrom("dispatchedStateCount"));
+    Set<String> ids = access.readFrom("dispatchedIds");
+    assertEquals(1, ids.size());
+
+    final TextState flatState = access.readFrom("dispatchedState", ids.iterator().next());
+
+    assertEquals(new Entity1State(entityId, "Sally Jane", 24), stateAdapterProvider.fromRaw(flatState));
 
     restoredEntity1.current().andThenConsume(current -> {
       assertEquals(new Entity1State(entityId, "Sally Jane", 24), current);

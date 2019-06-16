@@ -10,7 +10,7 @@ package io.vlingo.lattice.model.projection.state;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.vlingo.actors.Actor;
-import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.model.projection.Projectable;
 import io.vlingo.lattice.model.projection.Projection;
 import io.vlingo.lattice.model.projection.ProjectionControl;
@@ -26,17 +26,16 @@ public class DescribedProjection extends Actor implements Projection {
 
   public static final class Outcome implements DispatcherControl {
     public final AtomicInteger count;
-    public final TestUntil until;
+    private AccessSafely access = AccessSafely.afterCompleting(0);
 
     public Outcome(final int testUntilHappenings) {
       this.count = new AtomicInteger(0);
-      this.until = TestUntil.happenings(testUntilHappenings);
+      this.access = AccessSafely.afterCompleting(testUntilHappenings);
     }
 
     @Override
     public void confirmDispatched(final String dispatchId, final ConfirmDispatchedResultInterest interest) {
-      count.getAndIncrement();
-      until.happened();
+      access.writeUsing("count", 1);
     }
 
     @Override
@@ -44,5 +43,14 @@ public class DescribedProjection extends Actor implements Projection {
 
     @Override
     public void stop() { }
+
+    public AccessSafely afterCompleting(final int times) {
+      access = AccessSafely.afterCompleting(times);
+      access
+        .writingWith("count", (Integer increment) -> count.addAndGet(increment))
+        .readingWith("count", () -> count.get());
+
+      return access;
+    }
   }
 }
