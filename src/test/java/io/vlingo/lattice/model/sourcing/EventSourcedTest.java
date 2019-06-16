@@ -52,7 +52,7 @@ public class EventSourcedTest {
 
   @Test
   public void testThatCommandEmits() {
-    final AccessSafely resultAccess = result.afterCompleting(1);
+    final AccessSafely resultAccess = result.afterCompleting(2);
     final AccessSafely listenerAccess = listener.afterCompleting(1);
 
     entity.doTest1();
