@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
+import io.vlingo.actors.Actor;
 import io.vlingo.actors.World;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.EntryAdapter;
@@ -21,6 +22,7 @@ import io.vlingo.symbio.State;
 import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.StateAdapterProvider;
 import io.vlingo.symbio.store.journal.Journal;
+import io.vlingo.symbio.store.journal.JournalListener;
 
 /**
  * Registry for {@code Sourced} types that holds the {@code Journal} type,
@@ -32,11 +34,59 @@ public final class SourcedTypeRegistry {
   private final Map<Class<?>,Info<?>> stores = new ConcurrentHashMap<>();
 
   /**
+   * Answer a new {@code SourcedTypeRegistry} with registered {@code sourcedTypes}, creating
+   * the {@code Journal} of type {@code journalType}, registering me with the {@code world}.
+   * @param world the World to which I am registered
+   * @param journalType the concrete {@code Actor} type of the Journal to create
+   * @param journalListener the {@code JournalListener<?>} of the journalType
+   * @param sourcedTypes all {@code Class<Sourced<?>>} types of to register
+   * @param <A> the type of Actor used for the Journal implementation
+   * @param <S> the {@code Sourced<?>} types to register
+   * @return SourcedTypeRegistry
+   */
+  @SuppressWarnings({ "unchecked" })
+  public static <A extends Actor, S extends Sourced<?>> SourcedTypeRegistry register(
+          final World world,
+          final Class<A> journalType,
+          final JournalListener<?> journalListener,
+          final Class<S> ... sourcedTypes) {
+    return new SourcedTypeRegistry(world, journalType, journalListener, sourcedTypes);
+  }
+
+  /**
    * Construct my default state and register me with the {@code world}.
    * @param world the World to which I am registered
    */
   public SourcedTypeRegistry(final World world) {
     world.registerDynamic(INTERNAL_NAME, this);
+  }
+
+  /**
+   * Construct my default state with {@code sourcedTypes} creating the {@code Journal}
+   * of type {@code journalType}, and register me with the {@code world}.
+   * @param world the World to which I am registered
+   * @param journalType the concrete {@code Actor} type of the Journal to create
+   * @param journalListener the {@code JournalListener<?>} of the journalType
+   * @param sourcedTypes all {@code Class<Sourced<?>>} types of to register
+   * @param <A> the type of Actor used for the Journal implementation
+   * @param <S> the {@code Sourced<?>} types to register
+   */
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public <A extends Actor, S extends Sourced<?>> SourcedTypeRegistry(
+          final World world,
+          final Class<A> journalType,
+          final JournalListener<?> journalListener,
+          final Class<S> ... sourcedTypes) {
+
+    this(world);
+
+    final Journal<?> journal = world.actorFor(Journal.class, journalType, journalListener);
+
+    EntryAdapterProvider.instance(world);
+
+    for (Class<S> sourcedType : sourcedTypes) {
+      this.register(new Info(journal, sourcedType, sourcedType.getSimpleName()));
+    }
   }
 
   /**
