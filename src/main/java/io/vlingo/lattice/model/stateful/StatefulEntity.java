@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.stateful;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple3;
@@ -18,9 +22,6 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
-
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Abstract base for all entity types that require the id-clob/blob state storage
@@ -213,13 +214,36 @@ public abstract class StatefulEntity<S> extends Actor
   }
 
   /**
-   * Apply my current {@code state}.
+   * Apply my current {@code state} and {@code sources}.
    * @param state the S typed state to apply
-   * @param sources the {@code List<Source>} instances to apply
+   * @param sources the {@code List<Source<C>>} instances to apply
    * @param <C> the type of Source
    */
   protected <C> void apply(final S state, final List<Source<C>> sources) {
     apply(state, sources, "", "", null);
+  }
+
+  /**
+   * Apply my current {@code state} and {@code sources}.
+   * @param state the S typed state to apply
+   * @param source the {@code Source<C>} instances to apply
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   */
+  protected <C,RT> void apply(final S state, final Source<C> source, final Supplier<RT> andThen) {
+    apply(state, Arrays.asList(source), "", "", andThen);
+  }
+
+  /**
+   * Apply my current {@code state} and {@code source}.
+   * @param state the S typed state to apply
+   * @param source the {@code Source<C>} instances to apply
+   * @param <C> the type of Source
+   */
+  protected <C> void apply(final S state, final Source<C> source) {
+    apply(state, Arrays.asList(source), "", "", null);
   }
 
   /**
