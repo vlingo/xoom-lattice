@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.object;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
@@ -23,10 +27,6 @@ import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
 import io.vlingo.symbio.store.object.PersistentObject;
 import io.vlingo.symbio.store.object.QueryExpression;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Abstract base type used to preserve and restore object state
@@ -109,6 +109,26 @@ public abstract class ObjectEntity<T extends PersistentObject> extends Actor
   protected <RT> void apply(final T state, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
     info.store.persist(state, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+  }
+
+  /**
+   * Apply my current {@code state} and {@code sources}.
+   * @param state the T typed state to apply
+   * @param sources the {@code List<Source<C>>} instances to apply
+   * @param <C> the type of Source
+   */
+  protected <C> void apply(final T state, final List<Source<C>> sources) {
+    apply(state, sources, null);
+  }
+
+  /**
+   * Apply my current {@code state} and {@code source}.
+   * @param state the T typed state to apply
+   * @param source the {@code Source<C>} instances to apply
+   * @param <C> the type of Source
+   */
+  protected <C> void apply(final T state, final Source<C> source) {
+    apply(state, Arrays.asList(source), null);
   }
 
   /**
