@@ -7,7 +7,6 @@
 
 package io.vlingo.lattice.model.process;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -82,8 +81,8 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List)
    */
   @Override
-  public void emitAll(final List<Source<?>> sources) {
-    apply(wrap(sources));
+  public <C> void emitAll(final List<Source<C>> sources) {
+    apply(ProcessMessage.wrap(sources));
   }
 
   /**
@@ -91,8 +90,8 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List, java.util.function.Supplier)
    */
   @Override
-  public <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
-    apply(wrap(sources), andThen);
+  public <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen) {
+    apply(ProcessMessage.wrap(sources), andThen);
   }
 
   /**
@@ -116,19 +115,5 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   protected SourcedProcess() {
     this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
-  }
-
-  /**
-   * Answer a new {@code List<Source<ProcessMessage>>} that wraps each of the elements of {@code sources}.
-   * @param sources the {@code List<Source<?>>} elements each to be wrapped with a ProcessMessage
-   * @return {@code List<Source<ProcessMessage>>}
-   */
-  private List<Source<ProcessMessage>> wrap(final List<Source<?>> sources) {
-    final List<Source<ProcessMessage>> messages = new ArrayList<>(sources.size());
-    for (final Source<?> source : sources) {
-      final ProcessMessage message = new ProcessMessage(source);
-      messages.add(message);
-    }
-    return messages;
   }
 }
