@@ -53,7 +53,7 @@ public class SourcedProcessTest {
 
   @Test
   public void testFiveStepSendingProcess() {
-    process = world.actorFor(FiveStepProcess.class, FiveStepSendingProcess.class);
+    process = world.actorFor(FiveStepProcess.class, FiveStepSendingSourcedProcess.class);
     exchangeReceivers.process(process);
 
     exchange.send(new DoStepOne());
@@ -65,7 +65,7 @@ public class SourcedProcessTest {
 
   @Test
   public void testFiveStepEmittingProcess() {
-    process = world.actorFor(FiveStepProcess.class, FiveStepEmittingProcess.class);
+    process = world.actorFor(FiveStepProcess.class, FiveStepEmittingSourcedProcess.class);
     exchangeReceivers.process(process);
     final AccessSafely listenerAccess = listener.afterCompleting(4);
 
@@ -90,8 +90,8 @@ public class SourcedProcessTest {
 
     sourcedTypeRegistry = new SourcedTypeRegistry(world);
 
-    registerSourcedTypes(FiveStepSendingProcess.class);
-    registerSourcedTypes(FiveStepEmittingProcess.class);
+    registerSourcedTypes(FiveStepSendingSourcedProcess.class);
+    registerSourcedTypes(FiveStepEmittingSourcedProcess.class);
 
     exchangeReceivers = new ExchangeReceivers();
     exchangeSender = new LocalExchangeSender(queue);
@@ -99,8 +99,8 @@ public class SourcedProcessTest {
     registerExchangeCoveys();
 
     processTypeRegistry = new ProcessTypeRegistry(world);
-    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingProcess.class, FiveStepSendingProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
-    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingProcess.class, FiveStepEmittingProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
+    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingSourcedProcess.class, FiveStepSendingSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
+    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingSourcedProcess.class, FiveStepEmittingSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
   }
 
   private void registerExchangeCoveys() {
