@@ -25,19 +25,19 @@ public class ProcessMessageTextAdapter implements EntryAdapter<ProcessMessage,Te
       throw new IllegalArgumentException("ProcessMessageTextAdapter failed because: " + e.getMessage(), e);
     }
   }
-
+  
   @Override
-  public TextEntry toEntry(final ProcessMessage source) {
+  public TextEntry toEntry(final ProcessMessage source, final Metadata metadata) {
     final SerializableProcessMessage serializedMessage = new SerializableProcessMessage(source);
     final String serialization = JsonSerialization.serialized(serializedMessage);
-    return new TextEntry(ProcessMessage.class, 1, serialization, Metadata.nullMetadata());
+    return new TextEntry(ProcessMessage.class, 1, serialization, metadata);
   }
-
+  
   @Override
-  public TextEntry toEntry(final ProcessMessage source, final String id) {
+  public TextEntry toEntry(final ProcessMessage source, final String id, final Metadata metadata) {
     final SerializableProcessMessage serializedMessage = new SerializableProcessMessage(source);
     final String serialization = JsonSerialization.serialized(serializedMessage);
-    return new TextEntry(id, ProcessMessage.class, 1, serialization, Metadata.nullMetadata());
+    return new TextEntry(id, ProcessMessage.class, 1, serialization, metadata);
   }
 
   private static final class SerializableProcessMessage {

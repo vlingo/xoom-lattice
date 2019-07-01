@@ -45,7 +45,7 @@ public class SourcedProcessTest {
   private ExchangeReceivers exchangeReceivers;
   private LocalExchangeSender exchangeSender;
   private Journal<String> journal;
-  private SendingJournalListener listener;
+  private SendingJournalDispatcher listener;
   private FiveStepProcess process;
   private ProcessTypeRegistry processTypeRegistry;
   private SourcedTypeRegistry sourcedTypeRegistry;
@@ -85,7 +85,7 @@ public class SourcedProcessTest {
 
     final MessageQueue queue = new AsyncMessageQueue(null);
     exchange = new LocalExchange(queue);
-    listener = new SendingJournalListener(exchange, new ProcessMessageTextAdapter());
+    listener = new SendingJournalDispatcher(exchange, new ProcessMessageTextAdapter());
     journal = new InMemoryJournal<>(listener, world);
 
     sourcedTypeRegistry = new SourcedTypeRegistry(world);

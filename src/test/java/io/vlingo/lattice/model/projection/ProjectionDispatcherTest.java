@@ -7,9 +7,6 @@
 
 package io.vlingo.lattice.model.projection;
 
-import org.junit.After;
-import org.junit.Before;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
@@ -19,11 +16,13 @@ import io.vlingo.lattice.model.stateful.StatefulEntityTest.Entity1State;
 import io.vlingo.lattice.model.stateful.StatefulEntityTest.Entity1StateAdapter;
 import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.StateAdapterProvider;
+import io.vlingo.symbio.store.dispatch.Dispatcher;
+import io.vlingo.symbio.store.dispatch.DispatcherControl;
 import io.vlingo.symbio.store.state.StateStore;
-import io.vlingo.symbio.store.state.StateStore.Dispatcher;
-import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
 import io.vlingo.symbio.store.state.StateTypeStateStoreMap;
 import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
+import org.junit.After;
+import org.junit.Before;
 
 public abstract class ProjectionDispatcherTest {
   protected Dispatcher dispatcher;

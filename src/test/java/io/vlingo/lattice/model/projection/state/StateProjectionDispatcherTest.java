@@ -7,14 +7,6 @@
 
 package io.vlingo.lattice.model.projection.state;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Test;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
@@ -31,8 +23,16 @@ import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.TextState;
+import io.vlingo.symbio.store.dispatch.Dispatchable;
+import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.state.StateStore;
-import io.vlingo.symbio.store.state.StateStore.Dispatcher;
+import org.junit.Test;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.assertEquals;
 
 public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
@@ -65,14 +65,17 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     final ProjectToDescription description = new ProjectToDescription(DescribedProjection.class, "op1", "op2");
 
     final Dispatcher dispatcher =
-            world.actorFor(Dispatcher.class, TextStateProjectionDispatcherActor.class, Arrays.asList(description));
+            world.actorFor(Dispatcher.class, TextStateProjectionDispatcherActor.class, Collections.singletonList(description));
 
     final Outcome outcome = new Outcome(2);
     final AccessSafely accessOutcome = outcome.afterCompleting(2);
     dispatcher.controlWith(outcome);
 
-    dispatcher.dispatch("123", new TextState("123", Object.class, 1, "blah1", 1, Metadata.with("", "op1")));
-    dispatcher.dispatch("123", new TextState("123", Object.class, 1, "blah2", 1, Metadata.with("", "op2")));
+    final TextState state = new TextState("123", Object.class, 1, "blah1", 1, Metadata.with("", "op1"));
+    dispatcher.dispatch(new Dispatchable<>("123", LocalDateTime.now(), state, Collections.emptyList()));
+
+    final TextState state2 = new TextState("1235", Object.class, 1, "blah2", 1, Metadata.with("", "op2"));
+    dispatcher.dispatch(new Dispatchable<>("1235", LocalDateTime.now(), state2, Collections.emptyList()));
 
     assertEquals(2, (int) accessOutcome.readFrom("count"));
   }
@@ -114,15 +117,11 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     return StateStore.class;
   }
 
-  public static class FilterProjectionDispatcherActor extends StateProjectionDispatcherActor
+  public static class FilterProjectionDispatcherActor extends StateProjectionDispatcherActor<State<?>>
       implements Projection, ProjectionDispatcher {
 
     private final FilterOutcome outcome;
-
-    @Override
-    public <S extends State<?>, E extends Entry<?>> void dispatch(final String dispatchId, final S state, final Collection<E> sources) {
-    }
-
+    
     public static ProjectionDispatcher filterFor(
             final World world,
             final ProjectionDispatcher projectionDispatcher,
@@ -156,6 +155,11 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     @Override
     protected boolean requiresDispatchedConfirmation() {
       return false;
+    }
+
+    @Override
+    public void dispatch(final Dispatchable<Entry<?>, State<?>> dispatchable) {
+      
     }
   }
 

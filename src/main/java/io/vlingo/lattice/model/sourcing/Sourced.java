@@ -13,6 +13,7 @@ import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.CompletionSupplier;
+import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.Result;
@@ -252,62 +253,76 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   // AppendResultInterest
   //==================================
 
+  
+
   /**
    * FOR INTERNAL USE ONLY.
    */
   @Override
-  final public <STT,ST> void appendResultedIn(
-          final Outcome<StorageException, Result> outcome,
-          final String streamName,
-          final int streamVersion,
-          final Source<STT> source,
-          final Optional<ST> snapshot,
-          final Object supplier) {
-
-    outcome
-      .andThen(result -> {
-        restoreSnapshot(snapshot, currentVersion);
-        applyResultVersioned(source);
-        completeUsing(supplier);
-        disperseStowedMessages();
-        return result;
-      })
-      .otherwise(cause -> {
-        disperseStowedMessages();
-        final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().error(message, cause);
-        throw new StorageException(cause.result, message, cause);
-      });
+  public final <S, ST> void appendResultedIn(
+          final Outcome<StorageException, io.vlingo.symbio.store.Result> outcome, final String streamName, final int streamVersion,
+          final Source<S> source, final Optional<ST> snapshot, final Object supplier) {
+      this.appendResultedIn(outcome, streamName, streamVersion, source, Metadata.nullMetadata(), snapshot, supplier);
   }
 
   /**
    * FOR INTERNAL USE ONLY.
    */
   @Override
-  final public <STT,ST> void appendAllResultedIn(
-          final Outcome<StorageException, Result> outcome,
-          final String streamName,
-          final int streamVersion,
-          final List<Source<STT>> sources,
-          final Optional<ST> snapshot,
-          final Object supplier) {
+  public final <S, ST> void appendAllResultedIn(final Outcome<StorageException, io.vlingo.symbio.store.Result> outcome, final String streamName,
+          final int streamVersion, final List<Source<S>> sources, final Optional<ST> snapshot, final Object supplier) {
+    this.appendAllResultedIn(outcome, streamName, streamVersion, sources, Metadata.nullMetadata(), snapshot, supplier);
+  }
 
+
+  /**
+   * FOR INTERNAL USE ONLY.
+   */
+  @Override
+  public final <S, STT> void appendResultedIn(
+          final Outcome<StorageException, Result> outcome, final String streamName, final int streamVersion,
+          final Source<S> source, final Metadata metadata, final Optional<STT> snapshot, final Object supplier) {
+    //TODO handle metadata
     outcome
-      .andThen(result -> {
-        restoreSnapshot(snapshot, currentVersion);
-        for (final Source<STT> source : sources) {
-          applyResultVersioned(source);
-        }
-        completeUsing(supplier);
-        disperseStowedMessages();
-        return result;
-      })
-      .otherwise(cause -> {
-        final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().error(message, cause);
-        disperseStowedMessages();
-        throw new StorageException(cause.result, message, cause);
-      });
+            .andThen(result -> {
+              restoreSnapshot(snapshot, currentVersion);
+              applyResultVersioned(source);
+              completeUsing(supplier);
+              disperseStowedMessages();
+              return result;
+            })
+            .otherwise(cause -> {
+              disperseStowedMessages();
+              final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+              logger().error(message, cause);
+              throw new StorageException(cause.result, message, cause);
+            });
+  }
+
+  /**
+   * FOR INTERNAL USE ONLY.
+   */
+  @Override
+  public final <STT, ST> void appendAllResultedIn(final Outcome<StorageException, Result> outcome, final String streamName,
+          final int streamVersion,final List<Source<STT>> sources, final Metadata metadata,
+          final Optional<ST> snapshot, final Object supplier) {
+    //TODO handle metadata
+    outcome
+            .andThen(result -> {
+              restoreSnapshot(snapshot, currentVersion);
+              for (final Source<STT> source : sources) {
+                applyResultVersioned(source);
+              }
+              completeUsing(supplier);
+              disperseStowedMessages();
+              return result;
+            })
+            .otherwise(cause -> {
+              final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+              logger().error(message, cause);
+              disperseStowedMessages();
+              throw new StorageException(cause.result, message, cause);
+            });
   }
 
   //==================================

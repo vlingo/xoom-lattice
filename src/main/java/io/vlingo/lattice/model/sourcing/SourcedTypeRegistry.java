@@ -7,11 +7,6 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.World;
 import io.vlingo.symbio.Entry;
@@ -21,8 +16,14 @@ import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.StateAdapter;
 import io.vlingo.symbio.StateAdapterProvider;
+import io.vlingo.symbio.store.dispatch.Dispatchable;
+import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.journal.Journal;
-import io.vlingo.symbio.store.journal.JournalListener;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 /**
  * Registry for {@code Sourced} types that holds the {@code Journal} type,
@@ -38,7 +39,7 @@ public final class SourcedTypeRegistry {
    * the {@code Journal} of type {@code journalType}, registering me with the {@code world}.
    * @param world the World to which I am registered
    * @param journalType the concrete {@code Actor} type of the Journal to create
-   * @param journalListener the {@code JournalListener<?>} of the journalType
+   * @param dispatcher the {@code Dispatcher<Dispatchable<Entry<?>,State<?>>>} of the journalType
    * @param sourcedTypes all {@code Class<Sourced<?>>} types of to register
    * @param <A> the type of Actor used for the Journal implementation
    * @param <S> the {@code Sourced<?>} types to register
@@ -48,9 +49,9 @@ public final class SourcedTypeRegistry {
   public static <A extends Actor, S extends Sourced<?>> SourcedTypeRegistry register(
           final World world,
           final Class<A> journalType,
-          final JournalListener<?> journalListener,
+          final Dispatcher<Dispatchable<Entry<?>,State<?>>> dispatcher,
           final Class<S> ... sourcedTypes) {
-    return new SourcedTypeRegistry(world, journalType, journalListener, sourcedTypes);
+    return new SourcedTypeRegistry(world, journalType, dispatcher, sourcedTypes);
   }
 
   /**
@@ -66,7 +67,7 @@ public final class SourcedTypeRegistry {
    * of type {@code journalType}, and register me with the {@code world}.
    * @param world the World to which I am registered
    * @param journalType the concrete {@code Actor} type of the Journal to create
-   * @param journalListener the {@code JournalListener<?>} of the journalType
+   * @param dispatcher the {@code Dispatcher<Dispatchable<Entry<?>,State<?>>>} of the journalType
    * @param sourcedTypes all {@code Class<Sourced<?>>} types of to register
    * @param <A> the type of Actor used for the Journal implementation
    * @param <S> the {@code Sourced<?>} types to register
@@ -75,12 +76,12 @@ public final class SourcedTypeRegistry {
   public <A extends Actor, S extends Sourced<?>> SourcedTypeRegistry(
           final World world,
           final Class<A> journalType,
-          final JournalListener<?> journalListener,
+          final Dispatcher<Dispatchable<Entry<?>,State<?>>> dispatcher,
           final Class<S> ... sourcedTypes) {
 
     this(world);
 
-    final Journal<?> journal = world.actorFor(Journal.class, journalType, journalListener);
+    final Journal<?> journal = world.actorFor(Journal.class, journalType, dispatcher);
 
     EntryAdapterProvider.instance(world);
 

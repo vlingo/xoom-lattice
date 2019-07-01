@@ -1,0 +1,25 @@
+// Copyright © 2012-2018 Vaughn Vernon. All rights reserved.
+//
+// This Source Code Form is subject to the terms of the
+// Mozilla Public License, v. 2.0. If a copy of the MPL
+// was not distributed with this file, You can obtain
+// one at https://mozilla.org/MPL/2.0/.
+package io.vlingo.lattice.model.object;
+
+import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.store.dispatch.Dispatchable;
+import io.vlingo.symbio.store.dispatch.Dispatcher;
+import io.vlingo.symbio.store.dispatch.DispatcherControl;
+
+class MockDispatcher implements Dispatcher<Dispatchable<Entry<?>, State<?>>> {
+  @Override
+  public void controlWith(final DispatcherControl control) {
+
+  }
+
+  @Override
+  public void dispatch(final Dispatchable<Entry<?>, State<?>> dispatchable) {
+
+  }
+}
