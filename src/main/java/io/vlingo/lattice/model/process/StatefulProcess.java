@@ -20,13 +20,14 @@ import io.vlingo.symbio.Source;
  * @param <T> the type of StatefulEntity
  */
 public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Process<T> {
+  private final ProcessTypeRegistry.Info<? extends SourcedProcess<T>> info;
+
   /**
    * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command)
    */
   @Override
   public void emit(final Command command) {
-    // TODO: emit
-    apply(chronicle().state);
+    apply(chronicle().state, new ProcessMessage(command));
   }
 
   /**
@@ -34,8 +35,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
    */
   @Override
   public <R> void emit(final Command command, final Supplier<R> andThen) {
-    // TODO: emit
-    apply(chronicle().state, andThen);
+    apply(chronicle().state, new ProcessMessage(command), andThen);
   }
 
   /**
@@ -43,8 +43,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
    */
   @Override
   public void emit(final DomainEvent event) {
-    // TODO: emit
-    apply(chronicle().state);
+    apply(chronicle().state, new ProcessMessage(event));
   }
 
   /**
@@ -52,26 +51,23 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
    */
   @Override
   public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
-    // TODO: emit
-    apply(chronicle().state, andThen);
+    apply(chronicle().state, new ProcessMessage(event), andThen);
   }
 
   /**
    * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List)
    */
   @Override
-  public void emitAll(final List<Source<?>> sources) {
-    // TODO: emit
-    apply(chronicle().state);
+  public <C> void emitAll(final List<Source<C>> sources) {
+    apply(chronicle().state, ProcessMessage.wrap(sources));
   }
 
   /**
    * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List, java.util.function.Supplier)
    */
   @Override
-  public <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
-    // TODO: emit
-    apply(chronicle().state, andThen);
+  public <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen) {
+    apply(chronicle().state, ProcessMessage.wrap(sources), andThen);
   }
 
   /**
@@ -79,8 +75,7 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
    */
   @Override
   public void send(final Command command) {
-    // TODO: send
-    // info.exchange.send(command);
+    info.exchange.send(command);
   }
 
   /**
@@ -88,11 +83,10 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
    */
   @Override
   public void send(final DomainEvent event) {
-    // TODO: send
-    // info.exchange.send(event);
+    info.exchange.send(event);
   }
 
   protected StatefulProcess() {
-
+    this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
   }
 }
