@@ -7,6 +7,15 @@
 
 package io.vlingo.lattice.model.sourcing;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
@@ -19,16 +28,6 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 /**
  * Abstract base for all concrete types that support journaling and application of
@@ -128,11 +127,10 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @param <R> the return type of the andThen {@code Supplier<R>}
    */
   final protected <R> void apply(final List<Source<T>> sources, final Supplier<R> andThen) {
-    final List<Source<T>> toApply = wrap(sources);
-    beforeApply(toApply);
+    beforeApply(sources);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), toApply, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(streamName(), nextVersion(), sources, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
 
   /**
@@ -425,14 +423,5 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   @SuppressWarnings("unused")
   private List<Source<T>> wrap(final Source<T>[] sources) {
     return Arrays.asList(sources);
-  }
-
-  /**
-   * Answer {@code sources} wrapped in a {@code List<Source<T>>}.
-   * @param sources the {@code List<Source<T>>} to wrap
-   * @return {@code List<Source<T>>}
-   */
-  private List<Source<T>> wrap(final List<Source<T>> sources) {
-    return new ArrayList<>(sources);
   }
 }
