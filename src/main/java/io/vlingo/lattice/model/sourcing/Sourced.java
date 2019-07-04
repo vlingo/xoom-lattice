@@ -169,6 +169,12 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   }
 
   /**
+   * Received after the full asynchronous evaluation of each {@code apply()}.
+   * Override if notification is desired.
+   */
+  protected void afterApply() { }
+
+  /**
    * Received prior to the evaluation of each {@code apply()} and by
    * default adds all applied {@code Source<T>} {@code sources} to the
    * {@code TestContext reference}, if currently testing. The concrete
@@ -266,6 +272,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
       .andThen(result -> {
         restoreSnapshot(snapshot, currentVersion);
         applyResultVersioned(source);
+        afterApply();
         completeUsing(supplier);
         disperseStowedMessages();
         return result;
@@ -296,6 +303,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
         for (final Source<STT> source : sources) {
           applyResultVersioned(source);
         }
+        afterApply();
         completeUsing(supplier);
         disperseStowedMessages();
         return result;
