@@ -64,6 +64,12 @@ public abstract class StatefulEntity<S> extends Actor
   }
 
   /**
+   * Received after the full asynchronous evaluation of each {@code apply()}.
+   * Override if notification is desired.
+   */
+  protected void afterApply() { }
+
+  /**
    * Answer my currentVersion, which, if zero, indicates that the
    * receiver is being initially constructed or reconstituted.
    * @return int
@@ -322,6 +328,7 @@ public abstract class StatefulEntity<S> extends Actor
       .andThen(result -> {
         state((S) state);
         currentVersion = stateVersion;
+        afterApply();
         completeUsing(supplier);
         disperseStowedMessages();
         return result;
