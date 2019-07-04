@@ -45,7 +45,7 @@ public class SourcedProcessTest {
   private ExchangeReceivers exchangeReceivers;
   private LocalExchangeSender exchangeSender;
   private Journal<String> journal;
-  private SendingJournalListener listener;
+  private MockJournalListener listener;
   private FiveStepProcess process;
   private ProcessTypeRegistry processTypeRegistry;
   private SourcedTypeRegistry sourcedTypeRegistry;
@@ -85,7 +85,7 @@ public class SourcedProcessTest {
 
     final MessageQueue queue = new AsyncMessageQueue(null);
     exchange = new LocalExchange(queue);
-    listener = new SendingJournalListener(exchange, new ProcessMessageTextAdapter());
+    listener = new MockJournalListener();
     journal = new InMemoryJournal<>(listener, world);
 
     sourcedTypeRegistry = new SourcedTypeRegistry(world);
@@ -100,7 +100,7 @@ public class SourcedProcessTest {
 
     processTypeRegistry = new ProcessTypeRegistry(world);
     processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingSourcedProcess.class, FiveStepSendingSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
-    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingSourcedProcess.class, FiveStepEmittingSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
+    processTypeRegistry.register(new SourcedProcessInfo(FiveStepEmittingSourcedProcess.class, FiveStepEmittingSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
   }
 
   private void registerExchangeCoveys() {
