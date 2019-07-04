@@ -132,6 +132,12 @@ public abstract class ObjectEntity<T extends PersistentObject> extends Actor
   }
 
   /**
+   * Received after the full asynchronous evaluation of each {@code apply()}.
+   * Override if notification is desired.
+   */
+  protected void afterApply() { }
+
+  /**
    * Answer a {@code List<Source<C>>} from the varargs {@code sources}.
    * @param sources the varargs {@code Source<C>} of sources to answer as a {@code List<Source<C>>}
    * @param <C> the type of Source
@@ -227,6 +233,7 @@ public abstract class ObjectEntity<T extends PersistentObject> extends Actor
     outcome
     .andThen(result -> {
       persistentObject((T) persistentObject);
+      afterApply();
       completeUsing(supplier);
       disperseStowedMessages();
       return result;
