@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.model.process;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -32,6 +33,8 @@ import io.vlingo.symbio.Source;
 public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implements Process<T> {
   private final ProcessTypeRegistry.Info<? extends SourcedProcess<T>> info;
 
+  private List<Source<?>> applied;
+
   /**
    * @see io.vlingo.lattice.model.process.Process#chronicle()
    */
@@ -46,6 +49,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public void emit(final Command command) {
+    applied.add(command);
     apply(new ProcessMessage(command));
   }
 
@@ -55,6 +59,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public <R> void emit(final Command command, final Supplier<R> andThen) {
+    applied.add(command);
     apply(new ProcessMessage(command), andThen);
   }
 
@@ -64,6 +69,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public void emit(final DomainEvent event) {
+    applied.add(event);
     apply(new ProcessMessage(event));
   }
 
@@ -73,6 +79,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
+    applied.add(event);
     apply(new ProcessMessage(event), andThen);
   }
 
@@ -82,6 +89,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public <C> void emitAll(final List<Source<C>> sources) {
+    applied.addAll(sources);
     apply(ProcessMessage.wrap(sources));
   }
 
@@ -91,6 +99,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen) {
+    applied.addAll(sources);
     apply(ProcessMessage.wrap(sources), andThen);
   }
 
@@ -115,5 +124,14 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   protected SourcedProcess() {
     this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
+    this.applied = new ArrayList<>(2);
+  }
+
+  @Override
+  protected void afterApply() {
+    for (final Source<?> source : applied) {
+      info.exchange.send(source);
+    }
+    applied.clear();
   }
 }
