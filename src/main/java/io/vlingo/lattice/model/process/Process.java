@@ -88,9 +88,10 @@ public interface Process<T> {
    * ensure the {@code sources} are permanent, enabling
    * a backing {@code Exchange} message to be enqueued
    * with guaranteed delivery semantics.
-   * @param sources the {@code List<Source<?>>} of source instances to apply
+   * @param sources the {@code List<Source<C>>} of source instances to apply
+   * @param <C> the type of Source
    */
-  void emitAll(final List<Source<?>> sources);
+  <C> void emitAll(final List<Source<C>> sources);
 
   /**
    * Emit the {@code sources} by persisting each as a {@code ProcessMessage},
@@ -102,11 +103,12 @@ public interface Process<T> {
    * with guaranteed delivery semantics.
    * Emit all {@code sources} by applying them to myself, followed by
    * the execution of a possible {@code andThen}.
-   * @param sources the {@code List<Source<?>>} of source instances to apply
+   * @param sources the {@code List<Source<C>>} of source instances to apply
    * @param andThen the {@code Supplier<R>} executed following the application of sources
+   * @param <C> the type of Source
    * @param <R> the return type of the andThen {@code Supplier<R>}
    */
-  <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen);
+  <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen);
 
   /**
    * Send the {@code command} to my collaborators via my Exchange.

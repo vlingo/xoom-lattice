@@ -21,7 +21,6 @@ import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -129,11 +128,10 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @param <R> the return type of the andThen {@code Supplier<R>}
    */
   final protected <R> void apply(final List<Source<T>> sources, final Supplier<R> andThen) {
-    final List<Source<T>> toApply = wrap(sources);
-    beforeApply(toApply);
+    beforeApply(sources);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), toApply, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(streamName(), nextVersion(), sources, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
   }
 
   /**
@@ -170,6 +168,12 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   protected List<Source<T>> asList(final Source<T>... sources) {
     return Arrays.asList(sources);
   }
+
+  /**
+   * Received after the full asynchronous evaluation of each {@code apply()}.
+   * Override if notification is desired.
+   */
+  protected void afterApply() { }
 
   /**
    * Received prior to the evaluation of each {@code apply()} and by
@@ -253,7 +257,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   // AppendResultInterest
   //==================================
 
-  
+
 
   /**
    * FOR INTERNAL USE ONLY.
@@ -284,19 +288,20 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
           final Source<S> source, final Metadata metadata, final Optional<STT> snapshot, final Object supplier) {
     //TODO handle metadata
     outcome
-            .andThen(result -> {
-              restoreSnapshot(snapshot, currentVersion);
-              applyResultVersioned(source);
-              completeUsing(supplier);
-              disperseStowedMessages();
-              return result;
-            })
-            .otherwise(cause -> {
-              disperseStowedMessages();
-              final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-              logger().error(message, cause);
-              throw new StorageException(cause.result, message, cause);
-            });
+      .andThen(result -> {
+        restoreSnapshot(snapshot, currentVersion);
+        applyResultVersioned(source);
+        afterApply();
+        completeUsing(supplier);
+        disperseStowedMessages();
+        return result;
+      })
+      .otherwise(cause -> {
+        disperseStowedMessages();
+        final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+        logger().error(message, cause);
+        throw new StorageException(cause.result, message, cause);
+      });
   }
 
   /**
@@ -308,21 +313,22 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
           final Optional<ST> snapshot, final Object supplier) {
     //TODO handle metadata
     outcome
-            .andThen(result -> {
-              restoreSnapshot(snapshot, currentVersion);
-              for (final Source<STT> source : sources) {
-                applyResultVersioned(source);
-              }
-              completeUsing(supplier);
-              disperseStowedMessages();
-              return result;
-            })
-            .otherwise(cause -> {
-              final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-              logger().error(message, cause);
-              disperseStowedMessages();
-              throw new StorageException(cause.result, message, cause);
-            });
+      .andThen(result -> {
+        restoreSnapshot(snapshot, currentVersion);
+        for (final Source<STT> source : sources) {
+          applyResultVersioned(source);
+        }
+        afterApply();
+        completeUsing(supplier);
+        disperseStowedMessages();
+        return result;
+      })
+      .otherwise(cause -> {
+        final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+        logger().error(message, cause);
+        disperseStowedMessages();
+        throw new StorageException(cause.result, message, cause);
+      });
   }
 
   //==================================
@@ -440,14 +446,5 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   @SuppressWarnings("unused")
   private List<Source<T>> wrap(final Source<T>[] sources) {
     return Arrays.asList(sources);
-  }
-
-  /**
-   * Answer {@code sources} wrapped in a {@code List<Source<T>>}.
-   * @param sources the {@code List<Source<T>>} to wrap
-   * @return {@code List<Source<T>>}
-   */
-  private List<Source<T>> wrap(final List<Source<T>> sources) {
-    return new ArrayList<>(sources);
   }
 }

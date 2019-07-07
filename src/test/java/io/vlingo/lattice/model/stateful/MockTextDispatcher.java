@@ -30,6 +30,7 @@ public class MockTextDispatcher implements Dispatcher<Dispatchable<Entry<?>,Stat
   public final AtomicBoolean processDispatch = new AtomicBoolean(true);
 
   public MockTextDispatcher() {
+    this.access = afterCompleting(0);
   }
 
   @Override

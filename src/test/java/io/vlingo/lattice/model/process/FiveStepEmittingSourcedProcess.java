@@ -9,10 +9,14 @@ package io.vlingo.lattice.model.process;
 
 import io.vlingo.common.Completes;
 
-public class FiveStepSendingProcess extends SourcedProcess<Object> implements FiveStepProcess {
+public class FiveStepEmittingSourcedProcess extends SourcedProcess<Object> implements FiveStepProcess {
+  static {
+    registerConsumer(FiveStepEmittingSourcedProcess.class, ProcessMessage.class, FiveStepEmittingSourcedProcess::applyProcessMessage);
+  }
+
   private int stepCount;
 
-  public FiveStepSendingProcess() { }
+  public FiveStepEmittingSourcedProcess() { }
 
   @Override
   public Completes<Integer> queryStepCount() {
@@ -21,26 +25,22 @@ public class FiveStepSendingProcess extends SourcedProcess<Object> implements Fi
 
   @Override
   public void stepOneHappened() {
-    ++stepCount;
-    send(new DoStepTwo());
+    emit(new DoStepTwo());
   }
 
   @Override
   public void stepTwoHappened() {
-    ++stepCount;
-    send(new DoStepThree());
+    emit(new DoStepThree());
   }
 
   @Override
   public void stepThreeHappened() {
-    ++stepCount;
-    send(new DoStepFour());
+    emit(new DoStepFour());
   }
 
   @Override
   public void stepFourHappened() {
-    ++stepCount;
-    send(new DoStepFive());
+    emit(new DoStepFive());
   }
 
   @Override
@@ -56,5 +56,9 @@ public class FiveStepSendingProcess extends SourcedProcess<Object> implements Fi
   @Override
   protected String streamName() {
     return id();
+  }
+
+  private void applyProcessMessage(final ProcessMessage message) {
+    ++stepCount;
   }
 }

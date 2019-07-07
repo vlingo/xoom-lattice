@@ -112,6 +112,32 @@ public abstract class ObjectEntity<T extends PersistentObject> extends Actor
   }
 
   /**
+   * Apply my current {@code state} and {@code sources}.
+   * @param state the T typed state to apply
+   * @param sources the {@code List<Source<C>>} instances to apply
+   * @param <C> the type of Source
+   */
+  protected <C> void apply(final T state, final List<Source<C>> sources) {
+    apply(state, sources, null);
+  }
+
+  /**
+   * Apply my current {@code state} and {@code source}.
+   * @param state the T typed state to apply
+   * @param source the {@code Source<C>} instances to apply
+   * @param <C> the type of Source
+   */
+  protected <C> void apply(final T state, final Source<C> source) {
+    apply(state, Arrays.asList(source), null);
+  }
+
+  /**
+   * Received after the full asynchronous evaluation of each {@code apply()}.
+   * Override if notification is desired.
+   */
+  protected void afterApply() { }
+
+  /**
    * Answer a {@code List<Source<C>>} from the varargs {@code sources}.
    * @param sources the varargs {@code Source<C>} of sources to answer as a {@code List<Source<C>>}
    * @param <C> the type of Source
@@ -207,6 +233,7 @@ public abstract class ObjectEntity<T extends PersistentObject> extends Actor
     outcome
     .andThen(result -> {
       persistentObject((T) persistentObject);
+      afterApply();
       completeUsing(supplier);
       disperseStowedMessages();
       return result;

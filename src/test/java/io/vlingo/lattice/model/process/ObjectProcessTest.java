@@ -8,7 +8,6 @@
 package io.vlingo.lattice.model.process;
 
 import io.vlingo.actors.World;
-import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.message.AsyncMessageQueue;
 import io.vlingo.common.message.MessageQueue;
 import io.vlingo.lattice.exchange.Covey;
@@ -17,57 +16,41 @@ import io.vlingo.lattice.exchange.local.LocalExchange;
 import io.vlingo.lattice.exchange.local.LocalExchangeAdapter;
 import io.vlingo.lattice.exchange.local.LocalExchangeMessage;
 import io.vlingo.lattice.exchange.local.LocalExchangeSender;
-import io.vlingo.lattice.model.process.EntryAdapters.DoStepFiveAdapter;
-import io.vlingo.lattice.model.process.EntryAdapters.DoStepFourAdapter;
-import io.vlingo.lattice.model.process.EntryAdapters.DoStepOneAdapter;
-import io.vlingo.lattice.model.process.EntryAdapters.DoStepThreeAdapter;
-import io.vlingo.lattice.model.process.EntryAdapters.DoStepTwoAdapter;
+import io.vlingo.lattice.model.object.ObjectTypeRegistry;
+import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFive;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepFour;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepOne;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepThree;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
-import io.vlingo.lattice.model.process.ProcessTypeRegistry.SourcedProcessInfo;
-import io.vlingo.lattice.model.sourcing.MockJournalDispatcher;
-import io.vlingo.lattice.model.sourcing.Sourced;
-import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
-import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
+import io.vlingo.lattice.model.process.ProcessTypeRegistry.ObjectProcessInfo;
+import io.vlingo.lattice.model.stateful.MockTextDispatcher;
 import io.vlingo.symbio.EntryAdapterProvider;
-import io.vlingo.symbio.store.journal.Journal;
-import io.vlingo.symbio.store.journal.inmemory.InMemoryJournal;
+import io.vlingo.symbio.store.object.MapQueryExpression;
+import io.vlingo.symbio.store.object.ObjectStore;
+import io.vlingo.symbio.store.object.PersistentObjectMapper;
+import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class SourcedProcessTest {
+public class ObjectProcessTest {
   private Exchange exchange;
   private ExchangeReceivers exchangeReceivers;
   private LocalExchangeSender exchangeSender;
-  private Journal<String> journal;
-  private MockJournalDispatcher dispatcher;
+  private ObjectStore objectStore;
+  private ObjectTypeRegistry objectTypeRegistry;
   private FiveStepProcess process;
   private ProcessTypeRegistry processTypeRegistry;
-  private SourcedTypeRegistry sourcedTypeRegistry;
   private World world;
-
-  @Test
-  public void testFiveStepSendingProcess() {
-    process = world.actorFor(FiveStepProcess.class, FiveStepSendingSourcedProcess.class);
-    exchangeReceivers.process(process);
-
-    exchange.send(new DoStepOne());
-
-    assertEquals(5, (int) exchangeReceivers.access.readFrom("stepCount"));
-
-    assertEquals(5, (int) process.queryStepCount().await());
-  }
+  private MockTextDispatcher dispatcher;
 
   @Test
   public void testFiveStepEmittingProcess() {
-    process = world.actorFor(FiveStepProcess.class, FiveStepEmittingSourcedProcess.class);
+    process = world.actorFor(FiveStepProcess.class, FiveStepEmittingObjectProcess.class);
     exchangeReceivers.process(process);
-    final AccessSafely listenerAccess = dispatcher.afterCompleting(4);
+    //final AccessSafely listenerAccess = listener.afterCompleting(4);
 
     exchange.send(new DoStepOne());
 
@@ -75,7 +58,7 @@ public class SourcedProcessTest {
 
     assertEquals(5, (int) process.queryStepCount().await());
 
-    assertEquals(4, (int) listenerAccess.readFrom("entriesCount")); // stepFiveHappened() doesn't emit
+    //assertEquals(4, (int) listenerAccess.readFrom("entriesCount")); // stepFiveHappened() doesn't emit
   }
 
   @Before
@@ -85,13 +68,24 @@ public class SourcedProcessTest {
 
     final MessageQueue queue = new AsyncMessageQueue(null);
     exchange = new LocalExchange(queue);
-    dispatcher = new MockJournalDispatcher();
-    journal = new InMemoryJournal<>(dispatcher, world);
+    final ProcessMessageTextAdapter adapter = new ProcessMessageTextAdapter();
+    EntryAdapterProvider.instance(world).registerAdapter(ProcessMessage.class, adapter);
 
-    sourcedTypeRegistry = new SourcedTypeRegistry(world);
+    dispatcher = new MockTextDispatcher();
+    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class, dispatcher);
 
-    registerSourcedTypes(FiveStepSendingSourcedProcess.class);
-    registerSourcedTypes(FiveStepEmittingSourcedProcess.class);
+    objectTypeRegistry = new ObjectTypeRegistry(world);
+
+    final Info<StepCountObjectState> stepCountStateInfo =
+            new ObjectTypeRegistry.Info(
+            objectStore,
+            StepCountObjectState.class,
+            StepCountObjectState.class.getSimpleName(),
+            MapQueryExpression.using(StepCountObjectState.class, "find", MapQueryExpression.map("id", "id")),
+            PersistentObjectMapper.with(StepCountObjectState.class, new Object(), new Object()));
+
+    objectTypeRegistry.register(stepCountStateInfo);
+    objectStore.registerMapper(stepCountStateInfo.mapper);
 
     exchangeReceivers = new ExchangeReceivers();
     exchangeSender = new LocalExchangeSender(queue);
@@ -99,8 +93,7 @@ public class SourcedProcessTest {
     registerExchangeCoveys();
 
     processTypeRegistry = new ProcessTypeRegistry(world);
-    processTypeRegistry.register(new SourcedProcessInfo(FiveStepSendingSourcedProcess.class, FiveStepSendingSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
-    processTypeRegistry.register(new SourcedProcessInfo(FiveStepEmittingSourcedProcess.class, FiveStepEmittingSourcedProcess.class.getSimpleName(), exchange, sourcedTypeRegistry));
+    processTypeRegistry.register(new ObjectProcessInfo(FiveStepEmittingObjectProcess.class, FiveStepEmittingObjectProcess.class.getSimpleName(), exchange, objectTypeRegistry));
   }
 
   private void registerExchangeCoveys() {
@@ -140,26 +133,5 @@ public class SourcedProcessTest {
               DoStepFive.class,
               DoStepFive.class,
               LocalExchangeMessage.class));
-  }
-
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  private <T extends Sourced<?>> void registerSourcedTypes(final Class<T> sourcedType) {
-    EntryAdapterProvider entryAdapterProvider = EntryAdapterProvider.instance(world);
-
-    sourcedTypeRegistry.register(new Info(journal, sourcedType, sourcedType.getSimpleName()));
-
-    sourcedTypeRegistry.info(sourcedType)
-      .registerEntryAdapter(ProcessMessage.class, new ProcessMessageTextAdapter(),
-              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
-      .registerEntryAdapter(DoStepOne.class, new DoStepOneAdapter(),
-              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
-      .registerEntryAdapter(DoStepTwo.class, new DoStepTwoAdapter(),
-              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
-      .registerEntryAdapter(DoStepThree.class, new DoStepThreeAdapter(),
-              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
-      .registerEntryAdapter(DoStepFour.class, new DoStepFourAdapter(),
-              (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter))
-      .registerEntryAdapter(DoStepFive.class, new DoStepFiveAdapter(),
-            (type, adapter) -> entryAdapterProvider.registerAdapter(type, adapter));
   }
 }

@@ -33,6 +33,8 @@ import io.vlingo.symbio.Source;
 public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implements Process<T> {
   private final ProcessTypeRegistry.Info<? extends SourcedProcess<T>> info;
 
+  private List<Source<?>> applied;
+
   /**
    * @see io.vlingo.lattice.model.process.Process#chronicle()
    */
@@ -47,6 +49,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public void emit(final Command command) {
+    applied.add(command);
     apply(new ProcessMessage(command));
   }
 
@@ -56,6 +59,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public <R> void emit(final Command command, final Supplier<R> andThen) {
+    applied.add(command);
     apply(new ProcessMessage(command), andThen);
   }
 
@@ -65,6 +69,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public void emit(final DomainEvent event) {
+    applied.add(event);
     apply(new ProcessMessage(event));
   }
 
@@ -74,6 +79,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   @Override
   public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
+    applied.add(event);
     apply(new ProcessMessage(event), andThen);
   }
 
@@ -82,8 +88,9 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List)
    */
   @Override
-  public void emitAll(final List<Source<?>> sources) {
-    apply(wrap(sources));
+  public <C> void emitAll(final List<Source<C>> sources) {
+    applied.addAll(sources);
+    apply(ProcessMessage.wrap(sources));
   }
 
   /**
@@ -91,8 +98,9 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List, java.util.function.Supplier)
    */
   @Override
-  public <R> void emitAll(final List<Source<?>> sources, final Supplier<R> andThen) {
-    apply(wrap(sources), andThen);
+  public <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen) {
+    applied.addAll(sources);
+    apply(ProcessMessage.wrap(sources), andThen);
   }
 
   /**
@@ -116,19 +124,14 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    */
   protected SourcedProcess() {
     this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
+    this.applied = new ArrayList<>(2);
   }
 
-  /**
-   * Answer a new {@code List<Source<ProcessMessage>>} that wraps each of the elements of {@code sources}.
-   * @param sources the {@code List<Source<?>>} elements each to be wrapped with a ProcessMessage
-   * @return {@code List<Source<ProcessMessage>>}
-   */
-  private List<Source<ProcessMessage>> wrap(final List<Source<?>> sources) {
-    final List<Source<ProcessMessage>> messages = new ArrayList<>(sources.size());
-    for (final Source<?> source : sources) {
-      final ProcessMessage message = new ProcessMessage(source);
-      messages.add(message);
+  @Override
+  protected void afterApply() {
+    for (final Source<?> source : applied) {
+      info.exchange.send(source);
     }
-    return messages;
+    applied.clear();
   }
 }

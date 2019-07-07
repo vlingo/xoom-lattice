@@ -11,12 +11,37 @@ import io.vlingo.lattice.model.Command;
 import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.symbio.Source;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A {@code Source} for both {@code Command} and {@code DomainEvent} types,
  * but that supports other {@code Source} not previously known.
  */
 public class ProcessMessage extends Source<ProcessMessage> {
   public Source<?> source;
+
+
+  /**
+   * Answer a new {@code List<Source<ProcessMessage>>} that wraps each of the elements of {@code sources}.
+   * @param sources the {@code List<Source<C>>} elements each to be wrapped with a ProcessMessage
+   * @param <C> the type of Source
+   * @return {@code List<Source<ProcessMessage>>}
+   */
+  public static <C> List<Source<ProcessMessage>> wrap(final List<Source<C>> sources) {
+    final boolean reuse = (!sources.isEmpty() && sources.get(0).getClass() == ProcessMessage.class);
+
+    final List<Source<ProcessMessage>> messages = new ArrayList<>(sources.size());
+    for (final Source<?> source : sources) {
+      if (reuse) {
+        messages.add((ProcessMessage) source);
+      } else {
+        final ProcessMessage message = new ProcessMessage(source);
+        messages.add(message);
+      }
+    }
+    return messages;
+  }
 
   /**
    * Construct my default state with the {@code command} and a type version of 1.

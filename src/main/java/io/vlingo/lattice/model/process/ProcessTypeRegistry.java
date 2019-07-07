@@ -7,16 +7,17 @@
 
 package io.vlingo.lattice.model.process;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import io.vlingo.actors.World;
 import io.vlingo.lattice.exchange.Exchange;
 import io.vlingo.lattice.exchange.NullExchange;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry;
+import io.vlingo.symbio.store.object.PersistentObject;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Registry for {@code Process} types.
@@ -89,17 +90,17 @@ public final class ProcessTypeRegistry {
   /**
    * Holder of registration information for {@code ObjectProcess} types.
    */
-  public static class ObjectProcessInfo extends Info<ObjectProcess<?>> {
+  public static class ObjectProcessInfo<T extends PersistentObject> extends Info<ObjectProcess<T>> {
     public final ObjectTypeRegistry registry;
 
     /**
      * Construct my default state.
-     * @param processType the {@code Class<ObjectProcess<?>>} Process type
+     * @param processType the {@code Class<ObjectProcess<T>>} Process type
      * @param processName the String name of the Process
      * @param exchange the Exchange
      * @param registry the ObjectTypeRegistry used by the ObjectEntityProcess
      */
-    public ObjectProcessInfo(final Class<ObjectProcess<?>> processType, final String processName, final Exchange exchange, final ObjectTypeRegistry registry) {
+    public ObjectProcessInfo(final Class<ObjectProcess<T>> processType, final String processName, final Exchange exchange, final ObjectTypeRegistry registry) {
       super(processType, processName, exchange);
       this.registry = registry;
     }
@@ -110,7 +111,7 @@ public final class ProcessTypeRegistry {
      * @param processName the String name of the Process
      * @param registry the ObjectTypeRegistry used by the ObjectEntityProcess
      */
-    public ObjectProcessInfo(final Class<ObjectProcess<?>> processType, final String processName, final ObjectTypeRegistry registry) {
+    public ObjectProcessInfo(final Class<ObjectProcess<T>> processType, final String processName, final ObjectTypeRegistry registry) {
       super(processType, processName);
       this.registry = registry;
     }
