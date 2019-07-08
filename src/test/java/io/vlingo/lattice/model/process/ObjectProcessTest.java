@@ -7,11 +7,6 @@
 
 package io.vlingo.lattice.model.process;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import io.vlingo.actors.World;
 import io.vlingo.common.message.AsyncMessageQueue;
 import io.vlingo.common.message.MessageQueue;
@@ -29,11 +24,16 @@ import io.vlingo.lattice.model.process.FiveStepProcess.DoStepOne;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepThree;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
 import io.vlingo.lattice.model.process.ProcessTypeRegistry.ObjectProcessInfo;
+import io.vlingo.lattice.model.stateful.MockTextDispatcher;
 import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.store.object.MapQueryExpression;
 import io.vlingo.symbio.store.object.ObjectStore;
 import io.vlingo.symbio.store.object.PersistentObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ObjectProcessTest {
   private Exchange exchange;
@@ -44,6 +44,7 @@ public class ObjectProcessTest {
   private FiveStepProcess process;
   private ProcessTypeRegistry processTypeRegistry;
   private World world;
+  private MockTextDispatcher dispatcher;
 
   @Test
   public void testFiveStepEmittingProcess() {
@@ -67,8 +68,12 @@ public class ObjectProcessTest {
 
     final MessageQueue queue = new AsyncMessageQueue(null);
     exchange = new LocalExchange(queue);
-    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class);
-    EntryAdapterProvider.instance(world);
+    final ProcessMessageTextAdapter adapter = new ProcessMessageTextAdapter();
+    EntryAdapterProvider.instance(world).registerAdapter(ProcessMessage.class, adapter);
+
+    dispatcher = new MockTextDispatcher();
+    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class, dispatcher);
+
     objectTypeRegistry = new ObjectTypeRegistry(world);
 
     final Info<StepCountObjectState> stepCountStateInfo =

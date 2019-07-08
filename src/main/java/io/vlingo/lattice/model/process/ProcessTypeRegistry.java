@@ -7,10 +7,6 @@
 
 package io.vlingo.lattice.model.process;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import io.vlingo.actors.World;
 import io.vlingo.lattice.exchange.Exchange;
 import io.vlingo.lattice.exchange.NullExchange;
@@ -18,6 +14,10 @@ import io.vlingo.lattice.model.object.ObjectTypeRegistry;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry;
 import io.vlingo.symbio.store.object.PersistentObject;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Registry for {@code Process} types.

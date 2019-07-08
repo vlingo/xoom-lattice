@@ -7,19 +7,20 @@
 
 package io.vlingo.lattice.model.stateful;
 
+import io.vlingo.actors.testkit.AccessSafely;
+import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.store.dispatch.Dispatchable;
+import io.vlingo.symbio.store.dispatch.Dispatcher;
+import io.vlingo.symbio.store.dispatch.DispatcherControl;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.vlingo.actors.testkit.AccessSafely;
-import io.vlingo.symbio.Entry;
-import io.vlingo.symbio.State;
-import io.vlingo.symbio.store.state.StateStore.Dispatcher;
-import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
-
-public class MockTextDispatcher implements Dispatcher {
+public class MockTextDispatcher implements Dispatcher<Dispatchable<Entry<?>,State<?>>> {
   private AccessSafely access = AccessSafely.afterCompleting(0);
 
   // public final ConfirmDispatchedResultInterest confirmDispatchedResultInterest;
@@ -29,6 +30,7 @@ public class MockTextDispatcher implements Dispatcher {
   public final AtomicBoolean processDispatch = new AtomicBoolean(true);
 
   public MockTextDispatcher() {
+    this.access = afterCompleting(0);
   }
 
   @Override
@@ -37,9 +39,9 @@ public class MockTextDispatcher implements Dispatcher {
   }
 
   @Override
-  public <S extends State<?>, E extends Entry<?>> void dispatch(final String dispatchId, final S state, final Collection<E> entries) {
+  public void dispatch(final Dispatchable<Entry<?>,State<?>> dispatchable) {
     if (processDispatch.get()) {
-      access.writeUsing("dispatched", dispatchId, new Dispatch<>(state, entries));
+      access.writeUsing("dispatched", dispatchable.id(), new Dispatch<>(dispatchable.typedState(), dispatchable.entries()));
     }
   }
 

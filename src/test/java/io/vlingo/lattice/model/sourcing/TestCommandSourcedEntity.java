@@ -7,9 +7,9 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.function.BiConsumer;
-
 import io.vlingo.common.Completes;
+
+import java.util.function.BiConsumer;
 
 public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   static {

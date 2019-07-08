@@ -7,45 +7,27 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
-import io.vlingo.symbio.store.journal.JournalListener;
+import io.vlingo.symbio.store.dispatch.Dispatchable;
+import io.vlingo.symbio.store.dispatch.Dispatcher;
+import io.vlingo.symbio.store.dispatch.DispatcherControl;
 
-public final class MockJournalListener implements JournalListener<String> {
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+public final class MockJournalDispatcher implements Dispatcher<Dispatchable<Entry<String>, State<?>>> {
   
   private AccessSafely access;
 
   private List<Entry<String>> entries = new CopyOnWriteArrayList<>();
 
-  public MockJournalListener() {
+  public MockJournalDispatcher() {
     super();
     this.access = afterCompleting(0);
   }
 
-  @Override
-  public void appended(Entry<String> entry) {
-    access.writeUsing("appended", entry);
-  }
-
-  @Override
-  public void appendedWith(Entry<String> entry, State<String> snapshot) {
-    access.writeUsing("appended", entry);
-  }
-
-  @Override
-  public void appendedAll(List<Entry<String>> entries) {
-    access.writeUsing("appendedAll", entries);
-  }
-
-  @Override
-  public void appendedAllWith(List<Entry<String>> entries, State<String> snapshot) {
-    access.writeUsing("appendedAll", entries);
-  }
-  
   public AccessSafely afterCompleting(final int times) {
     access = AccessSafely
       .afterCompleting(times)
@@ -58,5 +40,15 @@ public final class MockJournalListener implements JournalListener<String> {
       .readingWith("entriesCount", () -> entries.size());
 
     return access;
+  }
+
+  @Override
+  public void controlWith(final DispatcherControl control) {
+    
+  }
+
+  @Override
+  public void dispatch(final Dispatchable<Entry<String>, State<?>> dispatchable) {
+    access.writeUsing("appendedAll", dispatchable.entries());
   }
 }

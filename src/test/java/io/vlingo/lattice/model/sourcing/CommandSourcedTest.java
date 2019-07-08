@@ -7,24 +7,23 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.inmemory.InMemoryJournalActor;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class CommandSourcedTest {
   private Entity entity;
   private Journal<String> journal;
-  private MockJournalListener listener;
+  private MockJournalDispatcher dispatcher;
   private SourcedTypeRegistry registry;
   private Result result;
   private World world;
@@ -71,9 +70,9 @@ public class CommandSourcedTest {
   public void setUp() {
     world = World.startWithDefaults("test-cs");
 
-    listener = new MockJournalListener();
+    dispatcher = new MockJournalDispatcher();
 
-    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, listener);
+    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, dispatcher);
 
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));

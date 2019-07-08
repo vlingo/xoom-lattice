@@ -7,9 +7,9 @@
 
 package io.vlingo.lattice.model.process;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import io.vlingo.symbio.store.object.PersistentObject;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 public class StepCountObjectState extends PersistentObject implements Comparable<StepCountObjectState> {
   private static final long serialVersionUID = 1L;

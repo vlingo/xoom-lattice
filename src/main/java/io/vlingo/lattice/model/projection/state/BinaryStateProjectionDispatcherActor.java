@@ -7,15 +7,15 @@
 
 package io.vlingo.lattice.model.projection.state;
 
-import java.util.Collection;
-
 import io.vlingo.lattice.model.projection.ProjectionDispatcher;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
-import io.vlingo.symbio.store.state.StateStore.Dispatcher;
+import io.vlingo.symbio.store.dispatch.Dispatchable;
 
-public class BinaryStateProjectionDispatcherActor extends StateProjectionDispatcherActor
-    implements ProjectionDispatcher, Dispatcher {
+import java.util.Collection;
+
+public class BinaryStateProjectionDispatcherActor extends StateProjectionDispatcherActor<State<byte[]>>
+    implements ProjectionDispatcher {
 
   public BinaryStateProjectionDispatcherActor() {
     super();
@@ -24,17 +24,18 @@ public class BinaryStateProjectionDispatcherActor extends StateProjectionDispatc
   public BinaryStateProjectionDispatcherActor(final Collection<ProjectToDescription> projectToDescriptions) {
     super(projectToDescriptions);
   }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <S extends State<?>, E extends Entry<?>> void dispatch(final String dispatchId, final S state, final Collection<E> entries) {
-    if (hasProjectionsFor(state.metadata.operation)) {
-      dispatch(dispatchId, new ProjectableBinaryState((State<byte[]>) state, (Collection<Entry<?>>) entries, dispatchId));
-    }
-  }
-
+  
   @Override
   protected boolean requiresDispatchedConfirmation() {
     return true;
+  }
+
+  @Override
+  public void dispatch(final Dispatchable<Entry<?>, State<byte[]>> dispatchable) {
+    dispatchable.state().ifPresent(state -> {
+      if (hasProjectionsFor(state.metadata.operation)) {
+        dispatch(dispatchable.id(), new ProjectableBinaryState(state, dispatchable.entries(), dispatchable.id()));
+      }
+    });
   }
 }

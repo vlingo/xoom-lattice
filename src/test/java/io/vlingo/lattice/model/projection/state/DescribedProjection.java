@@ -7,15 +7,15 @@
 
 package io.vlingo.lattice.model.projection.state;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.model.projection.Projectable;
 import io.vlingo.lattice.model.projection.Projection;
 import io.vlingo.lattice.model.projection.ProjectionControl;
-import io.vlingo.symbio.store.state.StateStore.ConfirmDispatchedResultInterest;
-import io.vlingo.symbio.store.state.StateStore.DispatcherControl;
+import io.vlingo.symbio.store.dispatch.ConfirmDispatchedResultInterest;
+import io.vlingo.symbio.store.dispatch.DispatcherControl;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DescribedProjection extends Actor implements Projection {
 

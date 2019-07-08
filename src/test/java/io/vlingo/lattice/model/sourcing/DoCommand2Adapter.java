@@ -19,14 +19,14 @@ public final class DoCommand2Adapter implements EntryAdapter<DoCommand2,TextEntr
   }
 
   @Override
-  public TextEntry toEntry(final DoCommand2 source) {
+  public TextEntry toEntry(final DoCommand2 source, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
-    return new TextEntry(DoCommand2.class, 1, serialization, Metadata.nullMetadata());
+    return new TextEntry(DoCommand2.class, 1, serialization, metadata);
   }
 
   @Override
-  public TextEntry toEntry(final DoCommand2 source, final String id) {
+  public TextEntry toEntry(final DoCommand2 source, final String id, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
-    return new TextEntry(id, DoCommand2.class, 1, serialization, Metadata.nullMetadata());
+    return new TextEntry(id, DoCommand2.class, 1, serialization, metadata);
   }
 }

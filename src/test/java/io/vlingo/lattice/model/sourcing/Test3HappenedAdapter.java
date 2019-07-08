@@ -19,14 +19,14 @@ public final class Test3HappenedAdapter implements EntryAdapter<Test3Happened,Te
   }
 
   @Override
-  public TextEntry toEntry(final Test3Happened source) {
+  public TextEntry toEntry(final Test3Happened source, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
-    return new TextEntry(Test3Happened.class, 1, serialization, Metadata.nullMetadata());
+    return new TextEntry(Test3Happened.class, 1, serialization, metadata);
   }
 
   @Override
-  public TextEntry toEntry(final Test3Happened source, final String id) {
+  public TextEntry toEntry(final Test3Happened source, final String id, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
-    return new TextEntry(id, Test3Happened.class, 1, serialization, Metadata.nullMetadata());
+    return new TextEntry(id, Test3Happened.class, 1, serialization, metadata);
   }
 }

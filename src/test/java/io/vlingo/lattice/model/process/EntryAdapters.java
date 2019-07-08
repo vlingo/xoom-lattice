@@ -18,98 +18,98 @@ import io.vlingo.symbio.EntryAdapter;
 import io.vlingo.symbio.Metadata;
 
 public class EntryAdapters {
-  public static final class DoStepOneAdapter implements EntryAdapter<DoStepOne,TextEntry> {
+  public static final class DoStepOneAdapter implements EntryAdapter<DoStepOne, TextEntry> {
     @Override
     public DoStepOne fromEntry(final TextEntry entry) {
       return JsonSerialization.deserialized(entry.entryData(), DoStepOne.class);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepOne source) {
+    public TextEntry toEntry(final DoStepOne source, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(DoStepOne.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(DoStepOne.class, 1, serialization, metadata);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepOne source, final String id) {
+    public TextEntry toEntry(final DoStepOne source, final String id, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(id, DoStepOne.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(id, DoStepOne.class, 1, serialization, metadata);
     }
   }
 
-  public static final class DoStepTwoAdapter implements EntryAdapter<DoStepTwo,TextEntry> {
+  public static final class DoStepTwoAdapter implements EntryAdapter<DoStepTwo, TextEntry> {
     @Override
     public DoStepTwo fromEntry(final TextEntry entry) {
       return JsonSerialization.deserialized(entry.entryData(), DoStepTwo.class);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepTwo source) {
+    public TextEntry toEntry(final DoStepTwo source, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(DoStepTwo.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(DoStepTwo.class, 1, serialization, metadata);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepTwo source, final String id) {
+    public TextEntry toEntry(final DoStepTwo source, final String id, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(id, DoStepTwo.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(id, DoStepTwo.class, 1, serialization, metadata);
     }
   }
 
-  public static final class DoStepThreeAdapter implements EntryAdapter<DoStepThree,TextEntry> {
+  public static final class DoStepThreeAdapter implements EntryAdapter<DoStepThree, TextEntry> {
     @Override
     public DoStepThree fromEntry(final TextEntry entry) {
       return JsonSerialization.deserialized(entry.entryData(), DoStepThree.class);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepThree source) {
+    public TextEntry toEntry(final DoStepThree source, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(DoStepThree.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(DoStepThree.class, 1, serialization, metadata);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepThree source, final String id) {
+    public TextEntry toEntry(final DoStepThree source, final String id, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(id, DoStepThree.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(id, DoStepThree.class, 1, serialization, metadata);
     }
   }
 
-  public static final class DoStepFourAdapter implements EntryAdapter<DoStepFour,TextEntry> {
+  public static final class DoStepFourAdapter implements EntryAdapter<DoStepFour, TextEntry> {
     @Override
     public DoStepFour fromEntry(final TextEntry entry) {
       return JsonSerialization.deserialized(entry.entryData(), DoStepFour.class);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepFour source) {
+    public TextEntry toEntry(final DoStepFour source, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(DoStepFour.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(DoStepFour.class, 1, serialization, metadata);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepFour source, final String id) {
+    public TextEntry toEntry(final DoStepFour source, final String id, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(id, DoStepFour.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(id, DoStepFour.class, 1, serialization, metadata);
     }
   }
 
-  public static final class DoStepFiveAdapter implements EntryAdapter<DoStepFive,TextEntry> {
+  public static final class DoStepFiveAdapter implements EntryAdapter<DoStepFive, TextEntry> {
     @Override
     public DoStepFive fromEntry(final TextEntry entry) {
       return JsonSerialization.deserialized(entry.entryData(), DoStepFive.class);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepFive source) {
+    public TextEntry toEntry(final DoStepFive source, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(DoStepFive.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(DoStepFive.class, 1, serialization, metadata);
     }
 
     @Override
-    public TextEntry toEntry(final DoStepFive source, final String id) {
+    public TextEntry toEntry(final DoStepFive source, final String id, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
-      return new TextEntry(id, DoStepFive.class, 1, serialization, Metadata.nullMetadata());
+      return new TextEntry(id, DoStepFive.class, 1, serialization, metadata);
     }
   }
 }

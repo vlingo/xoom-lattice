@@ -7,6 +7,20 @@
 
 package io.vlingo.lattice.model.sourcing;
 
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.Stoppable;
+import io.vlingo.actors.testkit.TestContext;
+import io.vlingo.actors.testkit.TestState;
+import io.vlingo.common.Outcome;
+import io.vlingo.lattice.model.CompletionSupplier;
+import io.vlingo.symbio.Metadata;
+import io.vlingo.symbio.Source;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.store.Result;
+import io.vlingo.symbio.store.StorageException;
+import io.vlingo.symbio.store.journal.Journal;
+import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -15,19 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-
-import io.vlingo.actors.Actor;
-import io.vlingo.actors.Stoppable;
-import io.vlingo.actors.testkit.TestContext;
-import io.vlingo.actors.testkit.TestState;
-import io.vlingo.common.Outcome;
-import io.vlingo.lattice.model.CompletionSupplier;
-import io.vlingo.symbio.Source;
-import io.vlingo.symbio.State;
-import io.vlingo.symbio.store.Result;
-import io.vlingo.symbio.store.StorageException;
-import io.vlingo.symbio.store.journal.Journal;
-import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
 
 /**
  * Abstract base for all concrete types that support journaling and application of
@@ -256,18 +257,36 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   // AppendResultInterest
   //==================================
 
+
+
   /**
    * FOR INTERNAL USE ONLY.
    */
   @Override
-  final public <STT,ST> void appendResultedIn(
-          final Outcome<StorageException, Result> outcome,
-          final String streamName,
-          final int streamVersion,
-          final Source<STT> source,
-          final Optional<ST> snapshot,
-          final Object supplier) {
+  public final <S, ST> void appendResultedIn(
+          final Outcome<StorageException, io.vlingo.symbio.store.Result> outcome, final String streamName, final int streamVersion,
+          final Source<S> source, final Optional<ST> snapshot, final Object supplier) {
+      this.appendResultedIn(outcome, streamName, streamVersion, source, Metadata.nullMetadata(), snapshot, supplier);
+  }
 
+  /**
+   * FOR INTERNAL USE ONLY.
+   */
+  @Override
+  public final <S, ST> void appendAllResultedIn(final Outcome<StorageException, io.vlingo.symbio.store.Result> outcome, final String streamName,
+          final int streamVersion, final List<Source<S>> sources, final Optional<ST> snapshot, final Object supplier) {
+    this.appendAllResultedIn(outcome, streamName, streamVersion, sources, Metadata.nullMetadata(), snapshot, supplier);
+  }
+
+
+  /**
+   * FOR INTERNAL USE ONLY.
+   */
+  @Override
+  public final <S, STT> void appendResultedIn(
+          final Outcome<StorageException, Result> outcome, final String streamName, final int streamVersion,
+          final Source<S> source, final Metadata metadata, final Optional<STT> snapshot, final Object supplier) {
+    //TODO handle metadata
     outcome
       .andThen(result -> {
         restoreSnapshot(snapshot, currentVersion);
@@ -289,14 +308,10 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * FOR INTERNAL USE ONLY.
    */
   @Override
-  final public <STT,ST> void appendAllResultedIn(
-          final Outcome<StorageException, Result> outcome,
-          final String streamName,
-          final int streamVersion,
-          final List<Source<STT>> sources,
-          final Optional<ST> snapshot,
-          final Object supplier) {
-
+  public final <STT, ST> void appendAllResultedIn(final Outcome<StorageException, Result> outcome, final String streamName,
+          final int streamVersion,final List<Source<STT>> sources, final Metadata metadata,
+          final Optional<ST> snapshot, final Object supplier) {
+    //TODO handle metadata
     outcome
       .andThen(result -> {
         restoreSnapshot(snapshot, currentVersion);

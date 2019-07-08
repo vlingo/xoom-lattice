@@ -7,11 +7,6 @@
 
 package io.vlingo.lattice.model.process;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.message.AsyncMessageQueue;
@@ -33,19 +28,24 @@ import io.vlingo.lattice.model.process.FiveStepProcess.DoStepOne;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepThree;
 import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
 import io.vlingo.lattice.model.process.ProcessTypeRegistry.SourcedProcessInfo;
+import io.vlingo.lattice.model.sourcing.MockJournalDispatcher;
 import io.vlingo.lattice.model.sourcing.Sourced;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
 import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.inmemory.InMemoryJournal;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class SourcedProcessTest {
   private Exchange exchange;
   private ExchangeReceivers exchangeReceivers;
   private LocalExchangeSender exchangeSender;
   private Journal<String> journal;
-  private MockJournalListener listener;
+  private MockJournalDispatcher dispatcher;
   private FiveStepProcess process;
   private ProcessTypeRegistry processTypeRegistry;
   private SourcedTypeRegistry sourcedTypeRegistry;
@@ -67,7 +67,7 @@ public class SourcedProcessTest {
   public void testFiveStepEmittingProcess() {
     process = world.actorFor(FiveStepProcess.class, FiveStepEmittingSourcedProcess.class);
     exchangeReceivers.process(process);
-    final AccessSafely listenerAccess = listener.afterCompleting(4);
+    final AccessSafely listenerAccess = dispatcher.afterCompleting(4);
 
     exchange.send(new DoStepOne());
 
@@ -85,8 +85,8 @@ public class SourcedProcessTest {
 
     final MessageQueue queue = new AsyncMessageQueue(null);
     exchange = new LocalExchange(queue);
-    listener = new MockJournalListener();
-    journal = new InMemoryJournal<>(listener, world);
+    dispatcher = new MockJournalDispatcher();
+    journal = new InMemoryJournal<>(dispatcher, world);
 
     sourcedTypeRegistry = new SourcedTypeRegistry(world);
 

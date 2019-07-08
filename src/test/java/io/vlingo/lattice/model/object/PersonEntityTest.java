@@ -7,18 +7,17 @@
 
 package io.vlingo.lattice.model.object;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import io.vlingo.actors.World;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.store.object.MapQueryExpression;
 import io.vlingo.symbio.store.object.ObjectStore;
 import io.vlingo.symbio.store.object.PersistentObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PersonEntityTest {
   private ObjectTypeRegistry registry;
@@ -53,7 +52,7 @@ public class PersonEntityTest {
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public void setUp() {
     world = World.startWithDefaults("test-object-entity");
-    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class);
+    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class, new MockDispatcher());
 
     registry = new ObjectTypeRegistry(world);
 

@@ -7,12 +7,12 @@
 
 package io.vlingo.lattice.model.process;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import io.vlingo.lattice.model.Command;
 import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.symbio.Source;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A {@code Source} for both {@code Command} and {@code DomainEvent} types,
