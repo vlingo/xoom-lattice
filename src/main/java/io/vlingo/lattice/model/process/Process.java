@@ -32,7 +32,7 @@ public interface Process<T> {
   String id();
 
   /**
-   * Emit the {@code command} by persisting it as a {@code ProcessMessage}.
+   * Cause the {@code command} to be processed by persisting it as a {@code ProcessMessage}.
    * <p>
    * Uses the underlying persistence mechanism to
    * ensure the {@code command} is permanent, enabling
@@ -40,10 +40,10 @@ public interface Process<T> {
    * with guaranteed delivery semantics.
    * @param command the Command to apply
    */
-  void emit(final Command command);
+  void process(final Command command);
 
   /**
-   * Emit the {@code command} by persisting it as a {@code ProcessMessage},
+   * Cause the {@code command} to be processed by persisting it as a {@code ProcessMessage},
    * followed by the execution of a possible {@code andThen}.
    * <p>
    * Uses the underlying persistence mechanism to
@@ -54,10 +54,10 @@ public interface Process<T> {
    * @param andThen the {@code Supplier<R>} executed following the application of command
    * @param <R> the return type of the andThen {@code Supplier<R>}
    */
-  <R> void emit(final Command command, final Supplier<R> andThen);
+  <R> void process(final Command command, final Supplier<R> andThen);
 
   /**
-   * Emit the {@code event} by persisting it as a {@code ProcessMessage}.
+   * Cause the {@code event} to be processed by persisting it as a {@code ProcessMessage}.
    * <p>
    * Uses the underlying persistence mechanism to
    * ensure the {@code event} is permanent, enabling
@@ -65,10 +65,10 @@ public interface Process<T> {
    * with guaranteed delivery semantics.
    * @param event the DomainEvent to apply
    */
-  void emit(final DomainEvent event);
+  void process(final DomainEvent event);
 
   /**
-   * Emit the {@code event} by persisting it as a {@code ProcessMessage},
+   * Cause the {@code event} to be processed by persisting it as a {@code ProcessMessage},
    * followed by the execution of a possible {@code andThen}.
    * <p>
    * Uses the underlying persistence mechanism to
@@ -79,10 +79,10 @@ public interface Process<T> {
    * @param andThen the {@code Supplier<R>} executed following the application of event
    * @param <R> the return type of the andThen {@code Supplier<R>}
    */
-  <R> void emit(final DomainEvent event, final Supplier<R> andThen);
+  <R> void process(final DomainEvent event, final Supplier<R> andThen);
 
   /**
-   * Emit the {@code sources} by persisting each as a {@code ProcessMessage}.
+   * Cause the {@code sources} to be processed by persisting each as a {@code ProcessMessage}.
    * <p>
    * Uses the underlying persistence mechanism to
    * ensure the {@code sources} are permanent, enabling
@@ -91,10 +91,10 @@ public interface Process<T> {
    * @param sources the {@code List<Source<C>>} of source instances to apply
    * @param <C> the type of Source
    */
-  <C> void emitAll(final List<Source<C>> sources);
+  <C> void processAll(final List<Source<C>> sources);
 
   /**
-   * Emit the {@code sources} by persisting each as a {@code ProcessMessage},
+   * Cause the {@code sources} to be processed by persisting each as a {@code ProcessMessage},
    * followed by the execution of a possible {@code andThen}.
    * <p>
    * Uses the underlying persistence mechanism to
@@ -108,7 +108,7 @@ public interface Process<T> {
    * @param <C> the type of Source
    * @param <R> the return type of the andThen {@code Supplier<R>}
    */
-  <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen);
+  <C,R> void processAll(final List<Source<C>> sources, final Supplier<R> andThen);
 
   /**
    * Send the {@code command} to my collaborators via my Exchange.

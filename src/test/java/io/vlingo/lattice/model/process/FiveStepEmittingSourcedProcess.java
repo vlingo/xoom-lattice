@@ -25,22 +25,22 @@ public class FiveStepEmittingSourcedProcess extends SourcedProcess<Object> imple
 
   @Override
   public void stepOneHappened() {
-    emit(new DoStepTwo());
+    process(new DoStepTwo());
   }
 
   @Override
   public void stepTwoHappened() {
-    emit(new DoStepThree());
+    process(new DoStepThree());
   }
 
   @Override
   public void stepThreeHappened() {
-    emit(new DoStepFour());
+    process(new DoStepFour());
   }
 
   @Override
   public void stepFourHappened() {
-    emit(new DoStepFive());
+    process(new DoStepFive());
   }
 
   @Override

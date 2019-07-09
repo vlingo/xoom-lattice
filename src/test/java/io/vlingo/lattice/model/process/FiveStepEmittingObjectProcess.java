@@ -31,25 +31,25 @@ public class FiveStepEmittingObjectProcess extends ObjectProcess<StepCountObject
   @Override
   public void stepOneHappened() {
     state.countStep();
-    emit(new DoStepTwo());
+    process(new DoStepTwo());
   }
 
   @Override
   public void stepTwoHappened() {
     state.countStep();
-    emit(new DoStepThree());
+    process(new DoStepThree());
   }
 
   @Override
   public void stepThreeHappened() {
     state.countStep();
-    emit(new DoStepFour());
+    process(new DoStepFour());
   }
 
   @Override
   public void stepFourHappened() {
     state.countStep();
-    emit(new DoStepFive());
+    process(new DoStepFive());
   }
 
   @Override

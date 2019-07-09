@@ -45,60 +45,60 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
 
   /**
    * Uses the underlying {@code Journal} for Event Sourcing semantics.
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.Command)
    */
   @Override
-  public void emit(final Command command) {
+  public void process(final Command command) {
     applied.add(command);
     apply(new ProcessMessage(command));
   }
 
   /**
    * Uses the underlying {@code Journal} for Event Sourcing semantics.
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command, java.util.function.Supplier)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.Command, java.util.function.Supplier)
    */
   @Override
-  public <R> void emit(final Command command, final Supplier<R> andThen) {
+  public <R> void process(final Command command, final Supplier<R> andThen) {
     applied.add(command);
     apply(new ProcessMessage(command), andThen);
   }
 
   /**
    * Uses the underlying {@code Journal} for Event Sourcing semantics.
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.DomainEvent)
    */
   @Override
-  public void emit(final DomainEvent event) {
+  public void process(final DomainEvent event) {
     applied.add(event);
     apply(new ProcessMessage(event));
   }
 
   /**
    * Uses the underlying {@code Journal} for Event Sourcing semantics.
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent, java.util.function.Supplier)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.DomainEvent, java.util.function.Supplier)
    */
   @Override
-  public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
+  public <R> void process(final DomainEvent event, final Supplier<R> andThen) {
     applied.add(event);
     apply(new ProcessMessage(event), andThen);
   }
 
   /**
    * Uses the underlying {@code Journal} for Event Sourcing semantics.
-   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List)
+   * @see io.vlingo.lattice.model.process.Process#processAll(java.util.List)
    */
   @Override
-  public <C> void emitAll(final List<Source<C>> sources) {
+  public <C> void processAll(final List<Source<C>> sources) {
     applied.addAll(sources);
     apply(ProcessMessage.wrap(sources));
   }
 
   /**
    * Uses the underlying {@code Journal} for Event Sourcing semantics.
-   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List, java.util.function.Supplier)
+   * @see io.vlingo.lattice.model.process.Process#processAll(java.util.List, java.util.function.Supplier)
    */
   @Override
-  public <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen) {
+  public <C,R> void processAll(final List<Source<C>> sources, final Supplier<R> andThen) {
     applied.addAll(sources);
     apply(ProcessMessage.wrap(sources), andThen);
   }

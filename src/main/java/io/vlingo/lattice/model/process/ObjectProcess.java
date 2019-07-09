@@ -27,55 +27,55 @@ public abstract class ObjectProcess<T extends PersistentObject> extends ObjectEn
   private List<Source<?>> applied;
 
   /**
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.Command)
    */
   @Override
-  public void emit(final Command command) {
+  public void process(final Command command) {
     applied.add(command);
     apply(chronicle().state, new ProcessMessage(command));
   }
 
   /**
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.Command, java.util.function.Supplier)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.Command, java.util.function.Supplier)
    */
   @Override
-  public <R> void emit(final Command command, final Supplier<R> andThen) {
+  public <R> void process(final Command command, final Supplier<R> andThen) {
     applied.add(command);
     apply(chronicle().state, new ProcessMessage(command), andThen);
   }
 
   /**
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.DomainEvent)
    */
   @Override
-  public void emit(final DomainEvent event) {
+  public void process(final DomainEvent event) {
     applied.add(event);
     apply(chronicle().state, new ProcessMessage(event));
   }
 
   /**
-   * @see io.vlingo.lattice.model.process.Process#emit(io.vlingo.lattice.model.DomainEvent, java.util.function.Supplier)
+   * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.DomainEvent, java.util.function.Supplier)
    */
   @Override
-  public <R> void emit(final DomainEvent event, final Supplier<R> andThen) {
+  public <R> void process(final DomainEvent event, final Supplier<R> andThen) {
     applied.add(event);
     apply(chronicle().state, new ProcessMessage(event), andThen);
   }
 
   /**
-   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List)
+   * @see io.vlingo.lattice.model.process.Process#processAll(java.util.List)
    */
   @Override
-  public <C> void emitAll(final List<Source<C>> sources) {
+  public <C> void processAll(final List<Source<C>> sources) {
     applied.addAll(sources);
     apply(chronicle().state, ProcessMessage.wrap(sources));
   }
 
   /**
-   * @see io.vlingo.lattice.model.process.Process#emitAll(java.util.List, java.util.function.Supplier)
+   * @see io.vlingo.lattice.model.process.Process#processAll(java.util.List, java.util.function.Supplier)
    */
   @Override
-  public <C,R> void emitAll(final List<Source<C>> sources, final Supplier<R> andThen) {
+  public <C,R> void processAll(final List<Source<C>> sources, final Supplier<R> andThen) {
     applied.addAll(sources);
     apply(chronicle().state, ProcessMessage.wrap(sources), andThen);
   }
