@@ -67,7 +67,5 @@ public class PersonEntityTest {
             PersistentObjectMapper.with(Person.class, new Object(), new Object()));
 
     registry.register(personInfo);
-
-    objectStore.registerMapper(personInfo.mapper);
   }
 }

@@ -85,7 +85,6 @@ public class ObjectProcessTest {
             PersistentObjectMapper.with(StepCountObjectState.class, new Object(), new Object()));
 
     objectTypeRegistry.register(stepCountStateInfo);
-    objectStore.registerMapper(stepCountStateInfo.mapper);
 
     exchangeReceivers = new ExchangeReceivers();
     exchangeSender = new LocalExchangeSender(queue);
