@@ -7,6 +7,14 @@
 
 package io.vlingo.lattice.model.projection.state;
 
+import static org.junit.Assert.assertEquals;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.Test;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
@@ -26,14 +34,8 @@ import io.vlingo.symbio.State.TextState;
 import io.vlingo.symbio.store.dispatch.Dispatchable;
 import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.state.StateStore;
-import org.junit.Test;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.Assert.assertEquals;
-
+@SuppressWarnings({"rawtypes","unchecked"})
 public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
   @Test
@@ -121,7 +123,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
       implements Projection, ProjectionDispatcher {
 
     private final FilterOutcome outcome;
-    
+
     public static ProjectionDispatcher filterFor(
             final World world,
             final ProjectionDispatcher projectionDispatcher,
@@ -159,7 +161,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
 
     @Override
     public void dispatch(final Dispatchable<Entry<?>, State<?>> dispatchable) {
-      
+
     }
   }
 
