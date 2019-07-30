@@ -45,7 +45,7 @@ public class EventSourcedTest {
     assertEquals(Test1Happened.class, appliedAt0.getClass());
     BaseEntry<String> appendeAt0 = dispatcherAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
-    assertEquals(Test1Happened.class.getName(), appendeAt0.type());
+    assertEquals(Test1Happened.class.getName(), appendeAt0.typeName());
     assertFalse(resultAccess.readFrom("tested2"));
   }
 
@@ -65,7 +65,7 @@ public class EventSourcedTest {
     assertEquals(Test1Happened.class, appliedAt0.getClass());
     BaseEntry<String> appendeAt0 = dispatcherAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
-    assertEquals(Test1Happened.class.getName(), appendeAt0.type());
+    assertEquals(Test1Happened.class.getName(), appendeAt0.typeName());
 
     final AccessSafely resultAccess2 = result.afterCompleting(2);
     final AccessSafely dispatcherAccess2 = dispatcher.afterCompleting(1);
@@ -79,7 +79,7 @@ public class EventSourcedTest {
     assertEquals(Test2Happened.class, appliedAt1.getClass());
     BaseEntry<String> appendeAt1 = dispatcherAccess2.readFrom("appendedAt", 1);
     assertNotNull(appendeAt1);
-    assertEquals(Test2Happened.class.getName(), appendeAt1.type());
+    assertEquals(Test2Happened.class.getName(), appendeAt1.typeName());
   }
 
   @Test
@@ -98,7 +98,7 @@ public class EventSourcedTest {
     assertEquals(Test1Happened.class, appliedAt0.getClass());
     BaseEntry<String> appendeAt0 = dispatcherAccess.readFrom("appendedAt", 0);
     assertNotNull(appendeAt0);
-    assertEquals(Test1Happened.class.getName(), appendeAt0.type());
+    assertEquals(Test1Happened.class.getName(), appendeAt0.typeName());
 
     final AccessSafely resultAccess2 = result.afterCompleting(2);
     final AccessSafely dispatcherAccess2 = dispatcher.afterCompleting(1);
@@ -114,7 +114,7 @@ public class EventSourcedTest {
     assertEquals(Test3Happened.class, appliedAt1.getClass());
     BaseEntry<String> appendeAt1 = dispatcherAccess.readFrom("appendedAt", 1);
     assertNotNull(appendeAt1);
-    assertEquals(Test3Happened.class.getName(), appendeAt1.type());
+    assertEquals(Test3Happened.class.getName(), appendeAt1.typeName());
   }
 
   @Before
