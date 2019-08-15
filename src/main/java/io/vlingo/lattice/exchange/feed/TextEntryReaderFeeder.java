@@ -14,10 +14,18 @@ import io.vlingo.actors.Actor;
 import io.vlingo.symbio.BaseEntry.TextEntry;
 import io.vlingo.symbio.store.EntryReader;
 
+/**
+ * The {@code Feeder} serving {@code TextEntry} instances.
+ */
 public class TextEntryReaderFeeder extends Actor implements Feeder {
   private final EntryReader<TextEntry> entryReader;
   private final Feed feed;
 
+  /**
+   * Construct my default state.
+   * @param feed the Feed that I serve
+   * @param entryReader the {@code EntryReader<TextEntry>} from which content is read
+   */
   public TextEntryReaderFeeder(final Feed feed, final EntryReader<TextEntry> entryReader) {
     this.feed = feed;
     this.entryReader = entryReader;
