@@ -18,12 +18,6 @@ import io.vlingo.symbio.store.EntryReader;
  * Every {@code Feed} has an  {@code exchangeName}.
  */
 public interface Feed {
-  /** The default number of retries used to prevent gaps in feed items. */
-  static final int DefaultItemGapPreventionRetries = 3;
-
-  /** The default interval between retries used to prevent gaps in feed items. */
-  static final long DefaultItemGapPreventionRetryInterval = 10L;
-
   /** The default number of messages per feed. */
   static final int DefaultMessagesPerFeedItem = 20;
 
@@ -56,22 +50,6 @@ public interface Feed {
    * @return Feeder
    */
   Feeder feeder();
-
-  /**
-   * Answer the number of retries used to prevent gaps in items.
-   * @return int
-   */
-  default int itemGapPreventionRetries() {
-    return DefaultItemGapPreventionRetries;
-  }
-
-  /**
-   * Answer the interval between retries used to prevent gaps in feed items.
-   * @return long
-   */
-  default long itemGapPreventionRetryInterval() {
-    return DefaultItemGapPreventionRetryInterval;
-  }
 
   /**
    * Answer the encoded identity for the {@code feedItemId}.
