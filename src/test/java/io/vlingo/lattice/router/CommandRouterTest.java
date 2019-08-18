@@ -137,7 +137,7 @@ public class CommandRouterTest {
     for (int idx = 0; idx < totalTimes; ++idx) {
       completes[idx] = Completes.using(world.stage().scheduler());
 
-      final SolverHandler partitionSolverHandler = solverHandlers[idx % totalRoutees];
+      final SolverHandler roundRobinSolverHandler = solverHandlers[idx % totalRoutees];
 
       final RoutableCommand<Solver,SolveStuff,Completes<Stuff>> command =
               RoutableCommand
@@ -146,7 +146,7 @@ public class CommandRouterTest {
                 .at(address.idString())
                 .delivers(SolveStuff.with("" + idx, 21))
                 .answers(completes[idx])
-                .handledBy(partitionSolverHandler);
+                .handledBy(roundRobinSolverHandler);
 
       router.route(command);
     }
@@ -183,7 +183,7 @@ public class CommandRouterTest {
     for (int idx = 0; idx < totalTimes; ++idx) {
       completes[idx] = Completes.using(world.stage().scheduler());
 
-      final SolverHandler partitionSolverHandler = solverHandlers[idx % totalRoutees];
+      final SolverHandler loadBalancingSolverHandler = solverHandlers[idx % totalRoutees];
 
       final RoutableCommand<Solver,SolveStuff,Completes<Stuff>> command =
               RoutableCommand
@@ -192,7 +192,7 @@ public class CommandRouterTest {
                 .at(address.idString())
                 .delivers(SolveStuff.with("" + idx, 21))
                 .answers(completes[idx])
-                .handledBy(partitionSolverHandler);
+                .handledBy(loadBalancingSolverHandler);
 
       router.route(command);
     }
