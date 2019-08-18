@@ -28,7 +28,7 @@ import io.vlingo.lattice.model.stateful.MockTextDispatcher;
 import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.store.object.MapQueryExpression;
 import io.vlingo.symbio.store.object.ObjectStore;
-import io.vlingo.symbio.store.object.PersistentObjectMapper;
+import io.vlingo.symbio.store.object.StateObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +82,7 @@ public class ObjectProcessTest {
             StepCountObjectState.class,
             StepCountObjectState.class.getSimpleName(),
             MapQueryExpression.using(StepCountObjectState.class, "find", MapQueryExpression.map("id", "id")),
-            PersistentObjectMapper.with(StepCountObjectState.class, new Object(), new Object()));
+            StateObjectMapper.with(StepCountObjectState.class, new Object(), new Object()));
 
     objectTypeRegistry.register(stepCountStateInfo);
 
