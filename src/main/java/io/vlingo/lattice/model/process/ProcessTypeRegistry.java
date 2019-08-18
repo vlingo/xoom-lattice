@@ -13,7 +13,7 @@ import io.vlingo.lattice.exchange.NullExchange;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry;
-import io.vlingo.symbio.store.object.PersistentObject;
+import io.vlingo.symbio.store.object.StateObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -90,7 +90,7 @@ public final class ProcessTypeRegistry {
   /**
    * Holder of registration information for {@code ObjectProcess} types.
    */
-  public static class ObjectProcessInfo<T extends PersistentObject> extends Info<ObjectProcess<T>> {
+  public static class ObjectProcessInfo<T extends StateObject> extends Info<ObjectProcess<T>> {
     public final ObjectTypeRegistry registry;
 
     /**
