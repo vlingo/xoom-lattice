@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.object;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
@@ -21,12 +25,8 @@ import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
-import io.vlingo.symbio.store.object.StateObject;
 import io.vlingo.symbio.store.object.QueryExpression;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
+import io.vlingo.symbio.store.object.StateObject;
 
 /**
  * Abstract base type used to preserve and restore object state
@@ -211,7 +211,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
           final Object object) {
     outcome
       .andThen(result -> {
-        persistentObject((T) queryResult.persistentObject);
+        persistentObject((T) queryResult.stateObject);
         disperseStowedMessages();
         return result;
       })
