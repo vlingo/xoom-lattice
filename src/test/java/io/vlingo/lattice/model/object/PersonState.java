@@ -9,9 +9,9 @@ package io.vlingo.lattice.model.object;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.vlingo.symbio.store.object.PersistentObject;
+import io.vlingo.symbio.store.object.StateObject;
 
-public class PersonState extends PersistentObject implements Comparable<PersonState> {
+public class PersonState extends StateObject implements Comparable<PersonState> {
   private static final long serialVersionUID = 1L;
 
   private static final AtomicLong identityGenerator = new AtomicLong(0);
