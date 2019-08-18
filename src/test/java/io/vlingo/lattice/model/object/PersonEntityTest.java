@@ -11,7 +11,7 @@ import io.vlingo.actors.World;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.store.object.MapQueryExpression;
 import io.vlingo.symbio.store.object.ObjectStore;
-import io.vlingo.symbio.store.object.PersistentObjectMapper;
+import io.vlingo.symbio.store.object.StateObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class PersonEntityTest {
             PersonState.class,
             "HR-Database",
             MapQueryExpression.using(Person.class, "find", MapQueryExpression.map("id", "id")),
-            PersistentObjectMapper.with(Person.class, new Object(), new Object()));
+            StateObjectMapper.with(Person.class, new Object(), new Object()));
 
     registry.register(personInfo);
   }
