@@ -15,13 +15,13 @@ import io.vlingo.lattice.model.Command;
 import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.lattice.model.object.ObjectEntity;
 import io.vlingo.symbio.Source;
-import io.vlingo.symbio.store.object.PersistentObject;
+import io.vlingo.symbio.store.object.StateObject;
 
 /**
  * Abstract base definition for all concrete object process types.
  * @param <T> the type of ObjectEntity
  */
-public abstract class ObjectProcess<T extends PersistentObject> extends ObjectEntity<T> implements Process<T> {
+public abstract class ObjectProcess<T extends StateObject> extends ObjectEntity<T> implements Process<T> {
   private final ProcessTypeRegistry.Info<? extends ObjectProcess<T>> info;
 
   private List<Source<?>> applied;
