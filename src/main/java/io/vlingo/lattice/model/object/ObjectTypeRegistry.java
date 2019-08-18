@@ -13,7 +13,7 @@ import java.util.UUID;
 
 import io.vlingo.actors.World;
 import io.vlingo.symbio.store.object.ObjectStore;
-import io.vlingo.symbio.store.object.PersistentObjectMapper;
+import io.vlingo.symbio.store.object.StateObjectMapper;
 import io.vlingo.symbio.store.object.QueryExpression;
 
 /**
@@ -60,7 +60,7 @@ public final class ObjectTypeRegistry {
    * @param <T> the type of persistent Object state of the registration
    */
   public static class Info<T> {
-    public final PersistentObjectMapper mapper;
+    public final StateObjectMapper mapper;
     public final QueryExpression queryObjectExpression;
     public final ObjectStore store;
     public final String storeName;
@@ -74,7 +74,7 @@ public final class ObjectTypeRegistry {
      * @param queryObjectExpression the QueryExpression used to retrieve a single instance
      * @param mapper the PersistentObjectMapper between Object type and persistent type
      */
-    public Info(final ObjectStore store, final Class<T> storeType, final String storeName, final QueryExpression queryObjectExpression, final PersistentObjectMapper mapper) {
+    public Info(final ObjectStore store, final Class<T> storeType, final String storeName, final QueryExpression queryObjectExpression, final StateObjectMapper mapper) {
       this.store = store;
       this.storeType = storeType;
       this.storeName = storeName;
