@@ -21,7 +21,7 @@ import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
-import io.vlingo.symbio.store.object.PersistentObject;
+import io.vlingo.symbio.store.object.StateObject;
 import io.vlingo.symbio.store.object.QueryExpression;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  * whether formally or informally implemented.
  * @param <T> the type of persistent object
  */
-public abstract class ObjectEntity<T extends PersistentObject> extends Actor
+public abstract class ObjectEntity<T extends StateObject> extends Actor
   implements PersistResultInterest, QueryResultInterest {
 
   private final Info<T> info;
