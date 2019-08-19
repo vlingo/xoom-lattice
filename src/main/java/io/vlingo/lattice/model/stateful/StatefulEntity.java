@@ -42,7 +42,7 @@ public abstract class StatefulEntity<S> extends Actor
    */
   protected StatefulEntity() {
     this.currentVersion = 0;
-    this.info = stage().world().resolveDynamic(StatefulTypeRegistry.INTERNAL_NAME, StatefulTypeRegistry.class).info(stateType());
+    this.info = info();
     this.readInterest = selfAs(ReadResultInterest.class);
     this.writeInterest = selfAs(WriteResultInterest.class);
   }
@@ -348,6 +348,20 @@ public abstract class StatefulEntity<S> extends Actor
   private void completeUsing(final Object supplier) {
     if (supplier != null) {
       ((CompletionSupplier<?>) supplier).complete();
+    }
+  }
+
+  /**
+   * Answer the {@code Info} for my type.
+   * @return {@code Info<S>}
+   */
+  private Info<S> info() {
+    try {
+      return stage().world().resolveDynamic(StatefulTypeRegistry.INTERNAL_NAME, StatefulTypeRegistry.class).info(stateType());
+    } catch (Exception e) {
+      final String message = getClass().getSimpleName() + ": Info not registered with StatefulTypeRegistry.";
+      logger().error(message);
+      throw new IllegalStateException(message);
     }
   }
 
