@@ -12,7 +12,6 @@ import io.vlingo.actors.AddressFactory;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.Stage;
 import io.vlingo.common.Completes;
-import io.vlingo.lattice.grid.Grid;
 import io.vlingo.lattice.model.Command;
 
 /**
@@ -138,27 +137,21 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
   }
 
   /**
-   * Handle my command my means of {@code grid}.
-   * @param grid the Grid to use for command handling
-   */
-  public void handleWithin(final Grid grid) {
-    check();
-    final AddressFactory addressFactory = grid.addressFactory;
-    grid.actorOf(protocol, addressFactory.from(address))
-        .otherwise(noActor -> grid.actorFor(protocol, Definition.has(actorType, Definition.NoParameters), addressFactory.from(address)))
-        .andThenConsume(actor -> handler.accept(actor, command, answer));
-  }
-
-  /**
    * Handle my command my means of {@code stage}.
    * @param stage the Stage to use for command handling
    */
   public void handleWithin(final Stage stage) {
     check();
-    final AddressFactory addressFactory = stage.world().addressFactory();
+    final AddressFactory addressFactory = stage.addressFactory();
     stage.actorOf(protocol, addressFactory.from(address))
-         .otherwise(noActor -> stage.actorFor(protocol, Definition.has(actorType, Definition.NoParameters), addressFactory.from(address)))
-         .andThenConsume(actor -> handler.accept(actor, command, answer));
+         .andThenConsume(actor -> {
+           handler.accept(actor, command, answer);
+          })
+         .otherwise(noActor -> {
+           final P actor = stage.actorFor(protocol, Definition.has(actorType, Definition.NoParameters), addressFactory.from(address));
+           handler.accept(actor, command, answer);
+           return actor;
+         });
   }
 
   protected RoutableCommand(final Class<P> protocol) {
