@@ -47,7 +47,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    * Construct my default state.
    */
   protected ObjectEntity() {
-    this.info = stage().world().resolveDynamic(ObjectTypeRegistry.INTERNAL_NAME, ObjectTypeRegistry.class).info(persistentObjectType());
+    this.info = info();
     this.persistResultInterest = selfAs(PersistResultInterest.class);
     this.queryResultInterest = selfAs(QueryResultInterest.class);
   }
@@ -253,6 +253,18 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
   private void completeUsing(final Object supplier) {
     if (supplier != null) {
       ((CompletionSupplier<?>) supplier).complete();
+    }
+  }
+
+  private Info<T> info() {
+    try {
+      final ObjectTypeRegistry registry = stage().world().resolveDynamic(ObjectTypeRegistry.INTERNAL_NAME, ObjectTypeRegistry.class);
+      final Info<T> info = registry.info(persistentObjectType());
+      return info;
+    } catch (Exception e) {
+      final String message = getClass().getSimpleName() + ": Info not registered with ObjectTypeRegistry.";
+      logger().error(message);
+      throw new IllegalStateException(message);
     }
   }
 
