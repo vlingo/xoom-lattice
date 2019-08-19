@@ -66,7 +66,7 @@ public final class GridAddress implements Address {
 
   @Override
   public String toString() {
-    return "Address[id=" + id + ", name=" + (name == null ? "(none)" : name) + "]";
+    return "GridAddress[id=" + id + ", name=" + (name == null ? "(none)" : name) + "]";
   }
 
   @Override
