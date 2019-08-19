@@ -20,6 +20,11 @@ public final class GridAddressFactory implements AddressFactory {
   private final IdentityGenerator generator;
   private final IdentityGeneratorType type;
 
+  public GridAddressFactory(final IdentityGeneratorType type) {
+    this.type = type;
+    this.generator = this.type.generator();
+  }
+
   @Override
   public <T> Address findableBy(final T id) {
     return new GridAddress((UUID) id);
@@ -40,6 +45,7 @@ public final class GridAddressFactory implements AddressFactory {
     return new GridAddress(UUID.fromString(idString), name);
   }
 
+  @Override
   public Address none() {
     return None;
   }
@@ -72,11 +78,6 @@ public final class GridAddressFactory implements AddressFactory {
   @Override
   public long testNextIdValue() {
     throw new UnsupportedOperationException("Unsupported for GridAddress.");
-  }
-
-  GridAddressFactory(final IdentityGeneratorType type) {
-    this.type = type;
-    this.generator = this.type.generator();
   }
 
   private UUID uuidFrom(final long id) {
