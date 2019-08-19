@@ -7,6 +7,15 @@
 
 package io.vlingo.lattice.model.sourcing;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
@@ -20,15 +29,6 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 /**
  * Abstract base for all concrete types that support journaling and application of
@@ -106,7 +106,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    */
   protected Sourced() {
     this.currentVersion = 0;
-    this.journalInfo = stage().world().resolveDynamic(SourcedTypeRegistry.INTERNAL_NAME, SourcedTypeRegistry.class).info(getClass());
+    this.journalInfo = info();
     this.interest = selfAs(AppendResultInterest.class);
   }
 
@@ -363,6 +363,16 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   private void completeUsing(final Object supplier) {
     if (supplier != null) {
       ((CompletionSupplier<?>) supplier).complete();
+    }
+  }
+
+  private SourcedTypeRegistry.Info<?> info() {
+    try {
+      return stage().world().resolveDynamic(SourcedTypeRegistry.INTERNAL_NAME, SourcedTypeRegistry.class).info(getClass());
+    } catch (Exception e) {
+      final String message = getClass().getSimpleName() + ": Info not registered with SourcedTypeRegistry.";
+      logger().error(message);
+      throw new IllegalStateException(message);
     }
   }
 
