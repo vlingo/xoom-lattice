@@ -8,7 +8,7 @@
 package io.vlingo.lattice.router;
 
 import io.vlingo.actors.Actor;
-import io.vlingo.actors.AddressFactory;
+import io.vlingo.actors.Address;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.Stage;
 import io.vlingo.common.Completes;
@@ -24,6 +24,7 @@ import io.vlingo.lattice.model.Command;
 public class RoutableCommand<P,C extends Command,A> extends Command {
   private Class<? extends Actor> actorType;
   private String address;
+  private String name = "";
   private Completes<A> answer;
   private C command;
   private CommandDispatcher<P,C,Completes<A>> handler;
@@ -61,6 +62,17 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
   public RoutableCommand<P,C,A> at(final String address) {
     assert(address != null);
     this.address = address;
+    return this;
+  }
+
+  /**
+   * Answer myself after assigning my actor {@code name}.
+   * @param name the String name of the actor
+   * @return {@code RoutableCommand<P,C,A>}
+   */
+  public RoutableCommand<P,C,A> named(final String name) {
+    assert(name != null);
+    this.name = name;
     return this;
   }
 
@@ -142,13 +154,15 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
    */
   public void handleWithin(final Stage stage) {
     check();
-    final AddressFactory addressFactory = stage.addressFactory();
-    stage.actorOf(protocol, addressFactory.from(address))
+
+    final Address actorAddress = stage.addressFactory().from(address, name);
+
+    stage.actorOf(protocol, actorAddress)
          .andThenConsume(actor -> {
            handler.accept(actor, command, answer);
           })
          .otherwise(noActor -> {
-           final P actor = stage.actorFor(protocol, Definition.has(actorType, Definition.NoParameters), addressFactory.from(address));
+           final P actor = stage.actorFor(protocol, Definition.has(actorType, Definition.NoParameters, name), actorAddress);
            handler.accept(actor, command, answer);
            return actor;
          });
