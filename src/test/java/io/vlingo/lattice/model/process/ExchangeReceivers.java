@@ -40,7 +40,7 @@ public class ExchangeReceivers {
 
     this.access = AccessSafely.afterCompleting(5);
     this.access
-      .writingWith("stepCount", (Integer delta) -> stepCount.set(stepCount.get() + delta))
+      .writingWith("stepCount", (Integer delta) -> stepCount.incrementAndGet())
       .readingWith("stepCount", () -> stepCount.get());
   }
 
