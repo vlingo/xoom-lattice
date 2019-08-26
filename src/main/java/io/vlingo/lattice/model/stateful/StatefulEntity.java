@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple3;
 import io.vlingo.lattice.model.CompletionSupplier;
@@ -86,8 +87,8 @@ public abstract class StatefulEntity<S> extends Actor
   protected abstract String id();
 
   /**
-   * Apply my current {@code state} and {@code metadataValye} that was modified
-   * due to the descriptive {@code operation}, along with {@code sources}, and
+   * Answer {@code Completes<RT>}, applying my current {@code state} and {@code metadataValue}
+   * that was modified due to the descriptive {@code operation}, along with {@code sources}, and
    * supply an eventual outcome by means of the given {@code andThen} function.
    * @param state the S typed state to apply
    * @param sources the {@code List<Source>} instances to apply
@@ -97,33 +98,38 @@ public abstract class StatefulEntity<S> extends Actor
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <C,RT> void apply(final S state, final List<Source<C>> sources, final String metadataValue, final String operation, final Supplier<RT> andThen) {
+  protected <C,RT> Completes<RT> apply(final S state, final List<Source<C>> sources, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     stowMessages(WriteResultInterest.class);
     info.store.write(id(), state, nextVersion(), sources, metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
   }
 
   /**
-   * Apply my current {@code state} and {@code metadataValye} that was modified
-   * due to the descriptive {@code operation} and supply an eventual outcome by means
-   * of the given {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying my current {@code state} and {@code metadataValye}
+   * that was modifieddue to the descriptive {@code operation} and supply an eventual outcome
+   * by means of the given {@code andThen} function.
    * @param state the S typed state to apply
    * @param metadataValue the String metadata value to apply along with the state
    * @param operation the String descriptive name of the operation that caused the state modification
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <RT> void apply(final S state, final String metadataValue, final String operation, final Supplier<RT> andThen) {
+  protected <RT> Completes<RT> apply(final S state, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     stowMessages(WriteResultInterest.class);
     info.store.write(id(), state, nextVersion(), metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
   }
 
   /**
-   * Apply my current {@code state} that was modified due to the descriptive {@code operation}
-   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying my current {@code state} that was modified due to
+   * the descriptive {@code operation} and supply an eventual outcome by means of the given
+   * {@code andThen} function.
    * @param state the S typed state to apply
    * @param sources the {@code List<Source>} instances to apply
    * @param operation the String descriptive name of the operation that caused the state modification
@@ -131,48 +137,53 @@ public abstract class StatefulEntity<S> extends Actor
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <C,RT> void apply(final S state, final List<Source<C>> sources, final String operation, final Supplier<RT> andThen) {
-    apply(state, "", operation, andThen);
+  protected <C,RT> Completes<RT> apply(final S state, final List<Source<C>> sources, final String operation, final Supplier<RT> andThen) {
+    return apply(state, "", operation, andThen);
   }
 
   /**
-   * Apply my current {@code state} that was modified due to the descriptive {@code operation}
-   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying my current {@code state} that was modified due to
+   * the descriptive {@code operation} and supply an eventual outcome by means of the given
+   * {@code andThen} function.
    * @param state the S typed state to apply
    * @param operation the String descriptive name of the operation that caused the state modification
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <RT> void apply(final S state, final String operation, final Supplier<RT> andThen) {
-    apply(state, "", operation, andThen);
+  protected <RT> Completes<RT> apply(final S state, final String operation, final Supplier<RT> andThen) {
+    return apply(state, "", operation, andThen);
   }
 
   /**
-   * Apply my current {@code state} and supply an eventual outcome by means of the given
-   * {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying my current {@code state} and supply an eventual outcome by
+   * means of the given {@code andThen} function.
    * @param state the S typed state to apply
    * @param sources the {@code List<Source>} instances to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <C,RT> void apply(final S state, final List<Source<C>> sources, final Supplier<RT> andThen) {
-    apply(state, sources, "", "", andThen);
+  protected <C,RT> Completes<RT> apply(final S state, final List<Source<C>> sources, final Supplier<RT> andThen) {
+    return apply(state, sources, "", "", andThen);
   }
 
   /**
-   * Apply my current {@code state} and supply an eventual outcome by means of the given
-   * {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying my current {@code state} and supply an eventual outcome by
+   * means of the given {@code andThen} function.
    * @param state the S typed state to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <RT> void apply(final S state, final Supplier<RT> andThen) {
-    apply(state, "", "", andThen);
+  protected <RT> Completes<RT> apply(final S state, final Supplier<RT> andThen) {
+    return apply(state, "", "", andThen);
   }
 
   /**
@@ -230,16 +241,17 @@ public abstract class StatefulEntity<S> extends Actor
   }
 
   /**
-   * Apply my current {@code state} and {@code sources}.
+   * Answer {@code Completes<RT>}, applying my current {@code state} and {@code sources}.
    * @param state the S typed state to apply
    * @param source the {@code Source<C>} instances to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <C,RT> void apply(final S state, final Source<C> source, final Supplier<RT> andThen) {
-    apply(state, Arrays.asList(source), "", "", andThen);
+  protected <C,RT> Completes<RT> apply(final S state, final Source<C> source, final Supplier<RT> andThen) {
+    return apply(state, Arrays.asList(source), "", "", andThen);
   }
 
   /**
