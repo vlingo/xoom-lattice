@@ -20,6 +20,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
+import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.symbio.Metadata;
@@ -120,18 +121,20 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   }
 
   /**
-   * Apply all of the given {@code sources} to myself, which includes appending
-   * them to my journal and reflecting the representative changes to my state,
-   * followed by the execution of a possible {@code andThen}.
+   * Answer {@code Completes<RT>}, applying all of the given {@code sources} to myself,
+   * which includes appending them to my journal and reflecting the representative changes
+   * to my state, followed by the execution of a possible {@code andThen}.
    * @param sources the {@code List<Source<T>>} to apply
    * @param andThen the {@code Supplier<R>} executed following the application of sources
    * @param <R> the return type of the andThen {@code Supplier<R>}
+   * @return {@code Completes<R>}
    */
-  final protected <R> void apply(final List<Source<T>> sources, final Supplier<R> andThen) {
+  final protected <R> Completes<R> apply(final List<Source<T>> sources, final Supplier<R> andThen) {
     beforeApply(sources);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
     journal.appendAllWith(streamName(), nextVersion(), sources, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
   }
 
   /**
@@ -144,19 +147,21 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   }
 
   /**
-   * Apply the given {@code source} to myself, which includes appending it
-   * to my journal and reflecting the representative changes to my state,
-   * followed by the execution of a possible {@code andThen}.
+   * Answer {@code Completes<R>}, applying the given {@code source} to myself, which
+   * includes appending it to my journal and reflecting the representative changes to my
+   * state, followed by the execution of a possible {@code andThen}.
    * @param source the {@code Source<T>} to apply
    * @param andThen the {@code Supplier<R>} executed following the application of sources
    * @param <R> the return type of the andThen {@code Supplier<R>}
+   * @return {@code Completes<R>}
    */
-  final protected <R> void apply(final Source<T> source, final Supplier<R> andThen) {
+  final protected <R> Completes<R> apply(final Source<T> source, final Supplier<R> andThen) {
     final List<Source<T>> toApply = wrap(source);
     beforeApply(toApply);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
     journal.appendAllWith(streamName(), nextVersion(), toApply, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
   }
 
   /**
