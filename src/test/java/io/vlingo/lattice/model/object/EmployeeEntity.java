@@ -27,20 +27,17 @@ public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Emplo
 
   @Override
   public Completes<EmployeeState> assign(final String number) {
-    apply(employee.with(number), new EmployeeNumberAssigned(), () -> employee);
-    return completes();
+    return apply(employee.with(number), new EmployeeNumberAssigned(), () -> employee);
   }
 
   @Override
   public Completes<EmployeeState> adjust(final int salary) {
-    apply(employee.with(salary), new EmployeeSalaryAdjusted(), () -> employee);
-    return completes();
+    return apply(employee.with(salary), new EmployeeSalaryAdjusted(), () -> employee);
   }
 
   @Override
   public Completes<EmployeeState> hire(final String number, final int salary) {
-    apply(employee.with(number).with(salary), new EmployeeHired(), () -> employee);
-    return completes();
+    return apply(employee.with(number).with(salary), new EmployeeHired(), () -> employee);
   }
 
   @Override
