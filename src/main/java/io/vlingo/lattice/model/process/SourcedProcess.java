@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import io.vlingo.common.Completes;
 import io.vlingo.lattice.model.Command;
 import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.lattice.model.sourcing.Sourced;
@@ -58,9 +59,9 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.Command, java.util.function.Supplier)
    */
   @Override
-  public <R> void process(final Command command, final Supplier<R> andThen) {
+  public <R> Completes<R> process(final Command command, final Supplier<R> andThen) {
     applied.add(command);
-    apply(new ProcessMessage(command), andThen);
+    return apply(new ProcessMessage(command), andThen);
   }
 
   /**
@@ -78,9 +79,9 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.DomainEvent, java.util.function.Supplier)
    */
   @Override
-  public <R> void process(final DomainEvent event, final Supplier<R> andThen) {
+  public <R> Completes<R> process(final DomainEvent event, final Supplier<R> andThen) {
     applied.add(event);
-    apply(new ProcessMessage(event), andThen);
+    return apply(new ProcessMessage(event), andThen);
   }
 
   /**
@@ -98,9 +99,9 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
    * @see io.vlingo.lattice.model.process.Process#processAll(java.util.List, java.util.function.Supplier)
    */
   @Override
-  public <C,R> void processAll(final List<Source<C>> sources, final Supplier<R> andThen) {
+  public <C,R> Completes<R> processAll(final List<Source<C>> sources, final Supplier<R> andThen) {
     applied.addAll(sources);
-    apply(ProcessMessage.wrap(sources), andThen);
+    return apply(ProcessMessage.wrap(sources), andThen);
   }
 
   /**
