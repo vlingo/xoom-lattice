@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
 import io.vlingo.lattice.model.CompletionSupplier;
@@ -69,46 +70,55 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
   }
 
   /**
-   * Apply {@code state} and {@code sources}, dispatching to {@code state(final S state)} when completed
-   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying {@code state} and {@code sources},
+   * dispatching to {@code state(final S state)} when completed, and supply an
+   * eventual outcome by means of the given {@code andThen} function.
    * @param state the Object state to preserve
    * @param sources the {@code List<Source<C>>} instances to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <C,RT> void apply(final T state, final List<Source<C>> sources, final Supplier<RT> andThen) {
+  protected <C,RT> Completes<RT> apply(final T state, final List<Source<C>> sources, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
     info.store.persist(state, sources, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
   }
 
   /**
-   * Apply {@code state} and {@code source}, dispatching to {@code state(final S state)} when completed
-   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying {@code state} and {@code source}, dispatching to
+   * {@code state(final S state)} when completed and supply an eventual outcome by means of
+   * the given {@code andThen} function.
    * @param state the Object state to preserve
    * @param source the {@code Source<C>} to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <C> the type of Source
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <C,RT> void apply(final T state, final Source<C> source, final Supplier<RT> andThen) {
+  protected <C,RT> Completes<RT> apply(final T state, final Source<C> source, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
     info.store.persist(state, asList(source), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
   }
 
   /**
-   * Preserve my current state dispatching to {@code state(final S state)} when completed
-   * and supply an eventual outcome by means of the given {@code andThen} function.
+   * Answer {@code Completes<RT>}, applying my current state, dispatching to
+   * {@code state(final S state)} when completed, and supply an eventual outcome by means
+   * of the given {@code andThen} function.
    * @param state the Object state to preserve
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
    */
-  protected <RT> void apply(final T state, final Supplier<RT> andThen) {
+  protected <RT> Completes<RT> apply(final T state, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
     info.store.persist(state, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
   }
 
   /**
