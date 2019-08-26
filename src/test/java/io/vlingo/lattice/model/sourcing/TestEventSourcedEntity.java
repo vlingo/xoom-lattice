@@ -7,9 +7,9 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import io.vlingo.common.Completes;
-
 import java.util.function.BiConsumer;
+
+import io.vlingo.common.Completes;
 
 public class TestEventSourcedEntity extends EventSourced implements Entity {
   static {
@@ -39,8 +39,7 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
 
   @Override
   public Completes<String> doTest3() {
-    apply(new Test3Happened(), () -> "hello");
-    return completes();
+    return apply(new Test3Happened(), () -> "hello");
   }
 
   @Override
