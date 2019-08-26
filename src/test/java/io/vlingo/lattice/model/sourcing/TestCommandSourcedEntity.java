@@ -7,9 +7,9 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import io.vlingo.common.Completes;
-
 import java.util.function.BiConsumer;
+
+import io.vlingo.common.Completes;
 
 public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   static {
@@ -37,8 +37,7 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
 
   @Override
   public Completes<String> doTest3() {
-    apply(new DoCommand3(), () -> "hello");
-    return completes();
+    return apply(new DoCommand3(), () -> "hello");
   }
 
   @Override
