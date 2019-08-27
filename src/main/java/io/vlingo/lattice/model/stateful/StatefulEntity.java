@@ -324,9 +324,14 @@ public abstract class StatefulEntity<S> extends Actor
         return result;
       })
       .otherwise(cause -> {
-        final String message = "State not restored for: " + getClass() + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().error(message, cause);
-        throw new IllegalStateException(message, cause);
+        disperseStowedMessages();
+        final boolean ignoreNotFound = (boolean) object;
+        if (!ignoreNotFound) {
+          final String message = "State not restored for: " + getClass() + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
+          logger().error(message, cause);
+          throw new IllegalStateException(message, cause);
+        }
+        return cause.result;
       });
   }
 
@@ -346,6 +351,7 @@ public abstract class StatefulEntity<S> extends Actor
         return result;
       })
       .otherwise(cause -> {
+        disperseStowedMessages();
         final String message = "State not applied for: " + getClass() + "(" + id + ") because: " + cause.result + " with: " + cause.getMessage();
         logger().error(message, cause);
         throw new IllegalStateException(message, cause);
@@ -392,6 +398,6 @@ public abstract class StatefulEntity<S> extends Actor
    */
   private void restore(final boolean ignoreNotFound) {
     stowMessages(ReadResultInterest.class);
-    info.store.read(id(), info.storeType, readInterest);
+    info.store.read(id(), info.storeType, readInterest, ignoreNotFound);
   }
 }
