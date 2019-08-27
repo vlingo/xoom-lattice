@@ -7,6 +7,8 @@
 
 package io.vlingo.lattice.router;
 
+import java.time.Duration;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
 import io.vlingo.actors.Definition;
@@ -29,6 +31,7 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
   private C command;
   private CommandDispatcher<P,C,Completes<A>> handler;
   private Class<P> protocol;
+  private long timeout = -1L;
 
   /**
    * Answer a new {@code RoutableCommand} that speaks the {@code protocol}.
@@ -85,6 +88,25 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
     assert(command != null);
     this.command = command;
     return this;
+  }
+
+  /**
+   * Answer myself after assigning my {@code timeout}.
+   * @param timeout the long timeout
+   * @return {@code RoutableCommand<P,C,A>}
+   */
+  public RoutableCommand<P,C,A> timeout(final long timeout) {
+    this.timeout = timeout;
+    return this;
+  }
+
+  /**
+   * Answer myself after assigning my {@code timeout}.
+   * @param timeout the Duration timeout
+   * @return {@code RoutableCommand<P,C,A>}
+   */
+  public RoutableCommand<P,C,A> timeout(final Duration timeout) {
+    return timeout(timeout.toMillis());
   }
 
   /**
@@ -158,7 +180,7 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
     final Address actorAddress = stage.addressFactory().from(address, name);
 
     stage.actorOf(protocol, actorAddress)
-         .andThenConsume(actor -> {
+         .andThenConsume(timeout, actor -> {
            handler.accept(actor, command, answer);
           })
          .otherwise(noActor -> {
