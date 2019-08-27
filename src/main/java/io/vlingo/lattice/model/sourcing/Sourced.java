@@ -329,9 +329,9 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
         return result;
       })
       .otherwise(cause -> {
+        disperseStowedMessages();
         final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
         logger().error(message, cause);
-        disperseStowedMessages();
         throw new StorageException(cause.result, message, cause);
       });
   }
@@ -399,8 +399,8 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
         disperseStowedMessages();
       })
       .recoverFrom(cause -> {
-        final String message = "Stream not recovered for: " + type() + "(" + streamName() + ") because: " + cause.getMessage();
         disperseStowedMessages();
+        final String message = "Stream not recovered for: " + type() + "(" + streamName() + ") because: " + cause.getMessage();
         throw new StorageException(Result.Failure, message, cause);
       });
   }
