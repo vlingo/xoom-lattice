@@ -226,6 +226,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
         return result;
       })
       .otherwise(cause -> {
+        disperseStowedMessages();
         final boolean ignoreNotFound = (boolean) object;
         if (!ignoreNotFound) {
           final String message = "State not restored for: " + getClass() + "(" + id() + ") because: " + cause.result + " with: " + cause.getMessage();
@@ -249,6 +250,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
       return result;
     })
     .otherwise(cause -> {
+      disperseStowedMessages();
       final String message = "State not preserved for: " + getClass() + "(" + id() + ") because: " + cause.result + " with: " + cause.getMessage();
       logger().error(message, cause);
       throw new IllegalStateException(message, cause);
