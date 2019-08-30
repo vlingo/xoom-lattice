@@ -11,6 +11,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.DeadLetter;
 import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Mailbox;
+import io.vlingo.actors.Returns;
 import io.vlingo.common.BasicCompletes;
 
 public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
@@ -53,7 +54,7 @@ public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
       final java.util.function.Consumer<Entity> consumer = (actor) -> actor.doTest3();
       final io.vlingo.common.Completes<java.lang.String> completes = new BasicCompletes<>(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, Entity.class, consumer, completes, doTest3Representation3); }
-      else { mailbox.send(new LocalMessage<Entity>(actor, Entity.class, consumer, completes, doTest3Representation3)); }
+      else { mailbox.send(new LocalMessage<Entity>(actor, Entity.class, consumer, Returns.value(completes), doTest3Representation3)); }
       return completes;
     } else {
       actor.deadLetters().failedDelivery(new DeadLetter(actor, doTest3Representation3));
