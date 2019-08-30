@@ -11,6 +11,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.DeadLetter;
 import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Mailbox;
+import io.vlingo.actors.Returns;
 import io.vlingo.lattice.model.Command;
 
 public class CommandRouter__Proxy implements io.vlingo.lattice.router.CommandRouter {
@@ -30,7 +31,7 @@ public class CommandRouter__Proxy implements io.vlingo.lattice.router.CommandRou
     if (!actor.isStopped()) {
       final java.util.function.Consumer<CommandRouter> consumer = (actor) -> actor.route(arg0);
       if (mailbox.isPreallocated()) { mailbox.send(actor, CommandRouter.class, consumer, arg0.answer(), routeRepresentation1); }
-      else { mailbox.send(new LocalMessage<CommandRouter>(actor, CommandRouter.class, consumer, arg0.answer(), routeRepresentation1)); }
+      else { mailbox.send(new LocalMessage<CommandRouter>(actor, CommandRouter.class, consumer, Returns.value(arg0.answer()), routeRepresentation1)); }
     } else {
       actor.deadLetters().failedDelivery(new DeadLetter(actor, routeRepresentation1));
     }
