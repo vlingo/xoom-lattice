@@ -53,7 +53,7 @@ public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
     if (!actor.isStopped()) {
       final java.util.function.Consumer<Entity> consumer = (actor) -> actor.doTest3();
       final io.vlingo.common.Completes<java.lang.String> completes = new BasicCompletes<>(actor.scheduler());
-      if (mailbox.isPreallocated()) { mailbox.send(actor, Entity.class, consumer, completes, doTest3Representation3); }
+      if (mailbox.isPreallocated()) { mailbox.send(actor, Entity.class, consumer, Returns.value(completes), doTest3Representation3); }
       else { mailbox.send(new LocalMessage<Entity>(actor, Entity.class, consumer, Returns.value(completes), doTest3Representation3)); }
       return completes;
     } else {
