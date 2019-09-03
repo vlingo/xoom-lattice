@@ -13,8 +13,6 @@ import org.junit.Before;
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
-import io.vlingo.lattice.model.projection.state.Entity1;
-import io.vlingo.lattice.model.projection.state.Entity2;
 import io.vlingo.lattice.model.stateful.StatefulEntityTest.Entity1State;
 import io.vlingo.lattice.model.stateful.StatefulEntityTest.Entity1StateAdapter;
 import io.vlingo.symbio.EntryAdapterProvider;
