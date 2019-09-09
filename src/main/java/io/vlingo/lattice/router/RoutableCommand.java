@@ -59,6 +59,17 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
 
   /**
    * Answer myself after assigning my {@code address}.
+   * @param address the long address
+   * @return {@code RoutableCommand<P,C,A>}
+   */
+  public RoutableCommand<P,C,A> at(final long address) {
+    assert(address != -1L);
+    this.address = String.valueOf(address);
+    return this;
+  }
+
+  /**
+   * Answer myself after assigning my {@code address}.
    * @param address the String address
    * @return {@code RoutableCommand<P,C,A>}
    */
