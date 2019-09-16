@@ -46,12 +46,17 @@ public class PersonEntity extends ObjectEntity<PersonState> implements Person {
   }
 
   @Override
-  protected void persistentObject(final PersonState persistentObject) {
-    this.person = persistentObject;
+  protected PersonState stateObject() {
+    return person;
   }
 
   @Override
-  protected Class<PersonState> persistentObjectType() {
+  protected void stateObject(final PersonState stateObject) {
+    this.person = stateObject;
+  }
+
+  @Override
+  protected Class<PersonState> stateObjectType() {
     return PersonState.class;
   }
 }

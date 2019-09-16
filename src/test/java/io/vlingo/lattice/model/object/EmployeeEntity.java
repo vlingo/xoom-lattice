@@ -46,12 +46,17 @@ public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Emplo
   }
 
   @Override
-  protected void persistentObject(final EmployeeState persistentObject) {
-    this.employee = persistentObject;
+  protected EmployeeState stateObject() {
+    return employee;
   }
 
   @Override
-  protected Class<EmployeeState> persistentObjectType() {
+  protected void stateObject(final EmployeeState stateObject) {
+    this.employee = stateObject;
+  }
+
+  @Override
+  protected Class<EmployeeState> stateObjectType() {
     return EmployeeState.class;
   }
 }

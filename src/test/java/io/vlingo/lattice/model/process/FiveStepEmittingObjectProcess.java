@@ -63,13 +63,18 @@ public class FiveStepEmittingObjectProcess extends ObjectProcess<StepCountObject
   }
 
   @Override
-  protected void persistentObject(final StepCountObjectState state) {
+  protected StepCountObjectState stateObject() {
+    return state;
+  }
+
+  @Override
+  protected void stateObject(final StepCountObjectState state) {
     this.state = state;
     this.chronicle.transitionTo(state);
   }
 
   @Override
-  protected Class<StepCountObjectState> persistentObjectType() {
+  protected Class<StepCountObjectState> stateObjectType() {
     return StepCountObjectState.class;
   }
 }
