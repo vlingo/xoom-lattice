@@ -166,18 +166,25 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
   protected abstract String id();
 
   /**
-   * Received by my extender when my persistent object has been preserved and restored.
+   * Received by my extender when I must access its state object.
    * Must be overridden by my extender.
-   * @param persistentObject the T typed persistent object
+   * @return T
    */
-  protected abstract void persistentObject(final T persistentObject);
+  protected abstract T stateObject();
 
   /**
-   * Received by my extender when I must know it's persistent object type.
+   * Received by my extender when my state object has been preserved and restored.
+   * Must be overridden by my extender.
+   * @param stateObject the T typed state object
+   */
+  protected abstract void stateObject(final T stateObject);
+
+  /**
+   * Received by my extender when I must know it's state object type.
    * Must be overridden by my extender.
    * @return {@code Class<S>}
    */
-  protected abstract Class<T> persistentObjectType();
+  protected abstract Class<T> stateObjectType();
 
   /**
    * Restore my current state, dispatching to {@code state(final S state)} when completed.
@@ -221,7 +228,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
           final Object object) {
     outcome
       .andThen(result -> {
-        persistentObject((T) queryResult.stateObject);
+        stateObject((T) queryResult.stateObject);
         disperseStowedMessages();
         return result;
       })
@@ -243,7 +250,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
   public void persistResultedIn(final Outcome<StorageException, Result> outcome, final Object persistentObject, final int possible, final int actual, final Object supplier) {
     outcome
     .andThen(result -> {
-      persistentObject((T) persistentObject);
+      stateObject((T) persistentObject);
       afterApply();
       completeUsing(supplier);
       disperseStowedMessages();
@@ -271,7 +278,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
   private Info<T> info() {
     try {
       final ObjectTypeRegistry registry = stage().world().resolveDynamic(ObjectTypeRegistry.INTERNAL_NAME, ObjectTypeRegistry.class);
-      final Info<T> info = registry.info(persistentObjectType());
+      final Info<T> info = registry.info(stateObjectType());
       return info;
     } catch (Exception e) {
       final String message = getClass().getSimpleName() + ": Info not registered with ObjectTypeRegistry.";
@@ -287,13 +294,13 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
                 ListQueryExpression.using(
                         info.queryObjectExpression.type,
                         info.queryObjectExpression.query,
-                        Arrays.asList(id()));
+                        stateObject().queryList());
       } else if (info.queryObjectExpression.isMapQueryExpression()) {
         queryExpression =
                 MapQueryExpression.using(
                         info.queryObjectExpression.type,
                         info.queryObjectExpression.query,
-                        MapQueryExpression.map("id", id()));
+                        stateObject().queryMap());
       } else {
         throw new IllegalStateException("Unknown QueryExpression type: " + queryExpression);
       }
