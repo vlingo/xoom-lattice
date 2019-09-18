@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * Maintains any number of {@code Projection}s that are used to project
- * when an {@code actualCause} happens. Supports simple wildcards.
+ * when an {@code actualCauses} happens. Supports simple wildcards.
  */
 public class MatchableProjections {
   private static final String Wildcard = "*";
@@ -31,15 +31,15 @@ public class MatchableProjections {
   }
 
   /**
-   * Answer the {@code List<Projection>} matching the {@code actualCause} requiring projection(s).
-   * @param actualCause the String describing why any number of {@code Projection}s are required.
+   * Answer the {@code List<Projection>} matching the {@code actualCauses} requiring projection(s).
+   * @param actualCauses the String describing why any number of {@code Projection}s are required.
    * @return {@code List<Projection>}
    */
-  public List<Projection> matchProjections(final String actualCause) {
+  public List<Projection> matchProjections(final String... actualCauses) {
     return mappedProjections
       .keySet()
       .stream()
-      .filter(cause -> cause.matches(actualCause))
+      .filter(cause -> cause.matches(actualCauses))
       .map(cause -> mappedProjections.get(cause))
       .flatMap(Collection::stream)
       .collect(Collectors.toList());
@@ -81,7 +81,7 @@ public class MatchableProjections {
     final String value;
 
     /**
-     * Answer a {@code Cause} 
+     * Answer a {@code Cause}
      * @param matchableCause
      * @return
      */
@@ -102,11 +102,11 @@ public class MatchableProjections {
     Cause(final String value) { this.value = value.replaceAll("\\*", ""); }
 
     /**
-     * Answer whether or not I match the {@code actualCause}.
-     * @param actualCause the String describing the cause to match on
+     * Answer whether or not I match the {@code actualCauses}.
+     * @param actualCauses the String... describing the cause to match on
      * @return boolean
      */
-    abstract boolean matches(final String actualCause);
+    abstract boolean matches(final String... actualCauses);
 
     /*
      * @see java.lang.Object#equals(java.lang.Object)
@@ -132,7 +132,14 @@ public class MatchableProjections {
    */
   private static class BeginsWithCause extends Cause {
     BeginsWithCause(final String value) { super(value); }
-    boolean matches(final String actualCause) { return actualCause.startsWith(value); }
+
+    @Override
+    boolean matches(final String... actualCauses) {
+      for (final String cause : actualCauses) {
+        if (cause.startsWith(value)) return true;
+      }
+      return false;
+    }
   }
 
   /**
@@ -140,7 +147,14 @@ public class MatchableProjections {
    */
   private static class ContainsCause extends Cause {
     ContainsCause(final String value) { super(value); }
-    boolean matches(final String actualCause) { return actualCause.contains(value); }
+
+    @Override
+    boolean matches(final String... actualCauses) {
+      for (final String cause : actualCauses) {
+        if (cause.contains(value)) return true;
+      }
+      return false;
+    }
   }
 
   /**
@@ -148,7 +162,14 @@ public class MatchableProjections {
    */
   private static class EndsWithCause extends Cause {
     EndsWithCause(final String value) { super(value); }
-    boolean matches(final String actualCause) { return actualCause.endsWith(value); }
+
+    @Override
+    boolean matches(final String... actualCauses) {
+      for (final String cause : actualCauses) {
+        if (cause.endsWith(value)) return true;
+      }
+      return false;
+    }
   }
 
   /**
@@ -156,6 +177,13 @@ public class MatchableProjections {
    */
   private static class EntireCause extends Cause {
     EntireCause(final String value) { super(value); }
-    boolean matches(final String actualCause) { return actualCause.equals(value); }
+
+    @Override
+    boolean matches(final String... actualCauses) {
+      for (final String cause : actualCauses) {
+        if (cause.equals(value)) return true;
+      }
+      return false;
+    }
   }
 }
