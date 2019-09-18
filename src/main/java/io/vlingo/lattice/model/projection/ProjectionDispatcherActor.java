@@ -7,6 +7,9 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.Result;
@@ -15,11 +18,8 @@ import io.vlingo.symbio.store.dispatch.Dispatchable;
 import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.dispatch.DispatcherControl;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-public abstract class ProjectionDispatcherActor<S extends State<?>> extends AbstractProjectionDispatcherActor
-    implements Dispatcher<Dispatchable<Entry<?>, S>>, ProjectionDispatcher, ConfirmDispatchedResultInterest {
+public abstract class ProjectionDispatcherActor<E extends Entry<?>, RS extends State<?>> extends AbstractProjectionDispatcherActor
+    implements Dispatcher<Dispatchable<E, RS>>, ProjectionDispatcher, ConfirmDispatchedResultInterest {
 
   private ConfirmDispatchedResultInterest interest;
   private DispatcherControl control;
