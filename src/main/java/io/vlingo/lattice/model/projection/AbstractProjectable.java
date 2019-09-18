@@ -16,6 +16,7 @@ public abstract class AbstractProjectable implements Projectable {
   private final Collection<Entry<?>> entries;
   private final String projectionId;
   private final State<?> state;
+  private int index;
 
   public AbstractProjectable(final State<?> state, final Collection<Entry<?>> entries, final String projectionId) {
     this.state = state;
@@ -24,8 +25,17 @@ public abstract class AbstractProjectable implements Projectable {
   }
 
   @Override
-  public String becauseOf() {
-    return state.metadata.operation;
+  public String[] becauseOf() {
+    int count = state != null ? 1:0 + entries().size();
+    final String[] becauseOf = new String[count];
+    index = 0;
+    if (state != null) {
+      becauseOf[0] = state.metadata.operation;
+      ++index;
+    }
+    entries().stream().map(entry -> entry.typeName()).forEach(type -> becauseOf[index++] = type);
+
+    return becauseOf;
   }
 
   @Override
