@@ -13,8 +13,6 @@ import java.util.Collections;
 
 import org.junit.Test;
 
-import io.vlingo.lattice.model.projection.Projectable;
-import io.vlingo.lattice.model.projection.TextProjectable;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State.TextState;
 
@@ -27,7 +25,7 @@ public class TextProjectableTest {
             new TextState("123", String.class, 1, textState, 1, Metadata.with("value", "op"));
     final Projectable projectable = new TextProjectable(state, Collections.emptyList(), "p123");
 
-    assertEquals("op", projectable.becauseOf());
+    assertEquals("op", projectable.becauseOf()[0]);
     assertEquals(textState, projectable.dataAsText());
     assertEquals("123", projectable.dataId());
     assertEquals(1, projectable.dataVersion());
