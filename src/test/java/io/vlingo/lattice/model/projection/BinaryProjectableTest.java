@@ -14,8 +14,6 @@ import java.util.Collections;
 
 import org.junit.Test;
 
-import io.vlingo.lattice.model.projection.Projectable;
-import io.vlingo.lattice.model.projection.BinaryProjectable;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State.BinaryState;
 
@@ -28,7 +26,7 @@ public class BinaryProjectableTest {
             new BinaryState("123", String.class, 1, textState.getBytes(), 1, Metadata.with("value", "op"));
     final Projectable projectable = new BinaryProjectable(state, Collections.emptyList(), "p123");
 
-    assertEquals("op", projectable.becauseOf());
+    assertEquals("op", projectable.becauseOf()[0]);
     assertArrayEquals(textState.getBytes(), projectable.dataAsBytes());
     assertEquals("123", projectable.dataId());
     assertEquals(1, projectable.dataVersion());
