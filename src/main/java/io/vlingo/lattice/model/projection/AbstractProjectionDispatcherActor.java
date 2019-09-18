@@ -35,7 +35,13 @@ public class AbstractProjectionDispatcherActor extends Actor implements Projecti
     this();
 
     for (final ProjectToDescription discription : projectToDescriptions) {
-      final Projection projection = stage().actorFor(Projection.class, discription.projectionType);
+      final Projection projection;
+
+      if (discription.constructionParameter.isPresent()) {
+        projection = stage().actorFor(Projection.class, discription.projectionType, discription.constructionParameter.get());
+      } else {
+        projection = stage().actorFor(Projection.class, discription.projectionType);
+      }
 
       projectTo(projection, discription.becauseOf);
     }
@@ -68,10 +74,10 @@ public class AbstractProjectionDispatcherActor extends Actor implements Projecti
 
   /**
    * Answer the {@code List<Projection>} of my {@code Projection} that match {@code actualCause}.
-   * @param actualCause the String describing the cause that requires Projection
+   * @param actualCauses the String... describing the cause that requires Projection
    * @return {@code List<Projection>}
    */
-  protected List<Projection> projectionsFor(final String actualCause) {
-    return matchableProjections.matchProjections(actualCause);
+  protected List<Projection> projectionsFor(final String... actualCauses) {
+    return matchableProjections.matchProjections(actualCauses);
   }
 }
