@@ -7,13 +7,15 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.dispatch.Dispatchable;
 
-import java.util.Collection;
-
-public class TextProjectionDispatcherActor extends ProjectionDispatcherActor<State.TextState>
+public class TextProjectionDispatcherActor extends ProjectionDispatcherActor<Entry<?>, State.TextState>
     implements ProjectionDispatcher {
 
   public TextProjectionDispatcherActor() {
@@ -28,7 +30,7 @@ public class TextProjectionDispatcherActor extends ProjectionDispatcherActor<Sta
   protected boolean requiresDispatchedConfirmation() {
     return true;
   }
-  
+
   @Override
   public void dispatch(final Dispatchable<Entry<?>, State.TextState> dispatchable) {
     dispatchable.state().ifPresent(state-> {
@@ -36,5 +38,14 @@ public class TextProjectionDispatcherActor extends ProjectionDispatcherActor<Sta
         dispatch(dispatchable.id(), new TextProjectable(state, dispatchable.entries(), dispatchable.id()));
       }
     });
+
+    final List<Entry<?>> entries =
+            dispatchable.entries().stream()
+              .filter(entry -> hasProjectionsFor(entry.typeName()))
+              .collect(Collectors.toList());
+
+    if (!entries.isEmpty()) {
+      dispatch(dispatchable.id(), new TextProjectable(dispatchable.state().orElse(null), entries, dispatchable.id()));
+    }
   }
 }
