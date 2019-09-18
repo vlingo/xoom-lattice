@@ -7,7 +7,10 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Optional;
+
 import io.vlingo.actors.Actor;
+import io.vlingo.symbio.Source;
 
 /**
  * Defines the means of dispatching {@code Projectable} instances to {@code Projections}s
@@ -28,6 +31,86 @@ public interface ProjectionDispatcher {
   public static class ProjectToDescription {
     public final Class<? extends Actor> projectionType;
     public final String[] becauseOf;
+    public final Optional<Object> constructionParameter;
+
+    /**
+     * Answer a new ProjectToDescription with {@code projectionType} for matches on types in {@code becauseOf}.
+     * @param projectionType the Class of the projectionType that must be an Actor extender
+     * @param becauseOf the {@code Class<? extends Source<?>>} causes/reasons that the projectionType handles
+     * @return ProjectToDescription
+     */
+    @SuppressWarnings("unchecked")
+    public static ProjectToDescription with(final Class<? extends Actor> projectionType, final Class<? extends Source<?>>... becauseOf) {
+      return with(projectionType, Optional.empty(), becauseOf);
+    }
+
+    /**
+     * Answer a new ProjectToDescription with {@code projectionType} for matches on types in {@code becauseOf}.
+     * @param projectionType the Class of the projectionType that must be an Actor extender
+     * @param constructionParameter the {@code Optional<Object>} to pass as the projectionType constructor parameter, or empty
+     * @param becauseOf the {@code Class<? extends Source<?>>} causes/reasons that the projectionType handles
+     * @return ProjectToDescription
+     */
+    @SuppressWarnings("unchecked")
+    public static ProjectToDescription with(final Class<? extends Actor> projectionType, final Optional<Object> constructionParameter, final Class<? extends Source<?>>... becauseOf) {
+      final String[] representations = new String[becauseOf.length];
+      int index = 0;
+
+      for (final Class<?> sourceType : becauseOf) {
+        representations[index++] = sourceType.getName();
+      }
+
+      return new ProjectToDescription(projectionType, constructionParameter, representations);
+    }
+
+    /**
+     * Answer a new ProjectToDescription with {@code projectionType} for matches in {@code packageContext}.
+     * @param projectionType the Class of the projectionType that must be an Actor extender
+     * @param contentsOf the Package used as a prefix wildcard that the projectionType handles
+     * @return ProjectToDescription
+     */
+    public static ProjectToDescription with(final Class<? extends Actor> projectionType, final Package... contentsOf) {
+      return with(projectionType, Optional.empty(), contentsOf);
+    }
+
+    /**
+     * Answer a new ProjectToDescription with {@code projectionType} for matches in {@code packageContext}.
+     * @param projectionType the Class of the projectionType that must be an Actor extender
+     * @param constructionParameter the {@code Optional<Object>} to pass as the projectionType constructor parameter, or empty
+     * @param contentsOf the Package used as a prefix wildcard that the projectionType handles
+     * @return ProjectToDescription
+     */
+    public static ProjectToDescription with(final Class<? extends Actor> projectionType, final Optional<Object> constructionParameter, final Package... contentsOf) {
+      final String[] representations = new String[contentsOf.length];
+      int index = 0;
+
+      for (final Package p : contentsOf) {
+        representations[index++] = p.getName() + "*";
+      }
+
+      return new ProjectToDescription(projectionType, constructionParameter, representations);
+    }
+
+    /**
+     * Answer a new ProjectToDescription with {@code projectionType} for matches in {@code becauseOf}.
+     * @param projectionType the Class of the projectionType that must be an Actor extender
+     * @param becauseOf the String[] causes/reasons that the projectionType handles
+     * @return ProjectToDescription
+     */
+    public static ProjectToDescription with(final Class<? extends Actor> projectionType, final String... becauseOf) {
+      return with(projectionType, Optional.empty(), becauseOf);
+    }
+
+    /**
+     * Answer a new ProjectToDescription with {@code projectionType} for matches in {@code becauseOf}.
+     * @param projectionType the Class of the projectionType that must be an Actor extender
+     * @param constructionParameter the {@code Optional<Object>} to pass as the projectionType constructor parameter, or empty
+     * @param becauseOf the String[] causes/reasons that the projectionType handles
+     * @return ProjectToDescription
+     */
+    public static ProjectToDescription with(final Class<? extends Actor> projectionType, final Optional<Object> constructionParameter, final String... becauseOf) {
+      return new ProjectToDescription(projectionType, constructionParameter, becauseOf);
+    }
 
     /**
      * Construct my default state.
@@ -35,11 +118,22 @@ public interface ProjectionDispatcher {
      * @param becauseOf the String[] causes/reasons that the projectionType handles
      */
     public ProjectToDescription(final Class<? extends Actor> projectionType, final String... becauseOf) {
+      this(projectionType, Optional.empty(), becauseOf);
+    }
+
+    /**
+     * Construct my default state.
+     * @param projectionType the Class of the projectionType that must be an Actor extender
+     * @param constructionParameter the {@code Optional<Object>} to pass as the projectionType constructor parameter, or empty
+     * @param becauseOf the String[] causes/reasons that the projectionType handles
+     */
+    public ProjectToDescription(final Class<? extends Actor> projectionType, final Optional<Object> constructionParameter, final String... becauseOf) {
       if (!Projection.class.isAssignableFrom(projectionType)) {
         throw new IllegalArgumentException("Class of projectionType must extend Actor and implement Projection.");
       }
       this.projectionType = projectionType;
       this.becauseOf = becauseOf;
+      this.constructionParameter = constructionParameter;
     }
   }
 }
