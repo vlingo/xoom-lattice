@@ -16,10 +16,10 @@ import io.vlingo.symbio.Entry;
  */
 public interface Projectable {
   /**
-   * Answer my reason for projection.
-   * @return String
+   * Answer my reason(s) for projection.
+   * @return String[]
    */
-  String becauseOf();
+  String[] becauseOf();
 
   /**
    * Answer my state as binary/bytes.
