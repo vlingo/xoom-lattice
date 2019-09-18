@@ -19,14 +19,8 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
-import io.vlingo.lattice.model.projection.Projectable;
-import io.vlingo.lattice.model.projection.Projection;
-import io.vlingo.lattice.model.projection.ProjectionControl;
-import io.vlingo.lattice.model.projection.ProjectionDispatcher;
-import io.vlingo.lattice.model.projection.ProjectionDispatcherActor;
-import io.vlingo.lattice.model.projection.ProjectionDispatcher.ProjectToDescription;
-import io.vlingo.lattice.model.projection.TextProjectionDispatcherActor;
 import io.vlingo.lattice.model.projection.DescribedProjection.Outcome;
+import io.vlingo.lattice.model.projection.ProjectionDispatcher.ProjectToDescription;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State;
@@ -86,7 +80,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
   public void testThatProjectionsPipeline() {
     final StateStore store = store();
 
-    final FilterOutcome filterOutcome = new FilterOutcome(3);
+    final FilterOutcome filterOutcome = new FilterOutcome();
     final AccessSafely filterOutcomeAccess = filterOutcome.afterCompleting(3);
 
     ProjectionDispatcher filter1 =
@@ -119,7 +113,7 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     return StateStore.class;
   }
 
-  public static class FilterProjectionDispatcherActor extends ProjectionDispatcherActor<State<?>>
+  public static class FilterProjectionDispatcherActor extends ProjectionDispatcherActor<Entry<?>,State<?>>
       implements Projection, ProjectionDispatcher {
 
     private final FilterOutcome outcome;
@@ -163,15 +157,19 @@ public class StateProjectionDispatcherTest extends ProjectionDispatcherTest {
     public void dispatch(final Dispatchable<Entry<?>, State<?>> dispatchable) {
 
     }
+
+    @Override
+    public void projectTo(final Projection projection, final String[] becauseOf) {
+      outcome.increment();
+    }
   }
 
   private static final class FilterOutcome {
     public final AtomicInteger filterCount;
     private AccessSafely access = AccessSafely.afterCompleting(0);
 
-    FilterOutcome(final int testUntilHappenings) {
+    FilterOutcome() {
       this.filterCount = new AtomicInteger(0);
-      this.access = AccessSafely.afterCompleting(testUntilHappenings);
     }
 
     public void increment() {
