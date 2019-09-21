@@ -251,7 +251,7 @@ public class CommandRouterTest {
     @Override
     public void accept(final Solver component, final SolveStuff command, final Completes<Stuff> answer) {
       result.countTimes(handlerId);
-      component.solveStuff(command.value).andThen(stuff -> answer.with(stuff));
+      component.solveStuff(command.value).andThenConsume(answer::with);
     }
 
     private SolverHandler(final Result result) {
