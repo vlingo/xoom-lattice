@@ -1,0 +1,38 @@
+{
+    "package": {
+        "name": "vlingo-lattice-exchange-rabbitmq",
+        "repo": "vlingo-platform-java",
+        "subject": "vlingo",
+        "desc": "The vlingo/lattice io.vlingo.lattice.exchange.Exchange extension for RabbitMQ.",
+        "website_url": "https://github.com/vlingo/vlingo-lattice-exchange-rabbitmq",
+        "issue_tracker_url": "https://github.com/vlingo/vlingo-lattice-exchange-rabbitmq/issues",
+        "vcs_url": "https://github.com/vlingo/vlingo-lattice-exchange-rabbitmq.git",
+        "licenses": ["MPL-2.0"],
+        "public_download_numbers": true,
+        "public_stats": true
+    },
+
+    "version": {
+        "name": "0.8.9",
+        "gpgSign": true
+    },
+
+    "files": [
+        {
+            "includePattern": "target/(.*).jar",
+            "uploadPattern": "/io/vlingo/vlingo-lattice-exchange-rabbitmq/0.8.9/$1.jar",
+            "matrixParams": {
+                "override": 1
+            }
+        },
+        {
+            "includePattern": "pom.xml",
+            "uploadPattern": "/io/vlingo/vlingo-lattice-exchange-rabbitmq/0.8.9/vlingo-lattice-exchange-rabbitmq-0.8.9.pom",
+            "matrixParams": {
+                "override": 1
+            }
+        }
+    ],
+
+    "publish": true
+}

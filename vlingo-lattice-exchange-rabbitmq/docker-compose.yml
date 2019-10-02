@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+  rabbitmq:
+    image: 'rabbitmq'
+    labels:
+      kompose.service.type: nodeport
+    ports:
+      - '4369:4369'
+      - '5672:5672'
+      - '25672:25672'
+      - '15672:15672'
+    environment:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_VHOST=/
+    volumes:
+      - 'rabbitmq'
+volumes:
+  vlingo_lattice_exchange_rabbitmq:
+    driver: local
