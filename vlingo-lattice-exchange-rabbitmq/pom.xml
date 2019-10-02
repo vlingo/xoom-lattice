@@ -5,7 +5,7 @@
   <version>0.8.9</version>
   <name>vlingo-lattice-exchange-rabbitmq</name>
   <description>The vlingo/lattice io.vlingo.lattice.exchange.Exchange extension for RabbitMQ.</description>
-  <url>https://github.com/vlingo/vlingo-lattice-exchange-rabbitmq</url>
+  <url>https://github.com/vlingo/vlingo-lattice</url>
   <licenses>
     <license>
       <name>Mozilla Public License 2.0</name>
@@ -21,9 +21,9 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:git:git://github.com/vlingo/vlingo-lattice-exchange-rabbitmq.git</connection>
-    <developerConnection>scm:git:ssh://github.com/vlingo/vlingo-lattice-exchange-rabbitmq.git</developerConnection>
-    <url>http://github.com/vlingo/vlingo-lattice-exchange-rabbitmq/tree/master</url>
+    <connection>scm:git:git://github.com/vlingo/vlingo-lattice.git</connection>
+    <developerConnection>scm:git:ssh://github.com/vlingo/vlingo-lattice.git</developerConnection>
+    <url>http://github.com/vlingo/vlingo-lattice/tree/master</url>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -92,7 +92,7 @@
     </dependency>
     <dependency>
       <groupId>io.vlingo</groupId>
-      <artifactId>vlingo-lattice</artifactId>
+      <artifactId>vlingo-lattice-core</artifactId>
       <version>0.8.9</version>
     </dependency>
     <dependency>
