@@ -1,12 +1,12 @@
 {
     "package": {
-        "name": "vlingo-lattice-core",
+        "name": "vlingo-lattice",
         "repo": "vlingo-platform-java",
         "subject": "vlingo",
         "desc": "Tooling for reactive Domain-Driven Design projects that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, CQRS, and Event Sourcing support.",
-        "website_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice-core",
-        "issue_tracker_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice-core/issues",
-        "vcs_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice-core.git",
+        "website_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice",
+        "issue_tracker_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice/issues",
+        "vcs_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice.git",
         "licenses": ["MPL-2.0"],
         "public_download_numbers": true,
         "public_stats": true
@@ -20,14 +20,14 @@
     "files": [
         {
             "includePattern": "target/(.*).jar",
-            "uploadPattern": "/io/vlingo/vlingo-lattice/vlingo-lattice-core/0.8.9/$1.jar",
+            "uploadPattern": "/io/vlingo/vlingo-lattice/vlingo-lattice/0.8.9/$1.jar",
             "matrixParams": {
                 "override": 1
             }
         },
         {
             "includePattern": "pom.xml",
-            "uploadPattern": "/io/vlingo/vlingo-lattice/vlingo-lattice-core/0.8.9/vlingo-lattice-core-0.8.9.pom",
+            "uploadPattern": "/io/vlingo/vlingo-lattice/vlingo-lattice/0.8.9/vlingo-lattice-0.8.9.pom",
             "matrixParams": {
                 "override": 1
             }
