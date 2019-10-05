@@ -1,6 +1,6 @@
-# vlingo-lattice-core
+# vlingo-lattice
 
-[![Javadocs](http://javadoc.io/badge/io.vlingo/vlingo-lattice-core.svg?color=brightgreen)](http://javadoc.io/doc/io.vlingo/vlingo-lattice-core) [![Build Status](https://travis-ci.org/vlingo/vlingo-lattice-core.svg?branch=master)](https://travis-ci.org/vlingo/vlingo-lattice-core) [ ![Download](https://api.bintray.com/packages/vlingo/vlingo-platform-java/vlingo-lattice-core/images/download.svg) ](https://bintray.com/vlingo/vlingo-platform-java/vlingo-lattice-core/_latestVersion) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/vlingo-platform-java/lattice)
+[![Javadocs](http://javadoc.io/badge/io.vlingo/vlingo-lattice.svg?color=brightgreen)](http://javadoc.io/doc/io.vlingo/vlingo-lattice) [![Build Status](https://travis-ci.org/vlingo/vlingo-lattice.svg?branch=master)](https://travis-ci.org/vlingo/vlingo-lattice) [ ![Download](https://api.bintray.com/packages/vlingo/vlingo-platform-java/vlingo-lattice/images/download.svg) ](https://bintray.com/vlingo/vlingo-platform-java/vlingo-lattice/_latestVersion) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/vlingo-platform-java/lattice)
 
 The vlingo/PLATFORM tooling for reactive Domain-Driven Design models that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, message exchanges, CQRS, and Event Sourcing support.
 
@@ -16,7 +16,7 @@ The vlingo/PLATFORM tooling for reactive Domain-Driven Design models that are hi
   <dependencies>
     <dependency>
       <groupId>io.vlingo</groupId>
-      <artifactId>vlingo-lattice-core</artifactId>
+      <artifactId>vlingo-lattice</artifactId>
       <version>0.8.9</version>
       <scope>compile</scope>
     </dependency>
@@ -25,7 +25,7 @@ The vlingo/PLATFORM tooling for reactive Domain-Driven Design models that are hi
 
 ```gradle
 dependencies {
-    compile 'io.vlingo:vlingo-lattice-core:0.8.9'
+    compile 'io.vlingo:vlingo-lattice:0.8.9'
 }
 
 repositories {
