@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class Period {
-  public static final Period Forever = Period.of(Integer.MAX_VALUE - 1);
+  public static final Period Forever = Period.of(Instant.MAX.getEpochSecond());
   public static final Period None = Period.of(0);
 
   public final Duration duration;
@@ -25,7 +25,7 @@ public class Period {
   }
 
   public boolean isForever() {
-    return duration.toMillis() == Long.MAX_VALUE;
+    return toMilliseconds() == Forever.toMilliseconds();
   }
 
   public Instant toFutureInstant() {
