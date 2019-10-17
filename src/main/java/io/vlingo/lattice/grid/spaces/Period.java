@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class Period {
-  public static final Period Forever = Period.of(Long.MAX_VALUE);
+  public static final Period Forever = Period.of(Integer.MAX_VALUE - 1);
   public static final Period None = Period.of(0);
 
   public final Duration duration;
