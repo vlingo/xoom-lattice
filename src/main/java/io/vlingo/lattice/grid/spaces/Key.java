@@ -7,6 +7,8 @@
 
 package io.vlingo.lattice.grid.spaces;
 
-public interface Key {
+import java.util.Comparator;
+
+public interface Key extends Comparator<Key> {
   public boolean matches(final Key other);
 }
