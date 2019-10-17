@@ -23,7 +23,7 @@ public class ExpirableItem<T> implements Comparable<ExpirableItem<T>> {
   }
 
   public boolean isMaximumExpiration() {
-    return expiresOn.toEpochMilli() == Long.MAX_VALUE;
+    return expiresOn.getEpochSecond() == Instant.MAX.getEpochSecond();
   }
 
   @Override
