@@ -9,18 +9,25 @@ package io.vlingo.lattice.grid.spaces;
 
 import java.time.Instant;
 
-public class ExpirableItem<T> {
+public class ExpirableItem<T> implements Comparable<ExpirableItem<T>> {
   public final Key key;
   public final T object;
   public final Instant expiresOn;
+  public final Lease lease;
 
-  public ExpirableItem(final Key key, final T object, final Instant expiresOn) {
+  public ExpirableItem(final Key key, final T object, final Instant expiresOn, final Lease lease) {
     this.key = key;
     this.object = object;
     this.expiresOn = expiresOn;
+    this.lease = lease;
   }
 
   public boolean isMaximumExpiration() {
     return expiresOn.toEpochMilli() == Long.MAX_VALUE;
+  }
+
+  @Override
+  public int compareTo(final ExpirableItem<T> other) {
+    return key.compare(key, other.key);
   }
 }
