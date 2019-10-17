@@ -10,7 +10,7 @@ package io.vlingo.lattice.grid.spaces;
 import java.time.Duration;
 
 public class Lease extends Period {
-  public static final Lease Forever = Lease.of(Long.MAX_VALUE);
+  public static final Lease Forever = Lease.of(Integer.MAX_VALUE);
   public static final Lease None = Lease.of(0);
 
   public static Lease of(final Duration duration) {
