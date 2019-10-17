@@ -59,12 +59,16 @@ public class SpaceActor extends Actor implements Space, Scheduled<Object> {
 
   @Override
   public <T> Completes<Optional<KeyItem<T>>> get(final Key key, final Period until) {
-    return null;
+    final ExpirableItem<T> item = item(key);
+
+    return completes().with(Optional.of(KeyItem.of(key, item.object, item.lease)));
   }
 
   @Override
   public <T> Completes<Optional<KeyItem<T>>> take(final Key key, final Period until) {
-    return null;
+    final ExpirableItem<T> item = item(key);
+
+    return completes().with(Optional.of(KeyItem.of(key, item.object, item.lease)));
   }
 
   @Override
@@ -74,31 +78,46 @@ public class SpaceActor extends Actor implements Space, Scheduled<Object> {
     cancellable = Optional.of(scheduler().scheduleOnce(scheduled, null, Duration.ZERO, currentSweepInterval));
   }
 
-  private ExpirableItem<?> expiringItem(final Key key, final Item<?> item) {
+  private <T> ExpirableItem<T> expiringItem(final Key key, final Item<T> item) {
     final Instant expiration = item.lease.toFutureInstant();
-    return new ExpirableItem<>(key, item.object, expiration);
+    return new ExpirableItem<>(key, item.object, expiration, item.lease);
+  }
+
+  private <T> ExpirableItem<T> item(final Key key) {
+    final Map<Key,ExpirableItem<T>> itemMap = itemMap(key);
+    return itemMap.get(key);
   }
 
   @SuppressWarnings("unchecked")
-  private Map<Key, ExpirableItem<?>> itemMap(final Key key) {
+  private <T> Map<Key, ExpirableItem<T>> itemMap(final Key key) {
     final Class<Key> keyClass = (Class<Key>) key.getClass();
 
-    Map<Key,ExpirableItem<?>> valueMap = registry.get(keyClass);
+    Map<Key,ExpirableItem<T>> itemMap = getItemMap(keyClass);
 
-    if (valueMap == null) {
-      valueMap = new HashMap<>();
-      registry.put(keyClass, valueMap);
+    if (itemMap == null) {
+      itemMap = new HashMap<>();
+      putItemMap(keyClass, itemMap);
     }
 
-    return valueMap;
+    return itemMap;
   }
 
-  private void manage(final Key key, final Item<?> item) {
-    final ExpirableItem<?> expiringItem = expiringItem(key, item);
+  @SuppressWarnings("rawtypes")
+  private Map getItemMap(final Class<Key> keyClass) {
+    return registry.get(keyClass);
+  }
 
-    final Map<Key,ExpirableItem<?>> valueMap = itemMap(expiringItem.key);
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private <T> void putItemMap(final Class<Key> keyClass, Map itemMap) {
+    registry.put(keyClass, itemMap);
+  }
 
-    valueMap.put(expiringItem.key, expiringItem);
+  private <T> void manage(final Key key, final Item<T> item) {
+    final ExpirableItem<T> expiringItem = expiringItem(key, item);
+
+    final Map<Key,ExpirableItem<T>> itemMap = itemMap(expiringItem.key);
+
+    itemMap.put(expiringItem.key, expiringItem);
 
     if (!expiringItem.isMaximumExpiration()) {
       expirableItems.add(expiringItem);
