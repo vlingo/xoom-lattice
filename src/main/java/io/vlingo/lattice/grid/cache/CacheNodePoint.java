@@ -27,4 +27,8 @@ public class CacheNodePoint<T> extends HashedNodePoint<T> {
   public void included() {
 
   }
+
+  Cache cache() {
+    return cache;
+  }
 }
