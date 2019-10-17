@@ -13,10 +13,12 @@ import java.util.function.BiFunction;
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
 import io.vlingo.actors.AddressFactory;
+import io.vlingo.actors.Configuration;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.Stage;
 import io.vlingo.actors.World;
 import io.vlingo.common.Completes;
+import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.cache.CacheNodePoint;
 import io.vlingo.lattice.grid.hashring.HashRing;
@@ -28,11 +30,26 @@ public class Grid extends Stage {
   private final BiFunction<Integer, String, HashedNodePoint<String>> factory;
   private final HashRing<String> hashRing;
 
-  public Grid(final World world, final AddressFactory addressFactory, final String name) {
-    super(world, addressFactory, name);
-    this.cache = new Cache();
-    this.factory =  (hash, node) -> { return new CacheNodePoint<String>(this.cache, hash, node); };
-    this.hashRing = new MurmurArrayHashRing<>(100, factory);
+  public static Grid startWith(final String worldName, final String gridName) {
+    final World world = World.startWithDefaults(worldName);
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
+    return new Grid(world, addressFactory, gridName);
+  }
+
+  public static Grid startWith(final String worldName, final java.util.Properties properties, final String gridName) {
+    final World world = World.start(worldName, properties);
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
+    return new Grid(world, addressFactory, gridName);
+  }
+
+  public static Grid startWith(final String worldName, final Configuration configuration, final String gridName) {
+    final World world = World.start(worldName, configuration);
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
+    return new Grid(world, addressFactory, gridName);
+  }
+
+  public static Grid startWith(final World world, final AddressFactory addressFactory, final String gridName) {
+    return new Grid(world, addressFactory, gridName);
   }
 
   @Override
@@ -71,5 +88,20 @@ public class Grid extends Stage {
       throw new IllegalArgumentException("Address is not distributable.");
     }
     return super.actorOf(protocol, address);
+  }
+
+  public void terminate() {
+    world().terminate();
+  }
+
+  HashRing<String> hashRing() {
+    return hashRing;
+  }
+
+  private Grid(final World world, final AddressFactory addressFactory, final String gridName) {
+    super(world, addressFactory, gridName);
+    this.cache = Cache.defaultCache();
+    this.factory =  (hash, node) -> { return new CacheNodePoint<String>(this.cache, hash, node); };
+    this.hashRing = new MurmurArrayHashRing<>(100, factory);
   }
 }

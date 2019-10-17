@@ -12,6 +12,14 @@ public class Cache {
 
   private final String name;
 
+  public static Cache of(final String name) {
+    return new Cache(name);
+  }
+
+  public static Cache defaultCache() {
+    return new Cache();
+  }
+
   public Cache(final String name) {
     this.name = name;
   }
