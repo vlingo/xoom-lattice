@@ -44,10 +44,6 @@ public class SpaceActor extends Actor implements Space, Scheduled<Object> {
     this.scheduled = selfAs(Scheduled.class);
   }
 
-  public SpaceActor(final long defaultSweepInterval) {
-    this(Duration.ofMillis(defaultSweepInterval));
-  }
-
   @Override
   public <T> Completes<T> itemFor(final Class<T> protocol, final Class<? extends Actor> type, final Object... parameters) {
     // Fail; not implemented. See SpaceItemFactoryRelay#itemFor.
