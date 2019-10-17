@@ -55,6 +55,6 @@ public class AccessorTest {
 
   @After
   public void tearDown() {
-    grid.terminate();
+    //grid.terminate();
   }
 }
