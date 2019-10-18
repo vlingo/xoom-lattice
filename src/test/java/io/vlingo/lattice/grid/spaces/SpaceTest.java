@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.grid.spaces;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import org.junit.After;
@@ -14,6 +15,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import io.vlingo.common.Completes;
 import io.vlingo.lattice.grid.Grid;
 
 public class SpaceTest {
@@ -23,19 +25,58 @@ public class SpaceTest {
 
   @Test
   public void shouldCreateSpace() {
-    final Accessor accessor1 = Accessor.using(grid, "test-accessor");
+    final Accessor accessor1 = Accessor.using(grid, "test-create");
     Assert.assertNotNull(accessor1.spaceFor("test"));
   }
 
   @Test
   public void shouldPutItemInSpace() {
-    final Accessor accessor1 = Accessor.using(grid, "test-accessor");
+    final Accessor accessor1 = Accessor.using(grid, "test-put");
     final Space space = accessor1.spaceFor("test");
     final Key1 key1 = new Key1("123");
     space.put(key1, Item.of(DefaultItem, Lease.Forever));
     final Optional<KeyItem<String>> item = space.get(key1, Period.Forever).await();
     Assert.assertTrue(item.isPresent());
     Assert.assertEquals(item.get().object, DefaultItem);
+  }
+
+  @Test
+  public void shouldSweepItemAndEvictQueryFromSpace() {
+    final Accessor accessor1 = Accessor.using(grid, "test-sweep-evict");
+    final Space space = accessor1.spaceFor("test", Duration.ofMillis(100));
+    final Key1 key1 = new Key1("123");
+    space.put(key1, Item.of(DefaultItem, Lease.of(Duration.ZERO)));
+    pause(1);
+    final Optional<KeyItem<String>> item = space.get(key1, Period.None).await();
+    Assert.assertFalse(item.isPresent());
+  }
+
+  @Test
+  public void shouldFindItemAfterGetSpace() {
+    final Accessor accessor1 = Accessor.using(grid, "test-find-after");
+    final Space space = accessor1.spaceFor("test", Duration.ofMillis(1_000));
+    final Key1 key1 = new Key1("123");
+    final Completes<Optional<KeyItem<String>>> completes = space.get(key1, Period.of(10000));
+    pause(1);
+    space.put(key1, Item.of(DefaultItem, Lease.of(Duration.ofMillis(1_000))));
+    final Optional<KeyItem<String>> item = completes.await();
+    Assert.assertTrue(item.isPresent());
+    Assert.assertEquals(item.get().object, DefaultItem);
+  }
+
+  @Test
+  public void shouldFailGetItemAfterTakeSpace() {
+//    System.out.println("================shouldFailGetItemAfterTakeSpace================");
+    final Accessor accessor1 = Accessor.using(grid, "test-take");
+    final Space space = accessor1.spaceFor("take-test", Duration.ofMillis(1_000));
+    final Key1 key1 = new Key1("123");
+    final Completes<Optional<KeyItem<String>>> completes = space.take(key1, Period.None);
+    space.put(key1, Item.of(DefaultItem, Lease.Forever));
+    final Optional<KeyItem<String>> item = completes.await();
+    Assert.assertTrue(item.isPresent());
+    Assert.assertEquals(item.get().object, DefaultItem);
+    final Optional<KeyItem<String>> noItem = space.get(key1, Period.None).await();
+    Assert.assertFalse(noItem.isPresent());
   }
 
   @Before
@@ -46,5 +87,13 @@ public class SpaceTest {
   @After
   public void tearDown() {
     //grid.terminate();
+  }
+
+  private void pause(final int seconds) {
+    try {
+      Thread.sleep(seconds * 1_000);
+    } catch (InterruptedException e) {
+      // ignore
+    }
   }
 }
