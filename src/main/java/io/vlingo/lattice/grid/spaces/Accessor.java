@@ -15,7 +15,7 @@ import io.vlingo.actors.Definition;
 import io.vlingo.lattice.grid.Grid;
 
 public class Accessor {
-  private static final long DefaultSweepInterval = 15_000;
+  private static final long DefaultScanInterval = 15_000;
 
   private static final Accessor NullAccessor = new Accessor(null, null);
 
@@ -46,16 +46,16 @@ public class Accessor {
   }
 
   public Space spaceFor(final String name) {
-    return spaceFor(name, Duration.ofMillis(DefaultSweepInterval));
+    return spaceFor(name, Duration.ofMillis(DefaultScanInterval));
   }
 
-  public Space spaceFor(final String name, final long defaultSweepInterval) {
-    return spaceFor(name, Duration.ofMillis(defaultSweepInterval));
+  public Space spaceFor(final String name, final long defaultScanInterval) {
+    return spaceFor(name, Duration.ofMillis(defaultScanInterval));
   }
 
-  public synchronized Space spaceFor(final String name, final Duration defaultSweepInterval) {
-    if (defaultSweepInterval.isNegative() || defaultSweepInterval.isZero()) {
-      throw new IllegalArgumentException("The defaultSweepInterval must be greater than zero.");
+  public synchronized Space spaceFor(final String name, final Duration defaultScanInterval) {
+    if (defaultScanInterval.isNegative() || defaultScanInterval.isZero()) {
+      throw new IllegalArgumentException("The defaultScanInterval must be greater than zero.");
     }
 
     if (!isDefined()) {
@@ -65,7 +65,7 @@ public class Accessor {
     Space space = spaces.get(name);
 
     if (space == null) {
-      final Definition definition = Definition.has(SpaceActor.class, Definition.parameters(defaultSweepInterval), name);
+      final Definition definition = Definition.has(SpaceActor.class, Definition.parameters(defaultScanInterval), name);
       final Space internalSpace = grid.actorFor(Space.class, definition);
       space = new SpaceItemFactoryRelay(grid, internalSpace);
       spaces.put(name, space);
