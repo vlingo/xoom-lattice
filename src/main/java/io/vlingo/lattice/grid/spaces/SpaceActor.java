@@ -23,25 +23,27 @@ import io.vlingo.common.Cancellable;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Scheduled;
 
-public class SpaceActor extends Actor implements Space, Scheduled<Object> {
+public class SpaceActor extends Actor implements Space, Scheduled<ScheduledScanner<?>> {
   private static final long Brief = 5;
   private static final long Rounding = 100;
 
-  private Optional<Cancellable> cancellable;
-  private Duration currentSweepInterval;
   private final Set<ExpirableItem<?>> expirableItems;
-  private final Duration defaultSweepInterval;
+  private final Set<ExpirableQuery> expirableQueries;
+  private final Duration defaultScanInterval;
   private final Map<Class<Key>, Map<Key,ExpirableItem<?>>> registry;
-  private final Scheduled<Object> scheduled;
+  private final ScheduledQueryRunnerEvictor scheduledQueryRunnerEvictor;
+  private final ScheduledSweeper scheduledSweeper;
+  private final Scheduled<ScheduledScanner<?>> scheduled;
 
   @SuppressWarnings("unchecked")
-  public SpaceActor(final Duration defaultSweepInterval) {
-    this.defaultSweepInterval = defaultSweepInterval;
-    this.cancellable = Optional.empty();
+  public SpaceActor(final Duration defaultScanInterval) {
+    this.defaultScanInterval = defaultScanInterval;
     this.expirableItems = new TreeSet<>();
-    this.currentSweepInterval = Duration.ofMillis(Long.MAX_VALUE);
+    this.expirableQueries = new TreeSet<>();
     this.registry = new HashMap<>();
     this.scheduled = selfAs(Scheduled.class);
+    this.scheduledQueryRunnerEvictor = new ScheduledQueryRunnerEvictor();
+    this.scheduledSweeper = new ScheduledSweeper();
   }
 
   @Override
@@ -59,23 +61,33 @@ public class SpaceActor extends Actor implements Space, Scheduled<Object> {
 
   @Override
   public <T> Completes<Optional<KeyItem<T>>> get(final Key key, final Period until) {
-    final ExpirableItem<T> item = item(key);
+    final ExpirableItem<T> item = item(key, true);
 
-    return completes().with(Optional.of(KeyItem.of(key, item.object, item.lease)));
+    if (item == null) {
+      periodicQuery(key, true, until);
+
+      return completes();
+    } else {
+      return completes().with(Optional.of(KeyItem.of(key, item.object, item.lease)));
+    }
   }
 
   @Override
   public <T> Completes<Optional<KeyItem<T>>> take(final Key key, final Period until) {
-    final ExpirableItem<T> item = item(key);
+    final ExpirableItem<T> item = item(key, false);
 
-    return completes().with(Optional.of(KeyItem.of(key, item.object, item.lease)));
+    if (item == null) {
+      periodicQuery(key, false, until);
+
+      return completes();
+    } else {
+      return completes().with(Optional.of(KeyItem.of(key, item.object, item.lease)));
+    }
   }
 
   @Override
-  public void intervalSignal(final Scheduled<Object> scheduled, final Object data) {
-    currentSweepInterval = sweep();
-
-    cancellable = Optional.of(scheduler().scheduleOnce(scheduled, null, Duration.ZERO, currentSweepInterval));
+  public void intervalSignal(final Scheduled<ScheduledScanner<?>> scheduled, final ScheduledScanner<?> scanner) {
+    scanner.scan();
   }
 
   private <T> ExpirableItem<T> expiringItem(final Key key, final Item<T> item) {
@@ -83,9 +95,19 @@ public class SpaceActor extends Actor implements Space, Scheduled<Object> {
     return new ExpirableItem<>(key, item.object, expiration, item.lease);
   }
 
-  private <T> ExpirableItem<T> item(final Key key) {
+  private <T> ExpirableQuery expiringQuery(final Key key, final boolean retainItem, final Period period) {
+    final Instant expiration = period.toFutureInstant();
+    return new ExpirableQuery(key, retainItem, expiration, period, completesEventually());
+  }
+
+  private <T> ExpirableItem<T> item(final Key key, final boolean retain) {
     final Map<Key,ExpirableItem<T>> itemMap = itemMap(key);
-    return itemMap.get(key);
+
+    if (retain) {
+      return itemMap.get(key);
+    } else {
+      return itemMap.remove(key);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -112,6 +134,7 @@ public class SpaceActor extends Actor implements Space, Scheduled<Object> {
     registry.put(keyClass, itemMap);
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private <T> void manage(final Key key, final Item<T> item) {
     final ExpirableItem<T> expiringItem = expiringItem(key, item);
 
@@ -122,46 +145,151 @@ public class SpaceActor extends Actor implements Space, Scheduled<Object> {
     if (!expiringItem.isMaximumExpiration()) {
       expirableItems.add(expiringItem);
 
-      scheduleWith(item);
+      scheduledSweeper.scheduleBy((Item) item);
     }
   }
 
-  private void scheduleWith(final Item<?> leasingItem) {
-    final long rounded = leasingItem.lease.duration.toMillis() + Rounding;
+  private void periodicQuery(final Key key, final boolean retain, final Period until) {
+    final ExpirableQuery query = expiringQuery(key, retain, until);
 
-    if (rounded < currentSweepInterval.toMillis()) {
-      currentSweepInterval = leasingItem.lease.duration;
+    expirableQueries.add(query);
 
+    scheduledQueryRunnerEvictor.scheduleBy(query);
+  }
+
+  //================================
+  // ScheduledQueryRunnerEvictor
+  //================================
+
+  private class ScheduledQueryRunnerEvictor implements ScheduledScanner<ExpirableQuery> {
+    private Optional<Cancellable> cancellable;
+    private Duration currentDuration;
+
+    ScheduledQueryRunnerEvictor() {
+      this.cancellable = Optional.empty();
+      this.currentDuration = Duration.ofMillis(Long.MAX_VALUE);
+    }
+
+    @Override
+    public void scan() {
+      final Instant now = Instant.now();
+
+      final List<ExpirableQuery> confirmedExpirables = new ArrayList<>();
+
+      for (final ExpirableQuery expirableQuery : expirableQueries) {
+        final ExpirableItem<?> item = item(expirableQuery.key, expirableQuery.retainItem);
+
+        if (item != null) {
+          expirableQuery.completes.with(Optional.of(KeyItem.of(item.key, item.object, item.lease)));
+          confirmedExpirables.add(expirableQuery);
+        } else if (item == null) {
+          if (now.isAfter(expirableQuery.expiresOn)) {
+            confirmedExpirables.add(expirableQuery);
+            expirableQuery.completes.with(Optional.empty());
+          }
+        }
+      }
+
+      for (final ExpirableQuery expirableQuery : confirmedExpirables) {
+        expirableQueries.remove(expirableQuery);
+      }
+
+      final Iterator<ExpirableQuery> iterator = expirableQueries.iterator();
+
+      if (iterator.hasNext()) {
+        final long millis = (iterator.next().expiresOn.getEpochSecond() - Instant.now().getEpochSecond()) * 1_000;
+        final Duration minQueryDuration = Duration.ofMillis(millis < 0 ? Rounding : millis);
+        currentDuration = min(minQueryDuration, defaultScanInterval);
+      } else {
+        currentDuration = defaultScanInterval;
+      }
+
+      schedule();
+    }
+
+    @Override
+    public void scheduleBy(final ScheduledScannable<ExpirableQuery> scannable) {
+      final ExpirableQuery query = scannable.scannable();
+      final long rounded = query.period.toMilliseconds() + Rounding;
+
+      if (rounded < currentDuration.toMillis()) {
+        currentDuration = min(query.period.duration, defaultScanInterval);
+      }
+
+      schedule();
+    }
+
+    private Duration min(final Duration duration1, final Duration duration2) {
+      return duration1.toMillis() < duration2.toMillis() ? duration1 : duration2;
+    }
+
+    private void schedule() {
       cancellable.ifPresent(canceller -> canceller.cancel());
 
-      cancellable = Optional.of(scheduler().scheduleOnce(scheduled, null, Duration.ZERO, currentSweepInterval));
+      cancellable = Optional.of(scheduler().scheduleOnce(scheduled, this, Duration.ZERO, currentDuration));
     }
   }
 
-  private Duration sweep() {
-    final Instant now = Instant.now();
+  //================================
+  // ScheduledSweeper
+  //================================
 
-    final List<ExpirableItem<?>> confirmedExpirables = new ArrayList<>();
+  @SuppressWarnings("rawtypes")
+  private class ScheduledSweeper implements ScheduledScanner<Item> {
+    private Optional<Cancellable> cancellable;
+    private Duration currentDuration;
 
-    for (final ExpirableItem<?> expirableItem : expirableItems) {
-      if (now.isAfter(expirableItem.expiresOn)) {
-        if (itemMap(expirableItem.key).remove(expirableItem.key) != null) {
-          confirmedExpirables.add(expirableItem);
+    ScheduledSweeper() {
+      this.cancellable = Optional.empty();
+      this.currentDuration = Duration.ofMillis(Long.MAX_VALUE);
+    }
+
+    @Override
+    public void scan() {
+      final Instant now = Instant.now();
+
+      final List<ExpirableItem<?>> confirmedExpirables = new ArrayList<>();
+
+      for (final ExpirableItem<?> expirableItem : expirableItems) {
+        if (now.isAfter(expirableItem.expiresOn)) {
+          if (itemMap(expirableItem.key).remove(expirableItem.key) != null) {
+            confirmedExpirables.add(expirableItem);
+          }
         }
+      }
+
+      for (final ExpirableItem<?> expirableItem : confirmedExpirables) {
+        expirableItems.remove(expirableItem);
+      }
+
+      final Iterator<ExpirableItem<?>> iterator = expirableItems.iterator();
+
+      if (iterator.hasNext()) {
+        final long millis = iterator.next().expiresOn.toEpochMilli() - Instant.now().toEpochMilli();
+        currentDuration = Duration.ofMillis(millis < 0 ? Brief : millis);
+      } else {
+        currentDuration = defaultScanInterval;
+      }
+
+      schedule();
+    }
+
+    @Override
+    public void scheduleBy(final ScheduledScannable<Item> scannable) {
+      final Item item = scannable.scannable();
+      final long rounded = item.lease.duration.toMillis() + Rounding;
+
+      if (rounded < currentDuration.toMillis()) {
+        currentDuration = item.lease.duration;
+
+        schedule();
       }
     }
 
-    for (final ExpirableItem<?> expirableItem : confirmedExpirables) {
-      expirableItems.remove(expirableItem);
-    }
+    private void schedule() {
+      cancellable.ifPresent(canceller -> canceller.cancel());
 
-    final Iterator<ExpirableItem<?>> iterator = expirableItems.iterator();
-
-    if (iterator.hasNext()) {
-      final long millis = iterator.next().expiresOn.toEpochMilli() - Instant.now().toEpochMilli();
-      return Duration.ofMillis(millis < 0 ? Brief : millis);
-    } else {
-      return defaultSweepInterval;
+      cancellable = Optional.of(scheduler().scheduleOnce(scheduled, this, Duration.ZERO, currentDuration));
     }
   }
 }
