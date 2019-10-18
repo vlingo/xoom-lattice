@@ -45,7 +45,7 @@ public class AccessorTest {
   @Test
   public void shouldCreateNamedDurationSweepIntervalSpace() {
     final Accessor accessor1 = Accessor.using(grid, "test-accessor");
-    Assert.assertNotNull(accessor1.spaceFor("test", Duration.ofMillis(1000)));
+    Assert.assertNotNull(accessor1.spaceFor("test", 1, Duration.ofMillis(1000)));
   }
 
   @Before
