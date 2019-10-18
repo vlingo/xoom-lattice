@@ -16,6 +16,7 @@ import io.vlingo.lattice.grid.Grid;
 
 public class Accessor {
   private static final long DefaultScanInterval = 15_000;
+  private static final int DefaultTotalPartitions = 5;
 
   private static final Accessor NullAccessor = new Accessor(null, null);
 
@@ -53,14 +54,22 @@ public class Accessor {
   }
 
   public Space spaceFor(final String name) {
-    return spaceFor(name, Duration.ofMillis(DefaultScanInterval));
+    return spaceFor(name, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
+  }
+
+  public Space spaceFor(final String name, final int totalPartitions) {
+    return spaceFor(name, totalPartitions, Duration.ofMillis(DefaultScanInterval));
   }
 
   public Space spaceFor(final String name, final long defaultScanInterval) {
-    return spaceFor(name, Duration.ofMillis(defaultScanInterval));
+    return spaceFor(name, DefaultTotalPartitions, Duration.ofMillis(defaultScanInterval));
   }
 
-  public synchronized Space spaceFor(final String name, final Duration defaultScanInterval) {
+  public Space spaceFor(final String name, final int totalPartitions, final long defaultScanInterval) {
+    return spaceFor(name, totalPartitions, Duration.ofMillis(defaultScanInterval));
+  }
+
+  public synchronized Space spaceFor(final String name, final int totalPartitions, final Duration defaultScanInterval) {
     if (defaultScanInterval.isNegative() || defaultScanInterval.isZero()) {
       throw new IllegalArgumentException("The defaultScanInterval must be greater than zero.");
     }
@@ -72,7 +81,7 @@ public class Accessor {
     Space space = spaces.get(name);
 
     if (space == null) {
-      final Definition definition = Definition.has(SpaceActor.class, Definition.parameters(defaultScanInterval), name);
+      final Definition definition = Definition.has(PartitioningSpaceRouter.class, Definition.parameters(totalPartitions, defaultScanInterval), name);
       final Space internalSpace = grid.actorFor(Space.class, definition);
       space = new SpaceItemFactoryRelay(grid, internalSpace);
       spaces.put(name, space);
