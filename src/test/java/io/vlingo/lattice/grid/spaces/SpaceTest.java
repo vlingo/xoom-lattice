@@ -66,7 +66,6 @@ public class SpaceTest {
 
   @Test
   public void shouldFailGetItemAfterTakeSpace() {
-//    System.out.println("================shouldFailGetItemAfterTakeSpace================");
     final Accessor accessor1 = Accessor.using(grid, "test-take");
     final Space space = accessor1.spaceFor("take-test", Duration.ofMillis(1_000));
     final Key1 key1 = new Key1("123");
