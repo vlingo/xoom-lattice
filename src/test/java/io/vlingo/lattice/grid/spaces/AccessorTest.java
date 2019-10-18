@@ -25,7 +25,7 @@ public class AccessorTest {
     Assert.assertNotNull(accessor1);
     Assert.assertTrue(accessor1.isDefined());
     Assert.assertFalse(accessor1.isNotDefined());
-    final Accessor accessor2 = Accessor.named("test-accessor");
+    final Accessor accessor2 = Accessor.named(grid, "test-accessor");
     Assert.assertNotNull(accessor2);
     Assert.assertEquals(accessor1.name, accessor2.name);
   }
