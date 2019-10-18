@@ -7,12 +7,19 @@
 
 package io.vlingo.lattice.grid.spaces;
 
-public class Item<T> {
+import io.vlingo.lattice.grid.spaces.ScheduledScanner.ScheduledScannable;
+
+public class Item<T> implements ScheduledScannable<Item<T>> {
   public final Lease lease;
   public final T object;
 
   public static <T> Item<T> of(final T object, final Lease lease) {
     return new Item<>(object, lease);
+  }
+
+  @Override
+  public Item<T> scannable() {
+    return this;
   }
 
   protected Item(final T object, final Lease lease) {
