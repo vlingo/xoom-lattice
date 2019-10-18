@@ -47,7 +47,7 @@ public class PartitioningSpaceRouter extends Actor implements Space {
   }
 
   @Override
-  public <T> Completes<Optional<KeyItem<T>>> take(Key key, Period until) {
+  public <T> Completes<Optional<KeyItem<T>>> take(final Key key, final Period until) {
     final CompletesEventually completes = completesEventually();
     spaceOf(key).take(key, until).andFinallyConsume(keyItem -> completes.with(keyItem));
     return completes();
