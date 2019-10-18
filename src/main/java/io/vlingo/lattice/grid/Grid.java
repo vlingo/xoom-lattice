@@ -52,6 +52,13 @@ public class Grid extends Stage {
     return new Grid(world, addressFactory, gridName);
   }
 
+  public Grid(final World world, final AddressFactory addressFactory, final String gridName) {
+    super(world, addressFactory, gridName);
+    this.cache = Cache.defaultCache();
+    this.factory =  (hash, node) -> { return new CacheNodePoint<String>(this.cache, hash, node); };
+    this.hashRing = new MurmurArrayHashRing<>(100, factory);
+  }
+
   @Override
   public <T> T actorFor(final Class<T> protocol, final Definition definition) {
     return actorFor(protocol, definition, addressFactory().unique());
@@ -96,12 +103,5 @@ public class Grid extends Stage {
 
   HashRing<String> hashRing() {
     return hashRing;
-  }
-
-  private Grid(final World world, final AddressFactory addressFactory, final String gridName) {
-    super(world, addressFactory, gridName);
-    this.cache = Cache.defaultCache();
-    this.factory =  (hash, node) -> { return new CacheNodePoint<String>(this.cache, hash, node); };
-    this.hashRing = new MurmurArrayHashRing<>(100, factory);
   }
 }
