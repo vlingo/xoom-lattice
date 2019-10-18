@@ -43,7 +43,7 @@ public class SpaceTest {
   @Test
   public void shouldSweepItemAndEvictQueryFromSpace() {
     final Accessor accessor1 = Accessor.using(grid, "test-sweep-evict");
-    final Space space = accessor1.spaceFor("test", Duration.ofMillis(100));
+    final Space space = accessor1.spaceFor("test", 1, Duration.ofMillis(100));
     final Key1 key1 = new Key1("123");
     space.put(key1, Item.of(DefaultItem, Lease.of(Duration.ZERO)));
     pause(1);
@@ -54,7 +54,7 @@ public class SpaceTest {
   @Test
   public void shouldFindItemAfterGetSpace() {
     final Accessor accessor1 = Accessor.using(grid, "test-find-after");
-    final Space space = accessor1.spaceFor("test", Duration.ofMillis(1_000));
+    final Space space = accessor1.spaceFor("test", 1, Duration.ofMillis(1_000));
     final Key1 key1 = new Key1("123");
     final Completes<Optional<KeyItem<String>>> completes = space.get(key1, Period.of(10000));
     pause(1);
@@ -67,9 +67,9 @@ public class SpaceTest {
   @Test
   public void shouldFailGetItemAfterTakeSpace() {
     final Accessor accessor1 = Accessor.using(grid, "test-take");
-    final Space space = accessor1.spaceFor("take-test", Duration.ofMillis(1_000));
+    final Space space = accessor1.spaceFor("take-test", 1, Duration.ofMillis(1_000));
     final Key1 key1 = new Key1("123");
-    final Completes<Optional<KeyItem<String>>> completes = space.take(key1, Period.None);
+    final Completes<Optional<KeyItem<String>>> completes = space.take(key1, Period.of(1_000));
     space.put(key1, Item.of(DefaultItem, Lease.Forever));
     final Optional<KeyItem<String>> item = completes.await();
     Assert.assertTrue(item.isPresent());
