@@ -19,21 +19,28 @@ public class Accessor {
 
   private static final Accessor NullAccessor = new Accessor(null, null);
 
-  private static final Map<String,Accessor> accessors = new ConcurrentHashMap<>();
-
   public final String name;
   private final Grid grid;
   private final Map<String,Space> spaces = new ConcurrentHashMap<>();
 
-  public static Accessor named(final String name) {
-    return accessors.getOrDefault(name, NullAccessor);
+  public static Accessor named(final Grid grid, final String name) {
+    Accessor accessor = grid.world().resolveDynamic(name, Accessor.class);
+
+    if (accessor == null) {
+      accessor = NullAccessor;
+    }
+
+    return accessor;
   }
 
   public static synchronized Accessor using(final Grid grid, final String name) {
-    Accessor accessor = accessors.putIfAbsent(name, new Accessor(grid, name));
+    Accessor accessor = grid.world().resolveDynamic(name, Accessor.class);
+
     if (accessor == null) {
-      accessor = accessors.get(name);
+      accessor = new Accessor(grid, name);
+      grid.world().registerDynamic(name, accessor);
     }
+
     return accessor;
   }
 
