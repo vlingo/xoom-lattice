@@ -8,6 +8,7 @@
 package io.vlingo.lattice.model.projection;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
@@ -50,11 +51,17 @@ public abstract class AbstractProjectable implements Projectable {
 
   @Override
   public int dataVersion() {
+    if (state == null) {
+      return -1;
+    }
     return state.dataVersion;
   }
 
   @Override
   public String dataId() {
+    if (state == null) {
+      return "";
+    }
     return state.id;
   }
 
@@ -65,13 +72,36 @@ public abstract class AbstractProjectable implements Projectable {
 
   @Override
   public String metadata() {
+    if (state == null) {
+      return "";
+    }
     return state.metadata.value;
+  }
+
+  @Override
+  public boolean hasObject() {
+    if (state == null) {
+      return false;
+    }
+    return state.metadata.hasObject();
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T> T object() {
+    if (state == null) {
+      return null;
+    }
     return (T) state.metadata.object;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> Optional<T> optionalObject() {
+    if (state == null) {
+      return Optional.empty();
+    }
+    return (Optional<T>) state.metadata.optionalObject();
   }
 
   @Override
@@ -80,12 +110,23 @@ public abstract class AbstractProjectable implements Projectable {
   }
 
   @Override
+  public boolean hasState() {
+    return state != null;
+  }
+
+  @Override
   public String type() {
+    if (state == null) {
+      return "null";
+    }
     return state.type;
   }
 
   @Override
   public int typeVersion() {
+    if (state == null) {
+      return -1;
+    }
     return state.typeVersion;
   }
 
