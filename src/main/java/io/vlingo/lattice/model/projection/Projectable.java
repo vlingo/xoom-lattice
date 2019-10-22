@@ -8,6 +8,7 @@
 package io.vlingo.lattice.model.projection;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import io.vlingo.symbio.Entry;
 
@@ -58,6 +59,12 @@ public interface Projectable {
   String metadata();
 
   /**
+   * Answer whether or no my {@code object} exists.
+   * @return boolean
+   */
+  public boolean hasObject();
+
+  /**
    * Answer my data as a specific {@code T} typed object.
    * @param <T> the type expected of the object
    * @return T
@@ -65,10 +72,22 @@ public interface Projectable {
   <T> T object();
 
   /**
+   * Answer my data as an {@code Optional}.
+   * @return {@code Optional<T>}
+   */
+  <T> Optional<T> optionalObject();
+
+  /**
    * Answer the unique identity associated with the projection operation.
    * @return String
    */
   String projectionId();
+
+  /**
+   * Answer whether or not {@code state} is non-null.
+   * @return boolean
+   */
+  boolean hasState();
 
   /**
    * Answer my type as a {@code String}.
