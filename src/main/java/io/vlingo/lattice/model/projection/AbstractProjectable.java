@@ -27,7 +27,7 @@ public abstract class AbstractProjectable implements Projectable {
 
   @Override
   public String[] becauseOf() {
-    int count = state != null ? 1:0 + entries().size();
+    int count = (state != null ? 1:0) + entries().size();
     final String[] becauseOf = new String[count];
     index = 0;
     if (state != null) {
