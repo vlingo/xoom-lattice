@@ -73,6 +73,7 @@ public interface Projectable {
 
   /**
    * Answer my data as an {@code Optional}.
+   * @param <T> the value type
    * @return {@code Optional<T>}
    */
   <T> Optional<T> optionalObject();
