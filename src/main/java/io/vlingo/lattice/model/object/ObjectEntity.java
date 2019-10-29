@@ -20,14 +20,11 @@ import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
-import io.vlingo.symbio.store.object.ListQueryExpression;
-import io.vlingo.symbio.store.object.MapQueryExpression;
+import io.vlingo.symbio.store.object.*;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
-import io.vlingo.symbio.store.object.QueryExpression;
-import io.vlingo.symbio.store.object.StateObject;
 
 /**
  * Abstract base type used to preserve and restore object state
@@ -83,7 +80,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    */
   protected <C,RT> Completes<RT> apply(final T state, final List<Source<C>> sources, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
-    info.store.persist(state, sources, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    info.store.persist(StateSources.of(state,sources), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -101,7 +98,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    */
   protected <C,RT> Completes<RT> apply(final T state, final Source<C> source, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
-    info.store.persist(state, asList(source), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    info.store.persist(StateSources.of(state, source), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -117,7 +114,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    */
   protected <RT> Completes<RT> apply(final T state, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
-    info.store.persist(state, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    info.store.persist(StateSources.of(state), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
