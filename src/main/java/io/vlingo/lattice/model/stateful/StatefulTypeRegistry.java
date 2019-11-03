@@ -25,6 +25,24 @@ public final class StatefulTypeRegistry {
   private final Map<Class<?>,Info<?>> stores = new HashMap<>();
 
   /**
+   * Answer a new {@code StatefulTypeRegistry} after registering all {@code types} with the {@code stateStore}
+   * using the default {@code storeName} for each of the {@code types}.
+   * @param world the World to which the new StatefulTypeRegistry is registered
+   * @param stateStore the StateStore
+   * @param types the {@code Class<?>}[] native type of states to be stored
+   * @return StatefulTypeRegistry
+   */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static StatefulTypeRegistry registerAll(final World world, final StateStore stateStore, final Class<?>... types) {
+    final StatefulTypeRegistry registry = new StatefulTypeRegistry(world);
+
+    for (final Class<?> type : types) {
+      registry.register(new Info(stateStore, type, type.getSimpleName()));
+    }
+
+    return registry;
+  }
+  /**
    * Answer the {@code StatefulTypeRegistry} held by the {@code world}.
    * @param world the World where the StatefulTypeRegistry is held
    * @return StatefulTypeRegistry
