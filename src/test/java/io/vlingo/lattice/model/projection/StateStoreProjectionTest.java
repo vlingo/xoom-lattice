@@ -34,7 +34,6 @@ import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
 
 public class StateStoreProjectionTest {
   private Projection projection;
-  private StatefulTypeRegistry registry;
   private StateStore store;
   private World world;
 
@@ -113,7 +112,7 @@ public class StateStoreProjectionTest {
 
     projection = world.actorFor(Projection.class, WarbleStateStoreProjection.class, store);
 
-    registry = StatefulTypeRegistry.registerAll(world, store, Warble.class);
+    StatefulTypeRegistry.registerAll(world, store, Warble.class);
   }
 
   @After
