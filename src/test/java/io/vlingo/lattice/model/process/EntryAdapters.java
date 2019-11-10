@@ -35,6 +35,12 @@ public class EntryAdapters {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, DoStepOne.class, 1, serialization, metadata);
     }
+
+    @Override
+    public TextEntry toEntry(final DoStepOne source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, DoStepOne.class, 1, serialization, version, metadata);
+    }
   }
 
   public static final class DoStepTwoAdapter implements EntryAdapter<DoStepTwo, TextEntry> {
@@ -53,6 +59,12 @@ public class EntryAdapters {
     public TextEntry toEntry(final DoStepTwo source, final String id, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, DoStepTwo.class, 1, serialization, metadata);
+    }
+
+    @Override
+    public TextEntry toEntry(final DoStepTwo source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, DoStepTwo.class, 1, serialization, version, metadata);
     }
   }
 
@@ -73,6 +85,12 @@ public class EntryAdapters {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, DoStepThree.class, 1, serialization, metadata);
     }
+
+    @Override
+    public TextEntry toEntry(final DoStepThree source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, DoStepThree.class, 1, serialization, version, metadata);
+    }
   }
 
   public static final class DoStepFourAdapter implements EntryAdapter<DoStepFour, TextEntry> {
@@ -92,6 +110,12 @@ public class EntryAdapters {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, DoStepFour.class, 1, serialization, metadata);
     }
+
+    @Override
+    public TextEntry toEntry(final DoStepFour source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, DoStepFour.class, 1, serialization, version, metadata);
+    }
   }
 
   public static final class DoStepFiveAdapter implements EntryAdapter<DoStepFive, TextEntry> {
@@ -110,6 +134,12 @@ public class EntryAdapters {
     public TextEntry toEntry(final DoStepFive source, final String id, final Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, DoStepFive.class, 1, serialization, metadata);
+    }
+
+    @Override
+    public TextEntry toEntry(final DoStepFive source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, DoStepFive.class, 1, serialization, version, metadata);
     }
   }
 }

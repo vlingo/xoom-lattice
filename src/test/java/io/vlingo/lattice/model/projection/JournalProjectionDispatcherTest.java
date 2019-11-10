@@ -288,6 +288,12 @@ public class JournalProjectionDispatcherTest {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, OneHappened.class, 1, serialization, metadata);
     }
+
+    @Override
+    public TextEntry toEntry(final OneHappened source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, OneHappened.class, 1, serialization, version, metadata);
+    }
   }
 
   public static final class TwoHappenedAdapter implements EntryAdapter<TwoHappened, TextEntry> {
@@ -307,6 +313,12 @@ public class JournalProjectionDispatcherTest {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, TwoHappened.class, 1, serialization, metadata);
     }
+
+    @Override
+    public TextEntry toEntry(final TwoHappened source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, TwoHappened.class, 1, serialization, version, metadata);
+    }
   }
 
   public static final class ThreeHappenedAdapter implements EntryAdapter<ThreeHappened, TextEntry> {
@@ -325,6 +337,12 @@ public class JournalProjectionDispatcherTest {
     public TextEntry toEntry(ThreeHappened source, String id, Metadata metadata) {
       final String serialization = JsonSerialization.serialized(source);
       return new TextEntry(id, ThreeHappened.class, 1, serialization, metadata);
+    }
+
+    @Override
+    public TextEntry toEntry(final ThreeHappened source, final int version, final String id, final Metadata metadata) {
+      final String serialization = JsonSerialization.serialized(source);
+      return new TextEntry(id, ThreeHappened.class, 1, serialization, version, metadata);
     }
   }
 }

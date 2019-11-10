@@ -8,9 +8,9 @@
 package io.vlingo.lattice.model.sourcing;
 
 import io.vlingo.common.serialization.JsonSerialization;
+import io.vlingo.symbio.BaseEntry.TextEntry;
 import io.vlingo.symbio.EntryAdapter;
 import io.vlingo.symbio.Metadata;
-import io.vlingo.symbio.BaseEntry.TextEntry;
 
 public final class Test3HappenedAdapter implements EntryAdapter<Test3Happened,TextEntry> {
   @Override
@@ -28,5 +28,11 @@ public final class Test3HappenedAdapter implements EntryAdapter<Test3Happened,Te
   public TextEntry toEntry(final Test3Happened source, final String id, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
     return new TextEntry(id, Test3Happened.class, 1, serialization, metadata);
+  }
+
+  @Override
+  public TextEntry toEntry(Test3Happened source, int version, String id, Metadata metadata) {
+    final String serialization = JsonSerialization.serialized(source);
+    return new TextEntry(id, Test3Happened.class, 1, serialization, version, metadata);
   }
 }
