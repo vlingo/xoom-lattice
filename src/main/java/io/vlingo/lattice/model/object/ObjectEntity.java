@@ -17,14 +17,19 @@ import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
+import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
-import io.vlingo.symbio.store.object.*;
+import io.vlingo.symbio.store.object.ListQueryExpression;
+import io.vlingo.symbio.store.object.MapQueryExpression;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
+import io.vlingo.symbio.store.object.QueryExpression;
+import io.vlingo.symbio.store.object.StateObject;
+import io.vlingo.symbio.store.object.StateSources;
 
 /**
  * Abstract base type used to preserve and restore object state
@@ -72,6 +77,25 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    * eventual outcome by means of the given {@code andThen} function.
    * @param state the Object state to preserve
    * @param sources the {@code List<Source<C>>} instances to apply
+   * @param metadata the Metadata to apply along with source
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
+   */
+  protected <C,RT> Completes<RT> apply(final T state, final List<Source<C>> sources, final Metadata metadata, final Supplier<RT> andThen) {
+    stowMessages(PersistResultInterest.class);
+    info.store.persist(StateSources.of(state,sources), metadata, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    return andThen == null ? null : completes();
+  }
+
+  /**
+   * Answer {@code Completes<RT>}, applying {@code state} and {@code sources},
+   * dispatching to {@code state(final S state)} when completed, and supply an
+   * eventual outcome by means of the given {@code andThen} function.
+   * @param state the Object state to preserve
+   * @param sources the {@code List<Source<C>>} instances to apply
    * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
    * and which will used to answer an eventual outcome to the client of this entity
    * @param <C> the type of Source
@@ -79,8 +103,25 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    * @return {@code Completes<RT>}
    */
   protected <C,RT> Completes<RT> apply(final T state, final List<Source<C>> sources, final Supplier<RT> andThen) {
+    return apply(state, sources, metadata(), andThen);
+  }
+
+  /**
+   * Answer {@code Completes<RT>}, applying {@code state} and {@code source}, dispatching to
+   * {@code state(final S state)} when completed and supply an eventual outcome by means of
+   * the given {@code andThen} function.
+   * @param state the Object state to preserve
+   * @param source the {@code Source<C>} to apply
+   * @param metadata the Metadata to apply along with source
+   * @param andThen the {@code Supplier<RT>} that will provide the fully updated state following this operation,
+   * and which will used to answer an eventual outcome to the client of this entity
+   * @param <C> the type of Source
+   * @param <RT> the return type of the Supplier function, which is the type of the completed state
+   * @return {@code Completes<RT>}
+   */
+  protected <C,RT> Completes<RT> apply(final T state, final Source<C> source, final Metadata metadata, final Supplier<RT> andThen) {
     stowMessages(PersistResultInterest.class);
-    info.store.persist(StateSources.of(state,sources), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    info.store.persist(StateSources.of(state, source), metadata, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -97,9 +138,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    * @return {@code Completes<RT>}
    */
   protected <C,RT> Completes<RT> apply(final T state, final Source<C> source, final Supplier<RT> andThen) {
-    stowMessages(PersistResultInterest.class);
-    info.store.persist(StateSources.of(state, source), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    return apply(state, source, metadata(), andThen);
   }
 
   /**
@@ -125,7 +164,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    * @param <C> the type of Source
    */
   protected <C> void apply(final T state, final List<Source<C>> sources) {
-    apply(state, sources, null);
+    apply(state, sources, metadata(), null);
   }
 
   /**
@@ -135,7 +174,7 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    * @param <C> the type of Source
    */
   protected <C> void apply(final T state, final Source<C> source) {
-    apply(state, Arrays.asList(source), null);
+    apply(state, Arrays.asList(source), metadata(), null);
   }
 
   /**
@@ -161,6 +200,14 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
    * @return String
    */
   protected abstract String id();
+
+  /**
+   * Answer my {@code Metadata}. Must override if {@code Metadata} is to be supported.
+   * @return Metadata
+   */
+  protected Metadata metadata() {
+    return Metadata.nullMetadata();
+  }
 
   /**
    * Received by my extender when I must access its state object.
