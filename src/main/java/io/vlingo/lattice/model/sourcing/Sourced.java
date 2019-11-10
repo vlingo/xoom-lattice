@@ -117,7 +117,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @param sources the {@code List<Source<T>>} to apply
    */
   final protected void apply(final List<Source<T>> sources) {
-    apply(sources, null);
+    apply(sources, metadata(), null);
   }
 
   /**
@@ -130,10 +130,24 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @return {@code Completes<R>}
    */
   final protected <R> Completes<R> apply(final List<Source<T>> sources, final Supplier<R> andThen) {
+    return apply(sources, metadata(), andThen);
+  }
+
+  /**
+   * Answer {@code Completes<RT>}, applying all of the given {@code sources} to myself,
+   * which includes appending them to my journal and reflecting the representative changes
+   * to my state, followed by the execution of a possible {@code andThen}.
+   * @param sources the {@code List<Source<T>>} to apply
+   * @param metadata the Metadata to apply along with source
+   * @param andThen the {@code Supplier<R>} executed following the application of sources
+   * @param <R> the return type of the andThen {@code Supplier<R>}
+   * @return {@code Completes<R>}
+   */
+  final protected <R> Completes<R> apply(final List<Source<T>> sources, final Metadata metadata, final Supplier<R> andThen) {
     beforeApply(sources);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), sources, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(streamName(), nextVersion(), sources, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -143,7 +157,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @param source the {@code Source<T>} to apply
    */
   final protected void apply(final Source<T> source) {
-    apply(source, null);
+    apply(source, metadata(), null);
   }
 
   /**
@@ -156,11 +170,25 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @return {@code Completes<R>}
    */
   final protected <R> Completes<R> apply(final Source<T> source, final Supplier<R> andThen) {
+    return apply(source, metadata(), andThen);
+  }
+
+  /**
+   * Answer {@code Completes<R>}, applying the given {@code source} to myself, which
+   * includes appending it to my journal and reflecting the representative changes to my
+   * state, followed by the execution of a possible {@code andThen}.
+   * @param source the {@code Source<T>} to apply
+   * @param metadata the Metadata to apply along with source
+   * @param andThen the {@code Supplier<R>} executed following the application of sources
+   * @param <R> the return type of the andThen {@code Supplier<R>}
+   * @return {@code Completes<R>}
+   */
+  final protected <R> Completes<R> apply(final Source<T> source, final Metadata metadata, final Supplier<R> andThen) {
     final List<Source<T>> toApply = wrap(source);
     beforeApply(toApply);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), toApply, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(streamName(), nextVersion(), toApply, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -203,6 +231,15 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    */
   protected int currentVersion() {
     return currentVersion;
+  }
+
+  /**
+   * Answer my {@code Metadata}.
+   * Must override if {@code Metadata} is to be supported.
+   * @return Metadata
+   */
+  protected Metadata metadata() {
+    return Metadata.nullMetadata();
   }
 
   /**
