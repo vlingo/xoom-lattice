@@ -54,6 +54,7 @@ public class Grid extends Stage {
 
   public Grid(final World world, final AddressFactory addressFactory, final String gridName) {
     super(world, addressFactory, gridName);
+    extenderStartDirectoryScanner();
     this.cache = Cache.defaultCache();
     this.factory =  (hash, node) -> { return new CacheNodePoint<String>(this.cache, hash, node); };
     this.hashRing = new MurmurArrayHashRing<>(100, factory);
