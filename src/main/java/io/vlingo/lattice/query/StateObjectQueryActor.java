@@ -7,12 +7,14 @@
 
 package io.vlingo.lattice.query;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.CompletionTranslator;
+import io.vlingo.lattice.query.QueryAttempt.Cardinality;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.object.ObjectStore;
@@ -24,7 +26,7 @@ import io.vlingo.symbio.store.object.QueryExpression;
 /**
  * An building-block {@code Actor} that queries asynchronously and provides a translated outcome.
  */
-public class StateObjectQueryActor extends Actor implements QueryResultInterest {
+public abstract class StateObjectQueryActor extends Actor implements QueryResultInterest {
   private final ObjectStore objectStore;
   private final QueryResultInterest queryResultInterest;
 
@@ -35,6 +37,18 @@ public class StateObjectQueryActor extends Actor implements QueryResultInterest 
   protected StateObjectQueryActor(final ObjectStore objectStore) {
     this.objectStore = objectStore;
     this.queryResultInterest = selfAs(QueryResultInterest.class);
+  }
+
+  /**
+   * Answer {@code Optional<QueryFailedException>} that should be thrown
+   * and handled by my {@code Supervisor}, unless it is empty. The default
+   * behavior is to answer the given {@code exception}, which will be thrown.
+   * Must override to change default behavior.
+   * @param exception the QueryFailedException
+   * @return {@code Optional<QueryFailedException>}
+   */
+  protected Optional<ObjectQueryFailedException> afterQueryFailed(final ObjectQueryFailedException exception) {
+    return Optional.of(exception);
   }
 
   /**
@@ -52,7 +66,10 @@ public class StateObjectQueryActor extends Actor implements QueryResultInterest 
           final QueryExpression query,
           final Function<O,R> andThen) {
 
-    objectStore.queryAll(query, queryResultInterest, CompletionTranslator.translatorOrNull(andThen, completesEventually()));
+    objectStore.queryAll(
+            query,
+            queryResultInterest,
+            QueryAttempt.with(Cardinality.All, stateObjectType, query, CompletionTranslator.translatorOrNull(andThen, completesEventually())));
 
     return completes();
   }
@@ -62,7 +79,10 @@ public class StateObjectQueryActor extends Actor implements QueryResultInterest 
           final QueryExpression query,
           final Function<O,R> andThen) {
 
-    objectStore.queryObject(query, queryResultInterest, CompletionTranslator.translatorOrNull(andThen, completesEventually()));
+    objectStore.queryObject(
+            query,
+            queryResultInterest,
+            QueryAttempt.with(Cardinality.Object, stateObjectType, query, CompletionTranslator.translatorOrNull(andThen, completesEventually())));
 
     return completes();
   }
@@ -74,16 +94,22 @@ public class StateObjectQueryActor extends Actor implements QueryResultInterest 
   final public void queryAllResultedIn(
           final Outcome<StorageException, Result> outcome,
           final QueryMultiResults queryResults,
-          final Object translator) {
+          final Object attempt) {
     outcome
       .andThen(result -> {
-        completeUsing(translator, queryResults.stateObjects);
+        completeUsing(attempt, queryResults.stateObjects);
         return result;
       })
       .otherwise(cause -> {
         final String message = "Query failed because: " + cause.result + " with: " + cause.getMessage();
-        logger().error(message, cause);
-        throw new IllegalStateException(message, cause);
+        final ObjectQueryFailedException exception = new ObjectQueryFailedException(QueryAttempt.from(attempt), message, cause);
+        final Optional<ObjectQueryFailedException> maybeException = afterQueryFailed(exception);
+        if (maybeException.isPresent()) {
+          logger().error(message, maybeException.get());
+          throw maybeException.get();
+        }
+        logger().error(message, exception);
+        return cause.result;
       });
   }
 
@@ -94,16 +120,29 @@ public class StateObjectQueryActor extends Actor implements QueryResultInterest 
   final public void queryObjectResultedIn(
           final Outcome<StorageException, Result> outcome,
           final QuerySingleResult queryResult,
-          final Object supplier) {
+          final Object attempt) {
     outcome
       .andThen(result -> {
-        completeUsing(supplier, queryResult.stateObject);
+        completeUsing(attempt, queryResult.stateObject);
         return result;
       })
       .otherwise(cause -> {
+        switch (cause.result) {
+        case NotFound:
+          completeUsing(attempt, queryResult.stateObject);
+          return cause.result;
+        default:
+          break;
+        }
         final String message = "Query failed because: " + cause.result + " with: " + cause.getMessage();
-        logger().error(message, cause);
-        throw new IllegalStateException(message, cause);
+        final ObjectQueryFailedException exception = new ObjectQueryFailedException(QueryAttempt.from(attempt), message, cause);
+        final Optional<ObjectQueryFailedException> maybeException = afterQueryFailed(exception);
+        if (maybeException.isPresent()) {
+          logger().error(message, maybeException.get());
+          throw maybeException.get();
+        }
+        logger().error(message, exception);
+        return cause.result;
       });
   }
 
@@ -114,10 +153,9 @@ public class StateObjectQueryActor extends Actor implements QueryResultInterest 
    * @param outcome the O outcome to be translated for completion
    * @param <O> the type of outcome
    */
-  @SuppressWarnings("unchecked")
-  private <O> void completeUsing(final Object translator, final O outcome) {
-    if (translator != null) {
-      ((CompletionTranslator<O,?>) translator).complete(outcome);
+  private <O> void completeUsing(final Object attempt, final O outcome) {
+    if (attempt != null) {
+      QueryAttempt.from(attempt).completionTranslator.complete(outcome);
     }
   }
 }
