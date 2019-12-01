@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.query;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -101,6 +102,13 @@ public abstract class StateObjectQueryActor extends Actor implements QueryResult
         return result;
       })
       .otherwise(cause -> {
+        switch (cause.result) {
+        case NotFound:
+          completeUsing(attempt, Collections.emptyList());
+          return cause.result;
+        default:
+          break;
+        }
         final String message = "Query failed because: " + cause.result + " with: " + cause.getMessage();
         final ObjectQueryFailedException exception = new ObjectQueryFailedException(QueryAttempt.from(attempt), message, cause);
         final Optional<ObjectQueryFailedException> maybeException = afterQueryFailed(exception);
