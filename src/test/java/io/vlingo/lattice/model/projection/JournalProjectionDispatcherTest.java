@@ -26,6 +26,7 @@ import io.vlingo.common.Outcome;
 import io.vlingo.common.serialization.JsonSerialization;
 import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.lattice.model.projection.ProjectionDispatcher.ProjectToDescription;
+import io.vlingo.lattice.model.projection.ProjectionDispatcher.TextProjectionDispatcherInstantiator;
 import io.vlingo.symbio.BaseEntry.TextEntry;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.EntryAdapter;
@@ -112,7 +113,7 @@ public class JournalProjectionDispatcherTest {
     final Protocols dispatcherProtocols =
             world.stage().actorFor(
                     new Class<?>[] { Dispatcher.class, ProjectionDispatcher.class },
-                    Definition.has(TextProjectionDispatcherActor.class, Definition.parameters(descriptions)));
+                    Definition.has(TextProjectionDispatcherActor.class, new TextProjectionDispatcherInstantiator(descriptions)));
 
     final Protocols.Two<Dispatcher, ProjectionDispatcher> dispatchers = Protocols.two(dispatcherProtocols);
 

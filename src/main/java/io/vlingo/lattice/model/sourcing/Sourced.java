@@ -22,6 +22,8 @@ import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
+import io.vlingo.lattice.model.ApplyFailedException;
+import io.vlingo.lattice.model.ApplyFailedException.Applicable;
 import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
@@ -209,6 +211,18 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   protected void afterApply() { }
 
   /**
+   * Answer {@code Optional<ApplyFailedException>} that should be thrown
+   * and handled by my {@code Supervisor}, unless it is empty. The default
+   * behavior is to answer the given {@code exception}, which will be thrown.
+   * Must override to change default behavior.
+   * @param exception the ApplyFailedException
+   * @return {@code Optional<ApplyFailedException>}
+   */
+  protected Optional<ApplyFailedException> afterApplyFailed(final ApplyFailedException exception) {
+    return Optional.of(exception);
+  }
+
+  /**
    * Received prior to the evaluation of each {@code apply()} and by
    * default adds all applied {@code Source<T>} {@code sources} to the
    * {@code TestContext reference}, if currently testing. The concrete
@@ -339,10 +353,17 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
         return result;
       })
       .otherwise(cause -> {
-        disperseStowedMessages();
+        final Applicable<?> applicable = new Applicable<>(null, Arrays.asList(source), metadata, (CompletionSupplier<?>) supplier);
         final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().error(message, cause);
-        throw new StorageException(cause.result, message, cause);
+        final ApplyFailedException exception = new ApplyFailedException(applicable, message, cause);
+        final Optional<ApplyFailedException> maybeException = afterApplyFailed(exception);
+        disperseStowedMessages();
+        if (maybeException.isPresent()) {
+          logger().error(message, maybeException.get());
+          throw maybeException.get();
+        }
+        logger().error(message, exception);
+        return cause.result;
       });
   }
 
@@ -350,6 +371,7 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * FOR INTERNAL USE ONLY.
    */
   @Override
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public final <STT, ST> void appendAllResultedIn(final Outcome<StorageException, Result> outcome, final String streamName,
           final int streamVersion,final List<Source<STT>> sources, final Metadata metadata,
           final Optional<ST> snapshot, final Object supplier) {
@@ -366,10 +388,17 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
         return result;
       })
       .otherwise(cause -> {
-        disperseStowedMessages();
+        final Applicable<?> applicable = new Applicable(null, sources, metadata, (CompletionSupplier<?>) supplier);
         final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
-        logger().error(message, cause);
-        throw new StorageException(cause.result, message, cause);
+        final ApplyFailedException exception = new ApplyFailedException(applicable, message, cause);
+        final Optional<ApplyFailedException> maybeException = afterApplyFailed(exception);
+        disperseStowedMessages();
+        if (maybeException.isPresent()) {
+          logger().error(message, maybeException.get());
+          throw maybeException.get();
+        }
+        logger().error(message, exception);
+        return cause.result;
       });
   }
 

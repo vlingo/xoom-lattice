@@ -55,7 +55,7 @@ public class PartitioningSpaceRouter extends Actor implements Space {
 
   private void initialize(final Duration defaultScanInterval) {
     for (int count = 0; count < totalPartitions; ++count) {
-      final Definition definition = Definition.has(SpaceActor.class, Definition.parameters(defaultScanInterval), address().name() + "-" + count);
+      final Definition definition = Definition.has(SpaceActor.class, new SpaceInstantiator(defaultScanInterval), address().name() + "-" + count);
       final Space internalSpace = childActorFor(Space.class, definition);
       partitions[count] = internalSpace;
     }

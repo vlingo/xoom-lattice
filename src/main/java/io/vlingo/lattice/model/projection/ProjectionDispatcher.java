@@ -7,9 +7,11 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorInstantiator;
 import io.vlingo.symbio.Source;
 
 /**
@@ -134,6 +136,42 @@ public interface ProjectionDispatcher {
       this.projectionType = projectionType;
       this.becauseOf = becauseOf;
       this.constructionParameter = constructionParameter;
+    }
+  }
+
+  static class BinaryProjectionDispatcherInstantiator implements ActorInstantiator<BinaryProjectionDispatcherActor> {
+    private final Collection<ProjectToDescription> projectToDescriptions;
+
+    public BinaryProjectionDispatcherInstantiator(final Collection<ProjectToDescription> projectToDescriptions) {
+      this.projectToDescriptions = projectToDescriptions;
+    }
+
+    @Override
+    public BinaryProjectionDispatcherActor instantiate() {
+      return new BinaryProjectionDispatcherActor(projectToDescriptions);
+    }
+
+    @Override
+    public Class<BinaryProjectionDispatcherActor> type() {
+      return BinaryProjectionDispatcherActor.class;
+    }
+  }
+
+  static class TextProjectionDispatcherInstantiator implements ActorInstantiator<TextProjectionDispatcherActor> {
+    private final Collection<ProjectToDescription> projectToDescriptions;
+
+    public TextProjectionDispatcherInstantiator(final Collection<ProjectToDescription> projectToDescriptions) {
+      this.projectToDescriptions = projectToDescriptions;
+    }
+
+    @Override
+    public TextProjectionDispatcherActor instantiate() {
+      return new TextProjectionDispatcherActor(projectToDescriptions);
+    }
+
+    @Override
+    public Class<TextProjectionDispatcherActor> type() {
+      return TextProjectionDispatcherActor.class;
     }
   }
 }

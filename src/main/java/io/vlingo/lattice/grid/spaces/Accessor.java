@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.vlingo.actors.Definition;
 import io.vlingo.lattice.grid.Grid;
+import io.vlingo.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
 
 public class Accessor {
   private static final long DefaultScanInterval = 15_000;
@@ -81,7 +82,7 @@ public class Accessor {
     Space space = spaces.get(name);
 
     if (space == null) {
-      final Definition definition = Definition.has(PartitioningSpaceRouter.class, Definition.parameters(totalPartitions, defaultScanInterval), name);
+      final Definition definition = Definition.has(PartitioningSpaceRouter.class, new PartitioningSpaceRouterInstantiator(totalPartitions, defaultScanInterval), name);
       final Space internalSpace = grid.actorFor(Space.class, definition);
       space = new SpaceItemFactoryRelay(grid, internalSpace);
       spaces.put(name, space);
