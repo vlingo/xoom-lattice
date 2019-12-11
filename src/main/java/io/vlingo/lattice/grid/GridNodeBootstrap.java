@@ -11,6 +11,7 @@ import io.vlingo.actors.Logger;
 import io.vlingo.cluster.model.Cluster;
 import io.vlingo.cluster.model.ClusterSnapshotControl;
 import io.vlingo.cluster.model.Properties;
+import io.vlingo.cluster.model.application.ClusterApplication.DefaultClusterApplicationInstantiator;
 import io.vlingo.common.Tuple2;
 
 public class GridNodeBootstrap {
@@ -29,7 +30,11 @@ public class GridNodeBootstrap {
     if (mustBoot) {
       Properties.instance.validateRequired(nodeName);
 
-      final Tuple2<ClusterSnapshotControl, Logger> control = Cluster.controlFor(nodeName);
+      final Tuple2<ClusterSnapshotControl, Logger> control =
+              Cluster.controlFor(
+                      new DefaultClusterApplicationInstantiator(), // TODO: Replace
+                      io.vlingo.cluster.model.Properties.instance,
+                      nodeName);
 
       GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName);
 
