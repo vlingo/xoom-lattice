@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import io.vlingo.common.Completes;
 import io.vlingo.lattice.grid.Grid;
+import io.vlingo.lattice.grid.GridNodeBootstrap;
 
 public class SpaceTest {
   private static final String DefaultItem = "ThisIsAnItem";
@@ -79,7 +80,9 @@ public class SpaceTest {
   }
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
+    GridNodeBootstrap.reset();
+
     grid = Grid.startWith("test-world", "test-grid");
   }
 
