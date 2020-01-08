@@ -30,30 +30,48 @@ public class Grid extends Stage {
   private final BiFunction<Integer, String, HashedNodePoint<String>> factory;
   private final HashRing<String> hashRing;
 
-  public static Grid startWith(final String worldName, final String gridName) {
+  public static Grid startWith(final String worldName, final String gridNodeName) throws Exception {
+    mustNotExist();
     final World world = World.startWithDefaults(worldName);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
-    return new Grid(world, addressFactory, gridName);
+    final Grid grid = new Grid(world, addressFactory, gridNodeName);
+    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    return grid;
   }
 
-  public static Grid startWith(final String worldName, final java.util.Properties properties, final String gridName) {
+  public static Grid startWith(final String worldName, final java.util.Properties properties, final String gridNodeName) throws Exception {
+    mustNotExist();
     final World world = World.start(worldName, properties);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
-    return new Grid(world, addressFactory, gridName);
+    final Grid grid = new Grid(world, addressFactory, gridNodeName);
+    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    return grid;
   }
 
-  public static Grid startWith(final String worldName, final Configuration configuration, final String gridName) {
+  public static Grid startWith(final String worldName, final Configuration configuration, final String gridNodeName) throws Exception {
+    mustNotExist();
     final World world = World.start(worldName, configuration);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
-    return new Grid(world, addressFactory, gridName);
+    final Grid grid = new Grid(world, addressFactory, gridNodeName);
+    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    return grid;
   }
 
-  public static Grid startWith(final World world, final AddressFactory addressFactory, final String gridName) {
-    return new Grid(world, addressFactory, gridName);
+  public static Grid startWith(final World world, final AddressFactory addressFactory, final String gridNodeName) throws Exception {
+    mustNotExist();
+    final Grid grid = new Grid(world, addressFactory, gridNodeName);
+    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    return grid;
   }
 
-  public Grid(final World world, final AddressFactory addressFactory, final String gridName) {
-    super(world, addressFactory, gridName);
+  private static void mustNotExist() {
+    if (GridNodeBootstrap.exists()) {
+      throw new IllegalStateException("Grid already exists.");
+    }
+  }
+
+  public Grid(final World world, final AddressFactory addressFactory, final String gridNodeName) {
+    super(world, addressFactory, gridNodeName);
     extenderStartDirectoryScanner();
     this.cache = Cache.defaultCache();
     this.factory =  (hash, node) -> { return new CacheNodePoint<String>(this.cache, hash, node); };
