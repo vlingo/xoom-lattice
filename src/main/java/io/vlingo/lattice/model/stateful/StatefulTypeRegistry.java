@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import io.vlingo.actors.World;
 import io.vlingo.symbio.store.state.StateStore;
+import io.vlingo.symbio.store.state.StateStoreRepository;
 import io.vlingo.symbio.store.state.StateTypeStateStoreMap;
 
 /**
@@ -82,10 +83,22 @@ public final class StatefulTypeRegistry {
   }
 
   /**
+   * Answer the {@code repository} registered with the {@code Info<T>}
+   * as referenced by {@code type}, or {@code null} if there is none.
+   * @param type the {@code Class<?>} referencing the {@code Info<T>}
+   * @return ObjectStoreRepository
+   */
+  public StateStoreRepository repository(Class<?> type) {
+    final Info<?> info = stores.get(type);
+    return info.repository;
+  }
+
+  /**
    * Holder of registration information.
    * @param <S> the native type of the state
    */
   public static class Info<S> {
+    public final StateStoreRepository repository;
     public final StateStore store;
     public final String storeName;
     public final Class<S> storeType;
@@ -100,6 +113,28 @@ public final class StatefulTypeRegistry {
       this.store = store;
       this.storeType = storeType;
       this.storeName = storeName;
+      this.repository = null;
+    }
+
+    /**
+     * Construct my default state.
+     * @param repository the StateStoreRepository
+     * @param storeType the {@code Class<S>} of the State
+     * @param storeName the String name of the store
+     */
+    public Info(final StateStoreRepository repository, final Class<S> storeType, final String storeName) {
+      this.repository = repository;
+      this.store = repository.stateStore();
+      this.storeType = storeType;
+      this.storeName = storeName;
+    }
+
+    /**
+     * Answer whether or not I have a {@code repository}.
+     * @return boolean
+     */
+    public boolean hasRepository() {
+      return repository != null;
     }
 
     /**
