@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import io.vlingo.actors.World;
 import io.vlingo.symbio.store.object.ObjectStore;
-import io.vlingo.symbio.store.object.ObjectStoreRepository;
 import io.vlingo.symbio.store.object.QueryExpression;
 import io.vlingo.symbio.store.object.StateObjectMapper;
 
@@ -57,24 +56,12 @@ public final class ObjectTypeRegistry {
   }
 
   /**
-   * Answer the {@code repository} registered with the {@code Info<T>}
-   * as referenced by {@code type}, or {@code null} if there is none.
-   * @param type the {@code Class<?>} referencing the {@code Info<T>}
-   * @return ObjectStoreRepository
-   */
-  public ObjectStoreRepository repository(Class<?> type) {
-    final Info<?> info = stores.get(type);
-    return info.repository;
-  }
-
-  /**
    * Holder of registration information.
    * @param <T> the type of persistent Object state of the registration
    */
   public static class Info<T> {
     public final StateObjectMapper mapper;
     public final QueryExpression queryObjectExpression;
-    public final ObjectStoreRepository repository;
     public final ObjectStore store;
     public final String storeName;
     public final Class<T> storeType;
@@ -93,32 +80,6 @@ public final class ObjectTypeRegistry {
       this.storeName = storeName;
       this.queryObjectExpression = queryObjectExpression;
       this.mapper = mapper;
-      this.repository = null;
-    }
-
-    /**
-     * Construct my default state.
-     * @param repository the ObjectStoreRepository instance
-     * @param storeType the {@code Class<T>} Object type that uses the ObjectStore
-     * @param storeName the String name of the ObjectStore
-     * @param queryObjectExpression the QueryExpression used to retrieve a single instance
-     * @param mapper the PersistentObjectMapper between Object type and persistent type
-     */
-    public Info(final ObjectStoreRepository repository, final Class<T> storeType, final String storeName, final QueryExpression queryObjectExpression, final StateObjectMapper mapper) {
-      this.repository = repository;
-      this.store = repository.objectStore();
-      this.storeType = storeType;
-      this.storeName = storeName;
-      this.queryObjectExpression = queryObjectExpression;
-      this.mapper = mapper;
-    }
-
-    /**
-     * Answer whether or not I have a {@code repository}.
-     * @return boolean
-     */
-    public boolean hasRepository() {
-      return repository != null;
     }
   }
 }
