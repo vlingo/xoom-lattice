@@ -87,6 +87,23 @@ public abstract class StatefulEntity<S> extends Actor
   protected abstract String id();
 
   /**
+   * Answer a representation of a number of segments as a
+   * composite id. The implementor of {@code id()} would use
+   * this method if the its id is built from segments.
+   * @param separator the String separator the insert between segments
+   * @param idSegments the varargs String of one or more segments
+   * @return String
+   */
+  protected String idFrom(final String separator, final String... idSegments) {
+    final StringBuilder builder = new StringBuilder();
+    builder.append(idSegments[0]);
+    for (int idx = 1; idx < idSegments.length; ++idx) {
+      builder.append(separator).append(idSegments[idx]);
+    }
+    return builder.toString();
+  }
+
+  /**
    * Answer {@code Completes<RT>}, applying my current {@code state} and {@code metadataValue}
    * that was modified due to the descriptive {@code operation}, along with {@code sources}, and
    * supply an eventual outcome by means of the given {@code andThen} function.

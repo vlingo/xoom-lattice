@@ -202,6 +202,23 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
   protected abstract String id();
 
   /**
+   * Answer a representation of a number of segments as a
+   * composite id. The implementor of {@code id()} would use
+   * this method if the its id is built from segments.
+   * @param separator the String separator the insert between segments
+   * @param idSegments the varargs String of one or more segments
+   * @return String
+   */
+  protected String idFrom(final String separator, final String... idSegments) {
+    final StringBuilder builder = new StringBuilder();
+    builder.append(idSegments[0]);
+    for (int idx = 1; idx < idSegments.length; ++idx) {
+      builder.append(separator).append(idSegments[idx]);
+    }
+    return builder.toString();
+  }
+
+  /**
    * Answer my {@code Metadata}. Must override if {@code Metadata} is to be supported.
    * @return Metadata
    */
