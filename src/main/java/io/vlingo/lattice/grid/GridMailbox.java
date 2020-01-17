@@ -4,12 +4,16 @@ import io.vlingo.actors.*;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.node.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class GridMailbox implements Mailbox {
+
+  private static final Logger log = LoggerFactory.getLogger(GridMailbox.class);
 
   private final Mailbox local;
   private final Id localId;
@@ -31,7 +35,7 @@ public class GridMailbox implements Mailbox {
 
   private void delegateUnlessIsRemote(Consumer<Id> remote, Runnable consumer) {
     Id nodeOf = hashRing.nodeOf(address.idString());
-    if (nodeOf.equals(localId)) {
+    if (nodeOf == null || nodeOf.equals(localId)) {
       consumer.run();
     }
     else {
@@ -41,7 +45,7 @@ public class GridMailbox implements Mailbox {
 
   private <R> R delegateUnlessIsRemote(Function<Id, R> remote, Supplier<R> consumer) {
     Id nodeOf = hashRing.nodeOf(address.idString());
-    if (nodeOf.equals(localId)) {
+    if (nodeOf == null || nodeOf.equals(localId)) {
       return consumer.get();
     }
     else {
@@ -52,7 +56,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public void close() {
     delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::close on: " + nodeOf);
+      log.debug("Remote::close on: " + nodeOf);
       local.close();
     }, local::close);
   }
@@ -60,7 +64,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public boolean isClosed() {
     return delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::isClosed on: " + nodeOf);
+      log.debug("Remote::isClosed on: " + nodeOf);
       return local.isClosed();
     }, local::isClosed);
   }
@@ -68,7 +72,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public boolean isDelivering() {
     return delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::isDelivering on: " + nodeOf);
+      log.debug("Remote::isDelivering on: " + nodeOf);
       return local.isDelivering();
     }, local::isDelivering);
   }
@@ -76,7 +80,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public int concurrencyCapacity() {
     return delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::concurrencyCapacity on: " + nodeOf);
+      log.debug("Remote::concurrencyCapacity on: " + nodeOf);
       return local.concurrencyCapacity();
     }, local::concurrencyCapacity);
   }
@@ -84,7 +88,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public void resume(String name) {
     delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::resume on: " + nodeOf);
+      log.debug("Remote::resume on: " + nodeOf);
       local.resume(name);
     }, () -> local.resume(name));
   }
@@ -92,7 +96,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public void send(Message message) {
     delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::send(Message) on: " + nodeOf);
+      log.debug("Remote::send(Message) on: " + nodeOf);
       local.send(message);
     }, () -> local.send(message));
   }
@@ -100,7 +104,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public void send(Actor actor, Class<?> protocol, Consumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::send(Actor, ...) on: " + nodeOf);
+      log.debug("Remote::send(Actor, ...) on: " + nodeOf);
       local.send(actor, protocol, consumer, returns, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }
@@ -108,7 +112,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public boolean isPreallocated() {
     return delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::isPreallocated on: " + nodeOf);
+      log.debug("Remote::isPreallocated on: " + nodeOf);
       return local.isPreallocated();
     }, local::isPreallocated);
   }
@@ -116,7 +120,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public void suspendExceptFor(String name, Class<?>... overrides) {
     delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::suspendExceptFor on: " + nodeOf);
+      log.debug("Remote::suspendExceptFor on: " + nodeOf);
       local.suspendExceptFor(name, overrides);
     }, () -> local.suspendExceptFor(name, overrides));
   }
@@ -124,7 +128,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public boolean isSuspended() {
     return delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::isSuspended on: " + nodeOf);
+      log.debug("Remote::isSuspended on: " + nodeOf);
       return local.isSuspended();
     }, local::isSuspended);
   }
@@ -132,7 +136,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public Message receive() {
     return delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::receive on: " + nodeOf);
+      log.debug("Remote::receive on: " + nodeOf);
       return local.receive();
     }, local::receive);
   }
@@ -140,7 +144,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public int pendingMessages() {
     return delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::pendingMessages on: " + nodeOf);
+      log.debug("Remote::pendingMessages on: " + nodeOf);
       return local.pendingMessages();
     }, local::pendingMessages);
   }
@@ -148,7 +152,7 @@ public class GridMailbox implements Mailbox {
   @Override
   public void run() {
     delegateUnlessIsRemote(nodeOf -> {
-      System.out.println("Remote::run on: " + nodeOf);
+      log.debug("Remote::run on: " + nodeOf);
       local.run();
     }, local);
   }

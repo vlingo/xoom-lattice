@@ -48,7 +48,7 @@ public class GridNodeBootstrap {
               Cluster.controlFor(
                       world,
                       grid,
-                      new GridNodeInstantiator(),
+                      new GridNodeInstantiator(grid),
                       io.vlingo.cluster.model.Properties.instance,
                       nodeName);
 
@@ -91,15 +91,17 @@ public class GridNodeBootstrap {
   }
 
   private static class GridNodeInstantiator extends ClusterApplicationInstantiator<GridNode> {
-    private static final long serialVersionUID = -7260503652675037148L;
 
-    public GridNodeInstantiator() {
+    private final Grid grid;
+
+    public GridNodeInstantiator(Grid grid) {
       super(GridNode.class);
+      this.grid = grid;
     }
 
     @Override
     public GridNode instantiate() {
-      return new GridNode(node(), hub().applicationOutboundStream());
+      return new GridNode(grid, node(), hub().applicationOutboundStream());
     }
   }
 }

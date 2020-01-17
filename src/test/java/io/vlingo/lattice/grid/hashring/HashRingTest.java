@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.grid.hashring;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.function.BiFunction;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * And the consistent winner is MurmurArrayHashRing.
  */
+@Ignore
 public class HashRingTest {
   private static final int ELEMENTS = 1_000_000;
   private static final int NODES = 5;

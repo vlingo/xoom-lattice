@@ -7,8 +7,6 @@
 
 package io.vlingo.lattice.grid;
 
-import java.util.Collection;
-
 import io.vlingo.actors.Returns;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
@@ -24,14 +22,18 @@ import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
 
+import java.util.Collection;
+
 public class GridNode extends ClusterApplicationAdapter {
   private AttributesProtocol client;
+  private final Grid grid;
   private final Node localNode;
   private ApplicationOutboundStream responder;
 
   final ApplicationMessageHandler applicationMessageHandler;
 
-  public GridNode(final Node localNode) {
+  public GridNode(final Grid grid, final Node localNode) {
+    this.grid = grid;
     this.localNode = localNode;
     this.applicationMessageHandler = new GridActorControlMessageHandler(new GridActorControl() {
       @Override
@@ -57,6 +59,7 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void start() {
     logger().debug("GRID: Started on node: " + localNode);
+    grid.hashRing().includeNode(localNode.id());
   }
 
   @Override

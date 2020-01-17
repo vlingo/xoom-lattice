@@ -7,28 +7,20 @@
 
 package io.vlingo.lattice.grid;
 
-import java.util.Arrays;
-import java.util.function.BiFunction;
-
-import io.vlingo.actors.Actor;
-import io.vlingo.actors.Address;
-import io.vlingo.actors.AddressFactory;
-import io.vlingo.actors.Configuration;
-import io.vlingo.actors.Definition;
-import io.vlingo.actors.Stage;
-import io.vlingo.actors.World;
+import io.vlingo.actors.*;
 import io.vlingo.common.Completes;
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.cache.CacheNodePoint;
 import io.vlingo.lattice.grid.hashring.HashRing;
-import io.vlingo.lattice.grid.hashring.HashedNodePoint;
 import io.vlingo.lattice.grid.hashring.MurmurArrayHashRing;
+import io.vlingo.wire.node.Id;
+
+import java.util.Arrays;
 
 public class Grid extends Stage {
   private final Cache cache;
-  private final BiFunction<Integer, String, HashedNodePoint<String>> factory;
-  private final HashRing<String> hashRing;
+  private final HashRing<Id> hashRing;
 
   public static Grid startWith(final String worldName, final String gridNodeName) throws Exception {
     mustNotExist();
@@ -72,10 +64,11 @@ public class Grid extends Stage {
 
   public Grid(final World world, final AddressFactory addressFactory, final String gridNodeName) {
     super(world, addressFactory, gridNodeName);
-    extenderStartDirectoryScanner();
     this.cache = Cache.defaultCache();
-    this.factory =  (hash, node) -> { return new CacheNodePoint<String>(this.cache, hash, node); };
-    this.hashRing = new MurmurArrayHashRing<>(100, factory);
+    this.hashRing = new MurmurArrayHashRing<>(100,
+        (hash, node) ->
+            new CacheNodePoint<>(this.cache, hash, node));
+    extenderStartDirectoryScanner();
   }
 
   @Override
@@ -116,11 +109,19 @@ public class Grid extends Stage {
     return super.actorOf(protocol, address);
   }
 
+  @Override
+  protected ActorFactory.MailboxWrapper mailboxWrapper() {
+    return (address, mailbox) ->
+        new GridMailbox(mailbox, Id.of(1),
+            address, hashRing,
+            null, c -> {});
+  }
+
   public void terminate() {
     world().terminate();
   }
 
-  HashRing<String> hashRing() {
+  HashRing<Id> hashRing() {
     return hashRing;
   }
 }

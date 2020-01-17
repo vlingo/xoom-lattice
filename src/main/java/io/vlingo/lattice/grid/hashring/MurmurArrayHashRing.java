@@ -86,7 +86,7 @@ public class MurmurArrayHashRing<T> implements HashRing<T> {
         index = 0;
       }
     }
-    return hashedNodePoints[index].nodeIdentifier;
+    return (index < hashedNodePoints.length) ? hashedNodePoints[index].nodeIdentifier : null;
   }
 
   private int hashed(final Object id) {
