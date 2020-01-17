@@ -6,6 +6,7 @@ import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.node.Id;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class GridMailbox implements Mailbox {
@@ -28,124 +29,126 @@ public class GridMailbox implements Mailbox {
     this.returnsInterestConusmer = returnsInterestConsumer;
   }
 
-  private void delegateUnlessIsRemote(Runnable remote, Runnable consumer) {
-    if (hashRing.nodeOf(address.idString()).equals(localId)) {
+  private void delegateUnlessIsRemote(Consumer<Id> remote, Runnable consumer) {
+    Id nodeOf = hashRing.nodeOf(address.idString());
+    if (nodeOf.equals(localId)) {
       consumer.run();
     }
     else {
-      remote.run();
+      remote.accept(nodeOf);
     }
   }
 
-  private <R> R delegateUnlessIsRemote(Supplier<R> remote, Supplier<R> consumer) {
-    if (hashRing.nodeOf(address.idString()).equals(localId)) {
+  private <R> R delegateUnlessIsRemote(Function<Id, R> remote, Supplier<R> consumer) {
+    Id nodeOf = hashRing.nodeOf(address.idString());
+    if (nodeOf.equals(localId)) {
       return consumer.get();
     }
     else {
-      return remote.get();
+      return remote.apply(nodeOf);
     }
   }
 
   @Override
   public void close() {
-    delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::close");
+    delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::close on: " + nodeOf);
       local.close();
     }, local::close);
   }
 
   @Override
   public boolean isClosed() {
-    return delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::isClosed");
+    return delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::isClosed on: " + nodeOf);
       return local.isClosed();
     }, local::isClosed);
   }
 
   @Override
   public boolean isDelivering() {
-    return delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::isDelivering");
+    return delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::isDelivering on: " + nodeOf);
       return local.isDelivering();
     }, local::isDelivering);
   }
 
   @Override
   public int concurrencyCapacity() {
-    return delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::concurrencyCapacity");
+    return delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::concurrencyCapacity on: " + nodeOf);
       return local.concurrencyCapacity();
     }, local::concurrencyCapacity);
   }
 
   @Override
   public void resume(String name) {
-    delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::resume");
+    delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::resume on: " + nodeOf);
       local.resume(name);
     }, () -> local.resume(name));
   }
 
   @Override
   public void send(Message message) {
-    delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::send(Message)");
+    delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::send(Message) on: " + nodeOf);
       local.send(message);
     }, () -> local.send(message));
   }
 
   @Override
   public void send(Actor actor, Class<?> protocol, Consumer<?> consumer, Returns<?> returns, String representation) {
-    delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::send(Actor, ...)");
+    delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::send(Actor, ...) on: " + nodeOf);
       local.send(actor, protocol, consumer, returns, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }
 
   @Override
   public boolean isPreallocated() {
-    return delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::isPreallocated");
+    return delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::isPreallocated on: " + nodeOf);
       return local.isPreallocated();
     }, local::isPreallocated);
   }
 
   @Override
   public void suspendExceptFor(String name, Class<?>... overrides) {
-    delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::suspendExceptFor");
+    delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::suspendExceptFor on: " + nodeOf);
       local.suspendExceptFor(name, overrides);
     }, () -> local.suspendExceptFor(name, overrides));
   }
 
   @Override
   public boolean isSuspended() {
-    return delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::isSuspended");
+    return delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::isSuspended on: " + nodeOf);
       return local.isSuspended();
     }, local::isSuspended);
   }
 
   @Override
   public Message receive() {
-    return delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::receive");
+    return delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::receive on: " + nodeOf);
       return local.receive();
     }, local::receive);
   }
 
   @Override
   public int pendingMessages() {
-    return delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::pendingMessages");
+    return delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::pendingMessages on: " + nodeOf);
       return local.pendingMessages();
     }, local::pendingMessages);
   }
 
   @Override
   public void run() {
-    delegateUnlessIsRemote(() -> {
-      System.out.println("Remote::run");
+    delegateUnlessIsRemote(nodeOf -> {
+      System.out.println("Remote::run on: " + nodeOf);
       local.run();
     }, local);
   }
