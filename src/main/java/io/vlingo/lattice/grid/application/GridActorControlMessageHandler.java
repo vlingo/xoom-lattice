@@ -6,7 +6,6 @@ import io.vlingo.wire.message.RawMessage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.function.Consumer;
 
 public final class GridActorControlMessageHandler implements ApplicationMessageHandler {
 
@@ -17,7 +16,7 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
   public GridActorControlMessageHandler(final GridActorControl control) {
     this.control = control;
     this.visitor = new ControlMessageVisitor();
-    this.decoder = new BinaryMessageDecoder();
+    this.decoder = new JavaObjectMessageDecoder();
   }
 
   public void handle(RawMessage raw) {
@@ -46,7 +45,7 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
     }
   }
 
-  static final class BinaryMessageDecoder implements Decoder {
+  static final class JavaObjectMessageDecoder implements Decoder {
 
     @Override
     public Message decode(byte[] bytes) {
