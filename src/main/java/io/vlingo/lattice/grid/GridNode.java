@@ -14,7 +14,6 @@ import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
 import io.vlingo.lattice.grid.application.ApplicationMessageHandler;
 import io.vlingo.lattice.grid.application.GridActorControlMessageHandler;
-import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
@@ -36,7 +35,7 @@ public class GridNode extends ClusterApplicationAdapter {
   }
 
   @Override
-  public void handleApplicationMessage(final RawMessage message, final ApplicationOutboundStream responder) {
+  public void handleApplicationMessage(final RawMessage message) {
     logger().debug("GRID: Received application message: " + message.asTextMessage());
     applicationMessageHandler.handle(message);
   }
