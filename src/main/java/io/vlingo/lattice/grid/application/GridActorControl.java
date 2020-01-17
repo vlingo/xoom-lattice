@@ -4,7 +4,6 @@ import io.vlingo.actors.Returns;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Start;
-import io.vlingo.wire.message.RawMessage;
 
 public interface GridActorControl {
 
