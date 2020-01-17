@@ -87,7 +87,7 @@ public class GridNodeBootstrap {
 
     @Override
     public GridNode instantiate() {
-      return new GridNode(node());
+      return new GridNode(node(), hub().applicationOutboundStream());
     }
   }
 }
