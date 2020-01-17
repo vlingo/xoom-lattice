@@ -32,6 +32,8 @@ public class GridMailboxTest {
 
     hashRing.includeNode(localId);
     hashRing.includeNode(Id.of(2));
+    hashRing.includeNode(Id.of(3));
+    hashRing.includeNode(Id.of(4));
 
     Consumer<Returns<?>> returnsConsumer = (r) -> {};
 

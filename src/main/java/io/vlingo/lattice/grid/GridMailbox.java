@@ -29,7 +29,7 @@ public class GridMailbox implements Mailbox {
   }
 
   private void delegateUnlessIsRemote(Runnable remote, Runnable consumer) {
-    if (hashRing.nodeOf(address).equals(localId)) {
+    if (hashRing.nodeOf(address.idString()).equals(localId)) {
       consumer.run();
     }
     else {
@@ -38,7 +38,7 @@ public class GridMailbox implements Mailbox {
   }
 
   private <R> R delegateUnlessIsRemote(Supplier<R> remote, Supplier<R> consumer) {
-    if (hashRing.nodeOf(address).equals(localId)) {
+    if (hashRing.nodeOf(address.idString()).equals(localId)) {
       return consumer.get();
     }
     else {
