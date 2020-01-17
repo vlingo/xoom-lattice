@@ -21,6 +21,18 @@ public class GridNodeBootstrap {
   private final Tuple2<ClusterSnapshotControl, Logger> clusterSnapshotControl;
   private final GridShutdownHook shutdownHook;
 
+  public static void main(final String[] args) throws Exception {
+    if (args.length == 1) {
+      boot(args[0]);
+    } else if (args.length > 1) {
+      System.err.println("vlingo/lattice: Too many arguments; provide node name only.");
+      System.exit(1);
+    } else {
+      System.err.println("vlingo/lattice: This node must be named with a command-line argument.");
+      System.exit(1);
+    }
+  }
+
   public static GridNodeBootstrap boot(final String nodeName) throws Exception {
     final Grid grid = Grid.startWith("vlingo-lattice-grid", nodeName);
     return boot(grid.world(), grid, nodeName, false);
