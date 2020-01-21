@@ -6,11 +6,10 @@ import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Start;
 
 public interface GridActorControl {
-
   void start(Start start);
   void deliver(Deliver deliver);
   void answer(Answer answer);
 
-  <T> void completeWithAnswer(Returns<T> returns);
-
+  interface Inbound extends GridActorControl {}
+  interface Outbound extends GridActorControl {}
 }

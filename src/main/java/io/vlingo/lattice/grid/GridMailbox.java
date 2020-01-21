@@ -1,8 +1,8 @@
 package io.vlingo.lattice.grid;
 
 import io.vlingo.actors.*;
+import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.hashring.HashRing;
-import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +21,10 @@ public class GridMailbox implements Mailbox {
 
   private final HashRing<Id> hashRing;
 
-  private final ApplicationOutboundStream outbound;
+  private final GridActorControl.Outbound outbound;
   private final Consumer<Returns<?>> returnsInterestConusmer;
 
-  public GridMailbox(Mailbox local, Id localId, Address address, HashRing<Id> hashRing, ApplicationOutboundStream outbound, Consumer<Returns<?>> returnsInterestConsumer) {
+  public GridMailbox(Mailbox local, Id localId, Address address, HashRing<Id> hashRing, GridActorControl.Outbound outbound, Consumer<Returns<?>> returnsInterestConsumer) {
     this.local = local;
     this.localId = localId;
     this.address = address;

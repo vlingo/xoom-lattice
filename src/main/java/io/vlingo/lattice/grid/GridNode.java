@@ -7,7 +7,6 @@
 
 package io.vlingo.lattice.grid;
 
-import io.vlingo.actors.Returns;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
@@ -35,25 +34,23 @@ public class GridNode extends ClusterApplicationAdapter {
   public GridNode(final Grid grid, final Node localNode) {
     this.grid = grid;
     this.localNode = localNode;
-    this.applicationMessageHandler = new GridActorControlMessageHandler(new GridActorControl() {
-      @Override
-      public void start(Start start) {
-        logger().debug("GRID: Received application message: Start");
-      }
+    this.applicationMessageHandler = new GridActorControlMessageHandler(
+        new GridActorControl.Inbound() {
+          @Override
+          public void start(Start start) {
+            logger().debug("GRID: Received application message: Start");
+          }
 
-      @Override
-      public void deliver(Deliver deliver) {
-        logger().debug("GRID: Received application message: Deliver");
-      }
+          @Override
+          public void deliver(Deliver deliver) {
+            logger().debug("GRID: Received application message: Deliver");
+          }
 
-      @Override
-      public void answer(Answer answer) {
-        logger().debug("GRID: Received application message: Answer");
-      }
-
-      @Override
-      public <T> void completeWithAnswer(Returns<T> returns) { }
-    });
+          @Override
+          public void answer(Answer answer) {
+            logger().debug("GRID: Received application message: Answer");
+          }
+        });
   }
 
   @Override
@@ -68,6 +65,7 @@ public class GridNode extends ClusterApplicationAdapter {
     applicationMessageHandler.handle(message);
   }
 
+  // hashring ??? THIS ONE ONLY?
   @Override
   public void informAllLiveNodes(final Collection<Node> liveNodes, final boolean isHealthyCluster) {
     logger().debug("GRID: Live nodes confirmed: " + liveNodes + " and is healthy: " + isHealthyCluster);
@@ -79,7 +77,7 @@ public class GridNode extends ClusterApplicationAdapter {
 
     if (isLocalNodeLeading) {
       logger().debug("GRID: Local node is leading.");
-   }
+    }
   }
 
   @Override
@@ -87,6 +85,7 @@ public class GridNode extends ClusterApplicationAdapter {
     logger().debug("GRID: Leader lost: " + lostLeaderId + " and is healthy: " + isHealthyCluster);
   }
 
+  // hashring ???
   @Override
   public void informLocalNodeShutDown(final Id nodeId) {
     logger().debug("GRID: Local node shut down: " + nodeId);
@@ -102,11 +101,13 @@ public class GridNode extends ClusterApplicationAdapter {
     logger().debug("GRID: Node reported healthy: " + nodeId + " and is healthy: " + isHealthyCluster);
   }
 
+  // hashring
   @Override
   public void informNodeJoinedCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node joined: " + nodeId + " and is healthy: " + isHealthyCluster);
   }
 
+  // hashring
   @Override
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
@@ -136,7 +137,7 @@ public class GridNode extends ClusterApplicationAdapter {
 
   @Override
   public void informAttributeSetCreated(final String attributeSetName) {
-     logger().debug("GRID: Attributes Set Created: " + attributeSetName);
+    logger().debug("GRID: Attributes Set Created: " + attributeSetName);
   }
 
   @Override

@@ -1,6 +1,5 @@
 package io.vlingo.lattice.grid.application;
 
-import io.vlingo.actors.Returns;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Message;
@@ -23,25 +22,23 @@ public class GridActorControlMessageHandlerTest {
   CountDownLatch deliverLatch = new CountDownLatch(1);
   CountDownLatch answerLatch = new CountDownLatch(1);
 
-  private final GridActorControlMessageHandler handler = new GridActorControlMessageHandler(new GridActorControl() {
-    @Override
-    public void start(Start start) {
-      startLatch.countDown();
-    }
+  private final GridActorControlMessageHandler handler =
+      new GridActorControlMessageHandler(new GridActorControl.Inbound() {
+        @Override
+        public void start(Start start) {
+          startLatch.countDown();
+        }
 
-    @Override
-    public void deliver(Deliver deliver) {
-      deliverLatch.countDown();
-    }
+        @Override
+        public void deliver(Deliver deliver) {
+          deliverLatch.countDown();
+        }
 
-    @Override
-    public void answer(Answer answer) {
-      answerLatch.countDown();
-    }
-
-    @Override
-    public <T> void completeWithAnswer(Returns<T> returns) { }
-  });
+        @Override
+        public void answer(Answer answer) {
+          answerLatch.countDown();
+        }
+      });
 
   @Test
   public void testStart() throws IOException, InterruptedException {

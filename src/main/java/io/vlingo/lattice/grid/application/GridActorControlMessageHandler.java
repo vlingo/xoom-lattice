@@ -9,11 +9,11 @@ import java.io.ObjectInputStream;
 
 public final class GridActorControlMessageHandler implements ApplicationMessageHandler {
 
-  private final GridActorControl control;
+  private final GridActorControl.Inbound control;
   private final Visitor visitor;
   private final Decoder decoder;
 
-  public GridActorControlMessageHandler(final GridActorControl control) {
+  public GridActorControlMessageHandler(final GridActorControl.Inbound control) {
     this.control = control;
     this.visitor = new ControlMessageVisitor();
     this.decoder = new JavaObjectMessageDecoder();
