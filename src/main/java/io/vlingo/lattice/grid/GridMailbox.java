@@ -2,6 +2,7 @@ package io.vlingo.lattice.grid;
 
 import io.vlingo.actors.*;
 import io.vlingo.lattice.grid.application.GridActorControl;
+import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
@@ -97,6 +98,7 @@ public class GridMailbox implements Mailbox {
   public void send(Message message) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
+      outbound.deliver(new Deliver());
       local.send(message);
     }, () -> local.send(message));
   }
@@ -105,6 +107,7 @@ public class GridMailbox implements Mailbox {
   public void send(Actor actor, Class<?> protocol, Consumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
+      outbound.deliver(new Deliver());
       local.send(actor, protocol, consumer, returns, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }
