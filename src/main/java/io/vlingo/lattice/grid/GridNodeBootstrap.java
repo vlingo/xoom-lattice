@@ -34,7 +34,7 @@ public class GridNodeBootstrap {
   }
 
   public static GridNodeBootstrap boot(final String nodeName) throws Exception {
-    final Grid grid = Grid.startWith("vlingo-lattice-grid", nodeName);
+    final Grid grid = Grid.start("vlingo-lattice-grid", nodeName);
     return boot(grid.world(), grid, nodeName, false);
   }
 

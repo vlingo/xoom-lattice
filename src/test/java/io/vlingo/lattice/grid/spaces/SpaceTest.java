@@ -83,7 +83,7 @@ public class SpaceTest {
   public void setUp() throws Exception {
     GridNodeBootstrap.reset();
 
-    grid = Grid.startWith("test-world", "test-grid");
+    grid = Grid.start("test-world", "test-grid");
   }
 
   @After

@@ -28,7 +28,7 @@ public class Grid extends Stage {
   private CommunicationsHub hub;
   private Id nodeId;
 
-  public static Grid startWith(final String worldName, final String gridNodeName) throws Exception {
+  public static Grid start(final String worldName, final String gridNodeName) throws Exception {
     mustNotExist();
     final World world = World.startWithDefaults(worldName);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
@@ -37,7 +37,7 @@ public class Grid extends Stage {
     return grid;
   }
 
-  public static Grid startWith(final String worldName, final java.util.Properties properties, final String gridNodeName) throws Exception {
+  public static Grid start(final String worldName, final java.util.Properties properties, final String gridNodeName) throws Exception {
     mustNotExist();
     final World world = World.start(worldName, properties);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
@@ -46,7 +46,7 @@ public class Grid extends Stage {
     return grid;
   }
 
-  public static Grid startWith(final String worldName, final Configuration configuration, final String gridNodeName) throws Exception {
+  public static Grid start(final String worldName, final Configuration configuration, final String gridNodeName) throws Exception {
     mustNotExist();
     final World world = World.start(worldName, configuration);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
@@ -55,7 +55,7 @@ public class Grid extends Stage {
     return grid;
   }
 
-  public static Grid startWith(final World world, final AddressFactory addressFactory, final String gridNodeName) throws Exception {
+  public static Grid start(final World world, final AddressFactory addressFactory, final String gridNodeName) throws Exception {
     mustNotExist();
     final Grid grid = new Grid(world, addressFactory, gridNodeName);
     GridNodeBootstrap.boot(world, grid, gridNodeName, false);
