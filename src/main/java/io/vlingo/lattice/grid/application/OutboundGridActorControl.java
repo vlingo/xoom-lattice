@@ -4,6 +4,7 @@ import io.vlingo.cluster.model.CommunicationsHub;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Start;
+import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 
 public class OutboundGridActorControl implements GridActorControl.Outbound {
@@ -16,16 +17,19 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
 
   @Override
   public void start(Start start) {
-    hub.applicationOutboundStream().sendTo(null, Id.of(start.recipient));
+    RawMessage message = RawMessage.from(start.sender, -1, "Hello Start()");
+    hub.applicationOutboundStream().sendTo(message, Id.of(start.recipient));
   }
 
   @Override
   public void deliver(Deliver deliver) {
-
+    RawMessage message = RawMessage.from(deliver.sender, -1, "Hello Start()");
+    hub.applicationOutboundStream().sendTo(message, Id.of(deliver.recipient));
   }
 
   @Override
   public void answer(Answer answer) {
-
+    RawMessage message = RawMessage.from(answer.sender, -1, "Hello Start()");
+    hub.applicationOutboundStream().sendTo(message, Id.of(answer.recipient));
   }
 }

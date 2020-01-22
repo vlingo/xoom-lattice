@@ -11,6 +11,7 @@ import io.vlingo.actors.*;
 import io.vlingo.cluster.model.CommunicationsHub;
 import io.vlingo.common.Completes;
 import io.vlingo.common.identity.IdentityGeneratorType;
+import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.cache.CacheNodePoint;
 import io.vlingo.lattice.grid.hashring.HashRing;
@@ -122,7 +123,7 @@ public class Grid extends Stage {
     return (address, mailbox) ->
         new GridMailbox(mailbox, Id.of(1),
             address, hashRing,
-            null, c -> {});
+            new OutboundGridActorControl(hub), c -> {});
   }
 
   public void terminate() {
