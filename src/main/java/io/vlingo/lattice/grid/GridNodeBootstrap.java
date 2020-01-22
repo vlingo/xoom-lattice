@@ -14,16 +14,31 @@ import io.vlingo.cluster.model.ClusterSnapshotControl;
 import io.vlingo.cluster.model.Properties;
 import io.vlingo.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.common.Tuple2;
+import io.vlingo.lattice.grid.example.Pinger;
+import io.vlingo.lattice.grid.example.PingerActor;
+import io.vlingo.lattice.grid.example.Ponger;
+import io.vlingo.lattice.grid.example.PongerActor;
 
 public class GridNodeBootstrap {
   private static GridNodeBootstrap instance;
 
-  private final Tuple2<ClusterSnapshotControl, Logger> clusterSnapshotControl;
   private final GridShutdownHook shutdownHook;
+  private final World world;
+  private final Grid grid;
 
   public static void main(final String[] args) throws Exception {
     if (args.length == 1) {
-      boot(args[0]);
+      GridNodeBootstrap bootstrap = boot(args[0]);
+
+      System.out.println("STARTING ACTORS");
+
+      Pinger pinger = bootstrap.grid.actorFor(Pinger.class, PingerActor.class);
+      Ponger ponger = bootstrap.grid.actorFor(Ponger.class, PongerActor.class);
+
+      pinger.ping(ponger);
+
+      System.out.println("STARTED ACTORS");
+
     } else if (args.length > 1) {
       System.err.println("vlingo/lattice: Too many arguments; provide node name only.");
       System.exit(1);
@@ -51,7 +66,7 @@ public class GridNodeBootstrap {
                       io.vlingo.cluster.model.Properties.instance,
                       nodeName);
 
-      GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName);
+      GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName, world, grid);
 
       control._2.info("Successfully started cluster node: '" + nodeName + "'");
 
@@ -78,12 +93,9 @@ public class GridNodeBootstrap {
     }
   }
 
-  public ClusterSnapshotControl clusterSnapshotControl() {
-    return clusterSnapshotControl._1;
-  }
-
-  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName) throws Exception {
-    this.clusterSnapshotControl = control;
+  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName, World world, Grid grid) throws Exception {
+    this.world = world;
+    this.grid = grid;
 
     this.shutdownHook = new GridShutdownHook(nodeName, control);
     this.shutdownHook.register();

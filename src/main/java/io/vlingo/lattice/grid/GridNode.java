@@ -105,12 +105,14 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informNodeJoinedCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node joined: " + nodeId + " and is healthy: " + isHealthyCluster);
+    grid.hashRing().includeNode(nodeId);
   }
 
   // hashring
   @Override
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
+    grid.hashRing().excludeNode(nodeId);
   }
 
   @Override
