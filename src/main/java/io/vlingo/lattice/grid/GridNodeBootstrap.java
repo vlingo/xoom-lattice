@@ -101,6 +101,7 @@ public class GridNodeBootstrap {
     @Override
     public GridNode instantiate() {
       grid.setHub(hub());
+      grid.setNodeId(node().id());
       return new GridNode(grid, node(), hub());
     }
   }

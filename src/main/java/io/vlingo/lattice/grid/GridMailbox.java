@@ -23,15 +23,13 @@ public class GridMailbox implements Mailbox {
   private final HashRing<Id> hashRing;
 
   private final GridActorControl.Outbound outbound;
-  private final Consumer<Returns<?>> returnsInterestConusmer;
 
-  public GridMailbox(Mailbox local, Id localId, Address address, HashRing<Id> hashRing, GridActorControl.Outbound outbound, Consumer<Returns<?>> returnsInterestConsumer) {
+  public GridMailbox(Mailbox local, Id localId, Address address, HashRing<Id> hashRing, GridActorControl.Outbound outbound) {
     this.local = local;
     this.localId = localId;
     this.address = address;
     this.hashRing = hashRing;
     this.outbound = outbound;
-    this.returnsInterestConusmer = returnsInterestConsumer;
   }
 
   private void delegateUnlessIsRemote(Consumer<Id> remote, Runnable consumer) {

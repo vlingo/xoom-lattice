@@ -26,6 +26,7 @@ public class Grid extends Stage {
   private final HashRing<Id> hashRing;
 
   private CommunicationsHub hub;
+  private Id nodeId;
 
   public static Grid startWith(final String worldName, final String gridNodeName) throws Exception {
     mustNotExist();
@@ -79,6 +80,7 @@ public class Grid extends Stage {
   public void setHub(final CommunicationsHub hub) {
     this.hub = hub;
   }
+  public void setNodeId(final Id nodeId) { this.nodeId = nodeId; }
 
   @Override
   public <T> T actorFor(final Class<T> protocol, final Definition definition) {
@@ -121,9 +123,9 @@ public class Grid extends Stage {
   @Override
   protected ActorFactory.MailboxWrapper mailboxWrapper() {
     return (address, mailbox) ->
-        new GridMailbox(mailbox, Id.of(1),
+        new GridMailbox(mailbox, nodeId,
             address, hashRing,
-            new OutboundGridActorControl(hub), c -> {});
+            new OutboundGridActorControl(hub));
   }
 
   public void terminate() {

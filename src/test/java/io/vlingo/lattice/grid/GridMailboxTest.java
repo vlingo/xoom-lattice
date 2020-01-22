@@ -37,7 +37,7 @@ public class GridMailboxTest {
 
     Consumer<Returns<?>> returnsConsumer = (r) -> {};
 
-    GridMailbox gridMailbox = new GridMailbox(localMailbox, localId, address, hashRing, null, returnsConsumer);
+    GridMailbox gridMailbox = new GridMailbox(localMailbox, localId, address, hashRing, null);
 
     gridMailbox.isClosed();
     gridMailbox.close();
@@ -57,7 +57,7 @@ public class GridMailboxTest {
 
     Consumer<Returns<?>> returnsConsumer = (r) -> {};
 
-    GridMailbox gridMailbox = new GridMailbox(localMailbox, localId, address, hashRing, null, returnsConsumer);
+    GridMailbox gridMailbox = new GridMailbox(localMailbox, localId, address, hashRing, null);
 
     System.out.println(gridMailbox.isClosed());
     System.out.println(gridMailbox.concurrencyCapacity());
