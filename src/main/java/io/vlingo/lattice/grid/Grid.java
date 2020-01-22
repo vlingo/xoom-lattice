@@ -8,6 +8,7 @@
 package io.vlingo.lattice.grid;
 
 import io.vlingo.actors.*;
+import io.vlingo.cluster.model.CommunicationsHub;
 import io.vlingo.common.Completes;
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.cache.Cache;
@@ -19,8 +20,11 @@ import io.vlingo.wire.node.Id;
 import java.util.Arrays;
 
 public class Grid extends Stage {
+
   private final Cache cache;
   private final HashRing<Id> hashRing;
+
+  private CommunicationsHub hub;
 
   public static Grid startWith(final String worldName, final String gridNodeName) throws Exception {
     mustNotExist();
@@ -69,6 +73,10 @@ public class Grid extends Stage {
         (hash, node) ->
             new CacheNodePoint<>(this.cache, hash, node));
     extenderStartDirectoryScanner();
+  }
+
+  public void setHub(final CommunicationsHub hub) {
+    this.hub = hub;
   }
 
   @Override

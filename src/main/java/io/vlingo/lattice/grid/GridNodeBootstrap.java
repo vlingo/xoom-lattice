@@ -47,7 +47,6 @@ public class GridNodeBootstrap {
       final Tuple2<ClusterSnapshotControl, Logger> control =
               Cluster.controlFor(
                       world,
-                      grid,
                       new GridNodeInstantiator(grid),
                       io.vlingo.cluster.model.Properties.instance,
                       nodeName);
@@ -101,7 +100,8 @@ public class GridNodeBootstrap {
 
     @Override
     public GridNode instantiate() {
-      return new GridNode(grid, node(), hub().applicationOutboundStream());
+      grid.setHub(hub());
+      return new GridNode(grid, node(), hub());
     }
   }
 }

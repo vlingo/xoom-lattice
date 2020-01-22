@@ -98,7 +98,7 @@ public class GridMailbox implements Mailbox {
   public void send(Message message) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
-      outbound.deliver(new Deliver());
+      outbound.deliver(new Deliver(localId.value(), nodeOf.value()));
       local.send(message);
     }, () -> local.send(message));
   }
@@ -107,7 +107,7 @@ public class GridMailbox implements Mailbox {
   public void send(Actor actor, Class<?> protocol, Consumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
-      outbound.deliver(new Deliver());
+      outbound.deliver(new Deliver(localId.value(), nodeOf.value()));
       local.send(actor, protocol, consumer, returns, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }

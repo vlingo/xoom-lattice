@@ -5,6 +5,7 @@ import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.lattice.grid.application.message.Start;
 import io.vlingo.wire.message.RawMessage;
+import io.vlingo.wire.node.Id;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -17,6 +18,9 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertTrue;
 
 public class GridActorControlMessageHandlerTest {
+
+  private static final short sender = (short) 0;
+  private static final short recipient = (short) 1;
 
   CountDownLatch startLatch = new CountDownLatch(1);
   CountDownLatch deliverLatch = new CountDownLatch(1);
@@ -40,19 +44,20 @@ public class GridActorControlMessageHandlerTest {
         }
       });
 
+
   @Test
   public void testStart() throws IOException, InterruptedException {
-    test(from(new Start()), startLatch);
+    test(from(new Start(sender, recipient)), startLatch);
   }
 
   @Test
   public void testDeliver() throws IOException, InterruptedException {
-    test(from(new Deliver()), deliverLatch);
+    test(from(new Deliver(sender, recipient)), deliverLatch);
   }
 
   @Test
   public void testAnswer() throws IOException, InterruptedException {
-    test(from(new Answer()), answerLatch);
+    test(from(new Answer(sender, recipient)), answerLatch);
   }
 
   private void test(RawMessage message, CountDownLatch latch) throws InterruptedException {
