@@ -7,11 +7,14 @@
 
 package io.vlingo.lattice.grid;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import io.vlingo.actors.Address;
 
-public final class GridAddress implements Address {
+public final class GridAddress implements Address, Serializable {
+  private static final long serialVersionUID = -7172480689137574451L;
+
   private final UUID id;
   private final String name;
 
