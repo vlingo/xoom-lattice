@@ -1,35 +1,60 @@
 package io.vlingo.lattice.grid.application;
 
 import io.vlingo.cluster.model.CommunicationsHub;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Deliver;
-import io.vlingo.lattice.grid.application.message.Start;
+import io.vlingo.lattice.grid.application.message.*;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
+
+import java.io.*;
+import java.nio.ByteBuffer;
 
 public class OutboundGridActorControl implements GridActorControl.Outbound {
 
   private final CommunicationsHub hub;
+  private final JavaObjectEncoder encoder;
 
   public OutboundGridActorControl(CommunicationsHub hub) {
     this.hub = hub;
+    this.encoder = new JavaObjectEncoder();
   }
 
   @Override
   public void start(Start start) {
-    RawMessage message = RawMessage.from(start.sender, -1, "Hello Start()");
-    hub.applicationOutboundStream().sendTo(message, Id.of(start.recipient));
+    send(start);
+  }
+
+  private void send(Message.Impl message) {
+    byte[] payload = encoder.encode(message);
+    RawMessage raw = RawMessage.from(
+        message.sender, -1, payload.length);
+    raw.putRemaining(ByteBuffer.wrap(payload));
+    hub.applicationOutboundStream()
+        .sendTo(raw, Id.of(message.recipient));
   }
 
   @Override
   public void deliver(Deliver deliver) {
-    RawMessage message = RawMessage.from(deliver.sender, -1, "Hello Start()");
-    hub.applicationOutboundStream().sendTo(message, Id.of(deliver.recipient));
+    send(deliver);
   }
 
   @Override
   public void answer(Answer answer) {
-    RawMessage message = RawMessage.from(answer.sender, -1, "Hello Start()");
-    hub.applicationOutboundStream().sendTo(message, Id.of(answer.recipient));
+    send(answer);
+  }
+
+
+  private static final class JavaObjectEncoder implements Encoder {
+
+    @Override
+    public byte[] encode(Message message) {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      try (ObjectOutputStream out = new ObjectOutputStream(bos)) {
+        out.writeObject(message);
+        out.flush();
+        return bos.toByteArray();
+      } catch (IOException e) {
+        throw new RuntimeException("encode failed", e);
+      }
+    }
   }
 }

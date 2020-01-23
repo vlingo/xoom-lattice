@@ -5,7 +5,6 @@ import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.lattice.grid.application.message.Start;
 import io.vlingo.wire.message.RawMessage;
-import io.vlingo.wire.node.Id;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;

@@ -49,14 +49,11 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
 
     @Override
     public Message decode(byte[] bytes) {
-      ByteArrayInputStream bytesInput = new ByteArrayInputStream(bytes);
-      try {
-        ObjectInputStream objectInput = new ObjectInputStream(bytesInput);
-        return (Message) objectInput.readObject();
-      } catch (IOException e) {
-        throw new IllegalStateException("read failed", e);
-      } catch (ClassNotFoundException e) {
-        throw new IllegalArgumentException("class not found", e);
+      ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+      try (ObjectInputStream in = new ObjectInputStream(bis)) {
+        return (Message) in.readObject();
+      } catch (IOException | ClassNotFoundException e) {
+        throw new IllegalArgumentException("decode failed", e);
       }
     }
   }
