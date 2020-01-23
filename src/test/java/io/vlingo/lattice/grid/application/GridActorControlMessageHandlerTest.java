@@ -1,10 +1,13 @@
 package io.vlingo.lattice.grid.application;
 
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.Address;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.lattice.grid.application.message.Start;
 import io.vlingo.wire.message.RawMessage;
+import io.vlingo.wire.node.Id;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -28,17 +31,17 @@ public class GridActorControlMessageHandlerTest {
   private final GridActorControlMessageHandler handler =
       new GridActorControlMessageHandler(new GridActorControl.Inbound() {
         @Override
-        public void start(Start start) {
+        public <T> void start(Id host, Id ref, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
           startLatch.countDown();
         }
 
         @Override
-        public void deliver(Deliver deliver) {
+        public <T> void deliver(Id host, Id ref, Class<T> protocol, Address address, String representation) {
           deliverLatch.countDown();
         }
 
         @Override
-        public void answer(Answer answer) {
+        public void answer(Id host, Id ref, Answer answer) {
           answerLatch.countDown();
         }
       });
@@ -46,17 +49,17 @@ public class GridActorControlMessageHandlerTest {
 
   @Test
   public void testStart() throws IOException, InterruptedException {
-    test(from(new Start(sender, recipient)), startLatch);
+    test(from(new Start<>(null, null, null, null)), startLatch);
   }
 
   @Test
   public void testDeliver() throws IOException, InterruptedException {
-    test(from(new Deliver(sender, recipient)), deliverLatch);
+    test(from(new Deliver<>(null, null, null)), deliverLatch);
   }
 
   @Test
   public void testAnswer() throws IOException, InterruptedException {
-    test(from(new Answer(sender, recipient)), answerLatch);
+    test(from(new Answer()), answerLatch);
   }
 
   private void test(RawMessage message, CountDownLatch latch) throws InterruptedException {

@@ -21,8 +21,9 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
 
   public void handle(RawMessage raw) {
     try {
-      decoder.decode(raw.asBinaryMessage())
-          .accept(visitor);
+      Message message = decoder.decode(raw.asBinaryMessage());
+      System.out.println(message);
+      message.accept(visitor);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -31,17 +32,17 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
   final class ControlMessageVisitor implements Visitor {
     @Override
     public void visit(Answer answer) {
-      control.answer(answer);
+      control.answer(null, null, answer);
     }
 
     @Override
     public void visit(Deliver deliver) {
-      control.deliver(deliver);
+      control.deliver(null, null, null, null, null);
     }
 
     @Override
     public void visit(Start start) {
-      control.start(start);
+      control.start(null, null, null, null, null, null);
     }
   }
 

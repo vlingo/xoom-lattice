@@ -7,6 +7,8 @@
 
 package io.vlingo.lattice.grid;
 
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.Address;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
@@ -14,8 +16,6 @@ import io.vlingo.lattice.grid.application.ApplicationMessageHandler;
 import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.GridActorControlMessageHandler;
 import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Deliver;
-import io.vlingo.lattice.grid.application.message.Start;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
@@ -37,18 +37,18 @@ public class GridNode extends ClusterApplicationAdapter {
     this.applicationMessageHandler = new GridActorControlMessageHandler(
         new GridActorControl.Inbound() {
           @Override
-          public void start(Start start) {
+          public void answer(Id host, Id ref, Answer answer) {
+            logger().debug("GRID: Received application message: Answer");
+          }
+
+          @Override
+          public <T> void start(Id host, Id ref, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
             logger().debug("GRID: Received application message: Start");
           }
 
           @Override
-          public void deliver(Deliver deliver) {
+          public <T> void deliver(Id host, Id ref, Class<T> protocol, Address address, String representation) {
             logger().debug("GRID: Received application message: Deliver");
-          }
-
-          @Override
-          public void answer(Answer answer) {
-            logger().debug("GRID: Received application message: Answer");
           }
         });
   }
