@@ -20,6 +20,7 @@ import io.vlingo.wire.node.Node;
 public class GridNode extends ClusterApplicationAdapter {
   private AttributesProtocol client;
   private final Node localNode;
+  private ApplicationOutboundStream responder;
 
   public GridNode(final Node localNode) {
     this.localNode = localNode;
@@ -31,7 +32,7 @@ public class GridNode extends ClusterApplicationAdapter {
   }
 
   @Override
-  public void handleApplicationMessage(final RawMessage message, final ApplicationOutboundStream responder) {
+  public void handleApplicationMessage(final RawMessage message) {
     logger().debug("GRID: Received application message: " + message.asTextMessage());
   }
 
@@ -87,6 +88,12 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informQuorumLost() {
     logger().debug("GRID: Quorum lost");
+  }
+
+  @Override
+  public void informResponder(final ApplicationOutboundStream responder) {
+    this.responder = responder;
+    logger().debug("GRID: Informed of responder: " + this.responder);
   }
 
   @Override
