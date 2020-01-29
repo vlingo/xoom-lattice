@@ -1,6 +1,8 @@
 package io.vlingo.lattice.grid.application.message;
 
 import io.vlingo.actors.Address;
+import io.vlingo.common.SerializableConsumer;
+import io.vlingo.wire.node.Id;
 
 import java.io.Serializable;
 
@@ -10,22 +12,24 @@ public class Deliver<T> implements Serializable, Message {
   public final Class<T> protocol;
   public final Address address;
   public final String representation;
+  public final SerializableConsumer<T> consumer;
 
-  public Deliver(final Class<T> protocol, final Address address, final String representation) {
+  public Deliver(final Class<T> protocol, final Address address, final SerializableConsumer<T> consumer, final String representation) {
     this.protocol = protocol;
     this.address = address;
+    this.consumer = consumer;
     this.representation = representation;
   }
 
   @Override
-  public void accept(Visitor visitor) {
-    visitor.visit(this);
+  public void accept(Id recipient, Id sender, Visitor visitor) {
+    visitor.visit(recipient, sender, this);
   }
 
   @Override
   public String toString() {
     return String.format(
-        "Deliver(protocol='%s', address='%s', representation='%s')",
-        protocol, address, representation);
+        "Deliver(protocol='%s', address='%s', representation='%s', consumer='%s')",
+        protocol, address, representation, consumer);
   }
 }

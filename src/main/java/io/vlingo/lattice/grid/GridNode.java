@@ -9,19 +9,25 @@ package io.vlingo.lattice.grid;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
+import io.vlingo.actors.Definition;
+import io.vlingo.actors.Mailbox;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
+import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.ApplicationMessageHandler;
 import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.GridActorControlMessageHandler;
+import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 public class GridNode extends ClusterApplicationAdapter {
   private AttributesProtocol client;
@@ -42,13 +48,22 @@ public class GridNode extends ClusterApplicationAdapter {
           }
 
           @Override
-          public <T> void start(Id host, Id ref, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
+          public <T> void start(Id recipient, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
             logger().debug("GRID: Received application message: Start");
+            grid.actorFor(protocol, Definition.has(
+                type,
+                parameters == null
+                  ? Collections.EMPTY_LIST
+                    : Arrays.asList(parameters)),
+                address);
           }
 
           @Override
-          public <T> void deliver(Id host, Id ref, Class<T> protocol, Address address, String representation) {
+          public <T> void deliver(Id host, Id ref, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
             logger().debug("GRID: Received application message: Deliver");
+            Actor actor = grid.actorAt(address);
+            Mailbox mailbox = actor.lifeCycle.environment.mailbox;
+            mailbox.send(actor, protocol, consumer, null, representation);
           }
         });
   }
@@ -63,6 +78,12 @@ public class GridNode extends ClusterApplicationAdapter {
   public void handleApplicationMessage(final RawMessage message) {
     logger().debug("GRID: Received application message: " + message.asTextMessage());
     applicationMessageHandler.handle(message);
+  }
+
+  @Override
+  public void informResponder(ApplicationOutboundStream responder) {
+    this.responder = responder;
+    this.grid.setOutbound(new OutboundGridActorControl(responder));
   }
 
   // hashring ??? THIS ONE ONLY?
@@ -123,12 +144,6 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informQuorumLost() {
     logger().debug("GRID: Quorum lost");
-  }
-
-  @Override
-  public void informResponder(final ApplicationOutboundStream responder) {
-    this.responder = responder;
-    logger().debug("GRID: Informed of responder: " + this.responder);
   }
 
   @Override

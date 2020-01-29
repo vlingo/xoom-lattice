@@ -1,8 +1,8 @@
 package io.vlingo.lattice.grid;
 
 import io.vlingo.actors.*;
+import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
@@ -42,10 +42,10 @@ public class GridMailbox implements Mailbox {
     }
   }
 
-  private <R> R delegateUnlessIsRemote(Function<Id, R> remote, Supplier<R> consumer) {
+  private <R> R delegateUnlessIsRemote(Function<Id, R> remote, Supplier<R> supplier) {
     Id nodeOf = hashRing.nodeOf(address.idString());
     if (nodeOf == null || nodeOf.equals(localId)) {
-      return consumer.get();
+      return supplier.get();
     }
     else {
       return remote.apply(nodeOf);
@@ -96,16 +96,17 @@ public class GridMailbox implements Mailbox {
   public void send(Message message) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
-      outbound.deliver(nodeOf, localId, message.protocol(), address, message.representation());
+      LocalMessage localMessage = (LocalMessage) message; // TODO make this work with Message
+      outbound.deliver(nodeOf, localId, message.protocol(), address, localMessage.consumer(), message.representation());
       local.send(message);
     }, () -> local.send(message));
   }
 
   @Override
-  public void send(Actor actor, Class<?> protocol, Consumer<?> consumer, Returns<?> returns, String representation) {
+  public void send(Actor actor, Class<?> protocol, SerializableConsumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
-      outbound.deliver(nodeOf, localId, protocol, address, representation);
+      outbound.deliver(nodeOf, localId, protocol, address, null, representation);
       local.send(actor, protocol, consumer, returns, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }

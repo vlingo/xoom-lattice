@@ -1,5 +1,7 @@
 package io.vlingo.lattice.grid.application.message;
 
+import io.vlingo.wire.node.Id;
+
 import java.io.Serializable;
 
 public class Answer implements Serializable, Message {
@@ -8,7 +10,7 @@ public class Answer implements Serializable, Message {
   public Answer() { }
 
   @Override
-  public void accept(Visitor visitor) {
-    visitor.visit(this);
+  public void accept(Id recipient, Id sender, Visitor visitor) {
+    visitor.visit(recipient, sender, this);
   }
 }

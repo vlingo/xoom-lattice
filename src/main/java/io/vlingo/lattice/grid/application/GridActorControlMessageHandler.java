@@ -2,6 +2,7 @@ package io.vlingo.lattice.grid.application;
 
 import io.vlingo.lattice.grid.application.message.*;
 import io.vlingo.wire.message.RawMessage;
+import io.vlingo.wire.node.Id;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,7 +24,9 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
     try {
       Message message = decoder.decode(raw.asBinaryMessage());
       System.out.println(message);
-      message.accept(visitor);
+      Id recipient = null; // TODO should be this node
+      Id sender = Id.of(raw.header().nodeId());
+      message.accept(recipient, sender, visitor);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -31,18 +34,18 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
 
   final class ControlMessageVisitor implements Visitor {
     @Override
-    public void visit(Answer answer) {
+    public void visit(Id recipient, Id sender, Answer answer) {
       control.answer(null, null, answer);
     }
 
     @Override
-    public void visit(Deliver deliver) {
-      control.deliver(null, null, null, null, null);
+    public <T> void visit(Id recipient, Id sender, Deliver<T> deliver) {
+      control.deliver(recipient, sender, deliver.protocol, deliver.address, deliver.consumer, deliver.representation);
     }
 
     @Override
-    public void visit(Start start) {
-      control.start(null, null, null, null, null, null);
+    public <T> void visit(Id recipient, Id sender, Start<T> start) {
+      control.start(recipient, sender, start.protocol, start.address, start.type, start.parameters);
     }
   }
 

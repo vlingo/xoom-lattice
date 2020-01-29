@@ -14,10 +14,7 @@ import io.vlingo.cluster.model.ClusterSnapshotControl;
 import io.vlingo.cluster.model.Properties;
 import io.vlingo.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.common.Tuple2;
-import io.vlingo.lattice.grid.example.Pinger;
-import io.vlingo.lattice.grid.example.PingerActor;
-import io.vlingo.lattice.grid.example.Ponger;
-import io.vlingo.lattice.grid.example.PongerActor;
+import io.vlingo.lattice.grid.example.*;
 
 public class GridNodeBootstrap {
   private static GridNodeBootstrap instance;
@@ -30,14 +27,23 @@ public class GridNodeBootstrap {
     if (args.length == 1) {
       GridNodeBootstrap bootstrap = boot(args[0]);
 
+      System.out.println("WAITING.....");
+      Thread.sleep(20000);
+
       System.out.println("STARTING ACTORS");
-
-      Pinger pinger = bootstrap.grid.actorFor(Pinger.class, PingerActor.class);
-      Ponger ponger = bootstrap.grid.actorFor(Ponger.class, PongerActor.class);
-
-      pinger.ping(ponger);
-
+      Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class);
       System.out.println("STARTED ACTORS");
+
+      while(true) {
+        Thread.sleep(4000);
+        greeting.hello("John");
+      }
+
+//      Pinger pinger = bootstrap.grid.actorFor(Pinger.class, PingerActor.class);
+//      Ponger ponger = bootstrap.grid.actorFor(Ponger.class, PongerActor.class);
+//
+//      pinger.ping(ponger);
+
 
     } else if (args.length > 1) {
       System.err.println("vlingo/lattice: Too many arguments; provide node name only.");
@@ -112,9 +118,8 @@ public class GridNodeBootstrap {
 
     @Override
     public GridNode instantiate() {
-      grid.setHub(hub());
       grid.setNodeId(node().id());
-      return new GridNode(grid, node(), hub());
+      return new GridNode(grid, node());
     }
   }
 }

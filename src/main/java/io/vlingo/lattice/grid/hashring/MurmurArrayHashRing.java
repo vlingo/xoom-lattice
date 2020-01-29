@@ -78,6 +78,9 @@ public class MurmurArrayHashRing<T> implements HashRing<T> {
 
   @Override
   public T nodeOf(final Object id) {
+    if (hashedNodePoints.length == 0) {
+      return null;
+    }
     final HashedNodePoint<T> hashedNodePoint = hashedNodePointOf(id);
     int index = Arrays.binarySearch(hashedNodePoints, hashedNodePoint, Comparator.comparingInt(HashedIdentity::hash));
     if (index < 0) {
@@ -86,7 +89,7 @@ public class MurmurArrayHashRing<T> implements HashRing<T> {
         index = 0;
       }
     }
-    return (index < hashedNodePoints.length) ? hashedNodePoints[index].nodeIdentifier : null;
+    return hashedNodePoints[index].nodeIdentifier;
   }
 
   private int hashed(final Object id) {

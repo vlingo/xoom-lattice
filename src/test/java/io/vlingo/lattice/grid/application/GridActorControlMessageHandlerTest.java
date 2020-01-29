@@ -2,6 +2,7 @@ package io.vlingo.lattice.grid.application;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
+import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.application.message.Message;
@@ -31,17 +32,17 @@ public class GridActorControlMessageHandlerTest {
   private final GridActorControlMessageHandler handler =
       new GridActorControlMessageHandler(new GridActorControl.Inbound() {
         @Override
-        public <T> void start(Id host, Id ref, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
+        public <T> void start(Id recipient, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
           startLatch.countDown();
         }
 
         @Override
-        public <T> void deliver(Id host, Id ref, Class<T> protocol, Address address, String representation) {
+        public <T> void deliver(Id recipient, Id sender, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
           deliverLatch.countDown();
         }
 
         @Override
-        public void answer(Id host, Id ref, Answer answer) {
+        public void answer(Id recipient, Id sender, Answer answer) {
           answerLatch.countDown();
         }
       });
@@ -54,7 +55,7 @@ public class GridActorControlMessageHandlerTest {
 
   @Test
   public void testDeliver() throws IOException, InterruptedException {
-    test(from(new Deliver<>(null, null, null)), deliverLatch);
+    test(from(new Deliver<>(null, null, (something) -> {}, null)), deliverLatch);
   }
 
   @Test
