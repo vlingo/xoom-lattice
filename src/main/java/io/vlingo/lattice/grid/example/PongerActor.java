@@ -9,6 +9,7 @@ public class PongerActor extends Actor implements Ponger {
     self = selfAs(Ponger.class);
   }
 
+  @Override
   public void pong(final Pinger pinger) {
     System.out.println("Ponger::pong");
     try {
