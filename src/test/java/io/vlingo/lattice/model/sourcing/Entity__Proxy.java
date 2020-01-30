@@ -7,12 +7,9 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import io.vlingo.actors.Actor;
-import io.vlingo.actors.DeadLetter;
-import io.vlingo.actors.LocalMessage;
-import io.vlingo.actors.Mailbox;
-import io.vlingo.actors.Returns;
+import io.vlingo.actors.*;
 import io.vlingo.common.BasicCompletes;
+import io.vlingo.common.SerializableConsumer;
 
 public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
 
@@ -31,7 +28,7 @@ public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
   @Override
   public void doTest1() {
     if (!actor.isStopped()) {
-      final java.util.function.Consumer<Entity> consumer = (actor) -> actor.doTest1();
+      final SerializableConsumer<Entity> consumer = (actor) -> actor.doTest1();
       if (mailbox.isPreallocated()) { mailbox.send(actor, Entity.class, consumer, null, doTest1Representation1); }
       else { mailbox.send(new LocalMessage<Entity>(actor, Entity.class, consumer, doTest1Representation1)); }
     } else {
@@ -41,7 +38,7 @@ public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
   @Override
   public void doTest2() {
     if (!actor.isStopped()) {
-      final java.util.function.Consumer<Entity> consumer = (actor) -> actor.doTest2();
+      final SerializableConsumer<Entity> consumer = (actor) -> actor.doTest2();
       if (mailbox.isPreallocated()) { mailbox.send(actor, Entity.class, consumer, null, doTest2Representation2); }
       else { mailbox.send(new LocalMessage<Entity>(actor, Entity.class, consumer, doTest2Representation2)); }
     } else {
@@ -51,7 +48,7 @@ public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
   @Override
   public io.vlingo.common.Completes<java.lang.String> doTest3() {
     if (!actor.isStopped()) {
-      final java.util.function.Consumer<Entity> consumer = (actor) -> actor.doTest3();
+      final SerializableConsumer<Entity> consumer = (actor) -> actor.doTest3();
       final io.vlingo.common.Completes<java.lang.String> completes = new BasicCompletes<>(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, Entity.class, consumer, Returns.value(completes), doTest3Representation3); }
       else { mailbox.send(new LocalMessage<Entity>(actor, Entity.class, consumer, Returns.value(completes), doTest3Representation3)); }

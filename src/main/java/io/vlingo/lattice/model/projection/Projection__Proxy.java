@@ -11,6 +11,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.DeadLetter;
 import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Mailbox;
+import io.vlingo.common.SerializableConsumer;
 
 public class Projection__Proxy implements io.vlingo.lattice.model.projection.Projection {
 
@@ -26,7 +27,7 @@ public class Projection__Proxy implements io.vlingo.lattice.model.projection.Pro
 
   public void projectWith(io.vlingo.lattice.model.projection.Projectable arg0, io.vlingo.lattice.model.projection.ProjectionControl arg1) {
     if (!actor.isStopped()) {
-      final java.util.function.Consumer<Projection> consumer = (actor) -> actor.projectWith(arg0, arg1);
+      final SerializableConsumer<Projection> consumer = (actor) -> actor.projectWith(arg0, arg1);
       if (mailbox.isPreallocated()) { mailbox.send(actor, Projection.class, consumer, null, projectWithRepresentation1); }
       else { mailbox.send(new LocalMessage<Projection>(actor, Projection.class, consumer, projectWithRepresentation1)); }
     } else {
