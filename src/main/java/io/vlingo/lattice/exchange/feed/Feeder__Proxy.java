@@ -11,6 +11,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.DeadLetter;
 import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Mailbox;
+import io.vlingo.common.SerializableConsumer;
 
 public class Feeder__Proxy implements io.vlingo.lattice.exchange.feed.Feeder {
 
@@ -27,7 +28,7 @@ public class Feeder__Proxy implements io.vlingo.lattice.exchange.feed.Feeder {
   @Override
   public void feedItemTo(io.vlingo.lattice.exchange.feed.FeedItemId arg0, io.vlingo.lattice.exchange.feed.FeedConsumer arg1) {
     if (!actor.isStopped()) {
-      final java.util.function.Consumer<Feeder> consumer = (actor) -> actor.feedItemTo(arg0, arg1);
+      final SerializableConsumer<Feeder> consumer = (actor) -> actor.feedItemTo(arg0, arg1);
       if (mailbox.isPreallocated()) { mailbox.send(actor, Feeder.class, consumer, null, feedItemToRepresentation1); }
       else { mailbox.send(new LocalMessage<Feeder>(actor, Feeder.class, consumer, feedItemToRepresentation1)); }
     } else {
