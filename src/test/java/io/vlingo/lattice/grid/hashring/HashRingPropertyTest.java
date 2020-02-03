@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public abstract class HashRingPropertyTest {
 
@@ -63,13 +64,13 @@ public abstract class HashRingPropertyTest {
     HashRing<String> ring = includeAll(ring(POINTS_PER_NODE, FACTORY), NODES);
     Map<String, Set<UUID>> assignments = assignments(ring);
 
-    HashRing<String> removed = excludeAll(ring, NODES[NODES.length - 1]);
+    HashRing<String> removed = excludeAll(ring, NODES[1]);
     Map<String, Set<UUID>> assignmentsRemoved = assignments(removed);
 
     System.out.println(assignmentsRemoved.get(NODES[0])
         .containsAll(assignments.get(NODES[0])));
-    System.out.println(assignmentsRemoved.get(NODES[1])
-        .containsAll(assignments.get(NODES[1])));
+    System.out.println(assignmentsRemoved.get(NODES[2])
+        .containsAll(assignments.get(NODES[2])));
   }
 
   private static Map<String, Set<UUID>> assignments(HashRing<String> ring) {
@@ -89,5 +90,11 @@ public abstract class HashRingPropertyTest {
       ring.excludeNode(node);
     }
     return ring;
+  }
+
+  @Test
+  public void emptyHashRingShouldAssignNull() throws Exception {
+    HashRing<String> ring = ring(POINTS_PER_NODE, FACTORY);
+    assertNull("Empty ring didn't assign null", ring.nodeOf(UUID.randomUUID()));
   }
 }

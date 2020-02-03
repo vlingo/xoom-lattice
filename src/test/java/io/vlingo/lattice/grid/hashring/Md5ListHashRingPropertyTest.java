@@ -1,7 +1,10 @@
 package io.vlingo.lattice.grid.hashring;
 
+import org.junit.Ignore;
+
 import java.util.function.BiFunction;
 
+@Ignore
 public class Md5ListHashRingPropertyTest extends HashRingPropertyTest {
   @Override
   protected HashRing<String> ring(
