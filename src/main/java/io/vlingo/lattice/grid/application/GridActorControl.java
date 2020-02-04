@@ -4,6 +4,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.message.Answer;
+import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.wire.node.Id;
 
 public interface GridActorControl {
@@ -25,6 +26,8 @@ public interface GridActorControl {
       String representation);
 
   void answer(Id host, Id ref, Answer answer);
+
+  void forward(Id recipient, Id sender, Message message);
 
 
   interface Inbound extends GridActorControl {

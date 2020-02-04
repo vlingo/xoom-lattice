@@ -3,10 +3,7 @@ package io.vlingo.lattice.grid.application;
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
 import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Deliver;
-import io.vlingo.lattice.grid.application.message.Message;
-import io.vlingo.lattice.grid.application.message.Start;
+import io.vlingo.lattice.grid.application.message.*;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import org.junit.Test;
@@ -22,12 +19,10 @@ import static org.junit.Assert.assertTrue;
 
 public class GridActorControlMessageHandlerTest {
 
-  private static final short sender = (short) 0;
-  private static final short recipient = (short) 1;
-
   CountDownLatch startLatch = new CountDownLatch(1);
   CountDownLatch deliverLatch = new CountDownLatch(1);
   CountDownLatch answerLatch = new CountDownLatch(1);
+  CountDownLatch forwardLatch = new CountDownLatch(1);
 
   private final GridActorControlMessageHandler handler =
       new GridActorControlMessageHandler(new GridActorControl.Inbound() {
@@ -38,14 +33,23 @@ public class GridActorControlMessageHandlerTest {
 
         @Override
         public <T> void deliver(Id recipient, Id sender, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
-          deliverLatch.countDown();
+          if (sender.equals(Id.of(0)))
+            deliverLatch.countDown();
+          else if (sender.equals(Id.of(1))){
+            forwardLatch.countDown();
+          }
         }
 
         @Override
         public void answer(Id recipient, Id sender, Answer answer) {
           answerLatch.countDown();
         }
-      });
+
+        @Override
+        public void forward(Id recipient, Id sender, Message message) {
+          throw new UnsupportedOperationException();
+        }
+      }, null);
 
 
   @Test
@@ -63,6 +67,11 @@ public class GridActorControlMessageHandlerTest {
     test(from(new Answer()), answerLatch);
   }
 
+  @Test
+  public void testForward() throws IOException, InterruptedException {
+    test(from(new Forward(Id.of(1), new Deliver<>(null, null, (some) -> {}, null))), forwardLatch);
+  }
+
   private void test(RawMessage message, CountDownLatch latch) throws InterruptedException {
     handler.handle(message);
     assertTrue("Didn't handle " + message.getClass().getName(), latch.await(1, TimeUnit.MILLISECONDS));
@@ -74,7 +83,7 @@ public class GridActorControlMessageHandlerTest {
       out.writeObject(message);
     }
     ByteBuffer buffer = ByteBuffer.wrap(bos.toByteArray());
-    RawMessage raw = RawMessage.from(1, -1, buffer.limit());
+    RawMessage raw = RawMessage.from(0, -1, buffer.limit());
     raw.putRemaining(buffer);
     return raw;
   }

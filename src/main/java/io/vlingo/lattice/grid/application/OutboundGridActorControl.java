@@ -58,6 +58,11 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
     send(host, ref, answer);
   }
 
+  @Override
+  public void forward(Id recipient, Id sender, Message message) {
+    throw new UnsupportedOperationException();
+  }
+
 
   private static final class JavaObjectEncoder implements Encoder {
 

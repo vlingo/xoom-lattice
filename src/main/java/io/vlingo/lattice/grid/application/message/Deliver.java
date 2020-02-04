@@ -29,7 +29,7 @@ public class Deliver<T> implements Serializable, Message {
   @Override
   public String toString() {
     return String.format(
-        "Deliver(protocol='%s', address='%s', representation='%s', consumer='%s')",
-        protocol, address, representation, consumer);
+        "Deliver(protocol='%s', address='%s', consumer='%s', representation='%s')",
+        protocol, address, consumer, representation);
   }
 }

@@ -25,18 +25,18 @@ public class GridNodeBootstrap {
 
   public static void main(final String[] args) throws Exception {
     if (args.length == 1) {
-      GridNodeBootstrap bootstrap = boot(args[0]);
+      String nodeName = args[0];
+      GridNodeBootstrap bootstrap = boot(nodeName);
 
       System.out.println("WAITING.....");
-      Thread.sleep(20000);
-
+      Thread.sleep(30000);
       System.out.println("STARTING ACTORS");
       Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class);
       System.out.println("STARTED ACTORS");
 
       while(true) {
+        greeting.hello(nodeName);
         Thread.sleep(4000);
-        greeting.hello("John");
       }
 
 //      Pinger pinger = bootstrap.grid.actorFor(Pinger.class, PingerActor.class);

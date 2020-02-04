@@ -5,6 +5,7 @@ import io.vlingo.actors.Address;
 import io.vlingo.wire.node.Id;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class Start<T> implements Serializable, Message {
   private static final long serialVersionUID = -7081324662923459283L;
@@ -24,5 +25,12 @@ public class Start<T> implements Serializable, Message {
   @Override
   public void accept(Id recipient, Id sender, Visitor visitor) {
     visitor.visit(recipient, sender, this);
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+        "Start(protocol='%s', address='%s', type='%s', parameters='%s')",
+        protocol, address, type, Arrays.toString(parameters));
   }
 }

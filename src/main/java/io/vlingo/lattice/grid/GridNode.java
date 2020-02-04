@@ -20,6 +20,7 @@ import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.GridActorControlMessageHandler;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.application.message.Answer;
+import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
@@ -48,6 +49,11 @@ public class GridNode extends ClusterApplicationAdapter {
           }
 
           @Override
+          public void forward(Id recipient, Id sender, Message message) {
+            throw new UnsupportedOperationException("Should be handled in io.vlingo.lattice.grid.application.message.Visitor#accept(Id, Id, Forward) by dispatching the visitor to the enclosed Message");
+          }
+
+          @Override
           public <T> void start(Id recipient, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
             logger().debug("GRID: Received application message: Start");
             grid.actorFor(protocol, Definition.has(
@@ -65,7 +71,7 @@ public class GridNode extends ClusterApplicationAdapter {
             Mailbox mailbox = actor.lifeCycle.environment.mailbox;
             mailbox.send(actor, protocol, consumer, null, representation);
           }
-        });
+        }, null);
   }
 
   @Override
