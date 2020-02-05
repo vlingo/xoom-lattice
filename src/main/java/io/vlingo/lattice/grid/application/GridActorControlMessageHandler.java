@@ -1,6 +1,8 @@
 package io.vlingo.lattice.grid.application;
 
+import io.vlingo.actors.Address;
 import io.vlingo.lattice.grid.application.message.*;
+import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 
@@ -10,30 +12,40 @@ import java.io.ObjectInputStream;
 
 public final class GridActorControlMessageHandler implements ApplicationMessageHandler {
 
+  private final Id localNode;
+  private final HashRing<Id> hashRing;
   private final GridActorControl.Inbound inbound;
   private final GridActorControl.Outbound outbound;
   private final Decoder decoder;
   private final Visitor visitor;
 
-  public GridActorControlMessageHandler(final GridActorControl.Inbound inbound, final GridActorControl.Outbound outbound) {
-    this(inbound, outbound, new JavaObjectMessageDecoder());
+  public GridActorControlMessageHandler(
+      final Id localNode, final HashRing<Id> hashRing,
+      final GridActorControl.Inbound inbound,
+      final GridActorControl.Outbound outbound) {
+    this(localNode, hashRing, inbound, outbound, new JavaObjectMessageDecoder());
   }
 
-  public GridActorControlMessageHandler(final GridActorControl.Inbound inbound, final GridActorControl.Outbound outbound, final Decoder decoder) {
+  public GridActorControlMessageHandler(
+      final Id localNode, final HashRing<Id> hashRing,
+      final GridActorControl.Inbound inbound,
+      final GridActorControl.Outbound outbound,
+      final Decoder decoder) {
+    this.localNode = localNode;
+    this.hashRing = hashRing;
     this.inbound = inbound;
     this.outbound = outbound;
     this.decoder = decoder;
+
     this.visitor = new ControlMessageVisitor();
   }
 
   public void handle(RawMessage raw) {
     try {
-      // TODO implement outbound forward
       Message message = decoder.decode(raw.asBinaryMessage());
       System.out.println(message);
-      Id recipient = null; // TODO should be this node
       Id sender = Id.of(raw.header().nodeId());
-      message.accept(recipient, sender, visitor);
+      message.accept(localNode, sender, visitor);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -41,18 +53,38 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
 
   final class ControlMessageVisitor implements Visitor {
     @Override
-    public void visit(Id recipient, Id sender, Answer answer) {
+    public void visit(Id receiver, Id sender, Answer answer) {
       inbound.answer(null, null, answer);
     }
 
     @Override
-    public <T> void visit(Id recipient, Id sender, Deliver<T> deliver) {
-      inbound.deliver(recipient, sender, deliver.protocol, deliver.address, deliver.consumer, deliver.representation);
+    public <T> void visit(Id receiver, Id sender, Deliver<T> deliver) {
+      Id recipient = receiver(receiver, deliver.address);
+      if (recipient == receiver) {
+        inbound.deliver(receiver, sender, deliver.protocol, deliver.address, deliver.consumer, deliver.representation);
+      }
+      else {
+        outbound.forward(recipient, sender, deliver);
+      }
     }
 
     @Override
-    public <T> void visit(Id recipient, Id sender, Start<T> start) {
-      inbound.start(recipient, sender, start.protocol, start.address, start.type, start.parameters);
+    public <T> void visit(Id receiver, Id sender, Start<T> start) {
+      Id recipient = receiver(receiver, start.address);
+      if (recipient == receiver) {
+        inbound.start(receiver, sender, start.protocol, start.address, start.type, start.parameters);
+      }
+      else {
+        outbound.forward(recipient, sender, start);
+      }
+    }
+
+    private Id receiver(Id receiver, Address address) {
+      final Id recipient = hashRing.nodeOf(address.idString());
+      if (recipient == null || recipient.equals(receiver)) {
+        return receiver;
+      }
+      return recipient;
     }
   }
 

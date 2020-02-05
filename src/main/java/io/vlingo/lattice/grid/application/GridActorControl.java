@@ -10,7 +10,7 @@ import io.vlingo.wire.node.Id;
 public interface GridActorControl {
 
   <T> void start(
-      Id recipient,
+      Id receiver,
       Id sender,
       Class<T> protocol,
       Address address,
@@ -18,16 +18,16 @@ public interface GridActorControl {
       Object[] parameters);
 
   <T> void deliver(
-      Id recipient,
+      Id receiver,
       Id sender,
       Class<T> protocol,
       Address address,
       SerializableConsumer<T> consumer,
       String representation);
 
-  void answer(Id host, Id ref, Answer answer);
+  void answer(Id receiver, Id ref, Answer answer);
 
-  void forward(Id recipient, Id sender, Message message);
+  void forward(Id receiver, Id sender, Message message);
 
 
   interface Inbound extends GridActorControl {

@@ -15,52 +15,62 @@ import java.nio.ByteBuffer;
 
 public class OutboundGridActorControl implements GridActorControl.Outbound {
 
-  private final ApplicationOutboundStream outbound;
+  private final Id localNodeId;
+  private ApplicationOutboundStream stream;
   private final JavaObjectEncoder encoder;
 
-  public OutboundGridActorControl(ApplicationOutboundStream outbound) {
-    this.outbound = outbound;
+  public OutboundGridActorControl(Id localNodeId) {
+    this(localNodeId, null);
+  }
+
+  public OutboundGridActorControl(Id localNodeId, ApplicationOutboundStream stream) {
+    this.localNodeId = localNodeId;
+    this.stream = stream;
     this.encoder = new JavaObjectEncoder();
+  }
+
+  public void setStream(ApplicationOutboundStream outbound) {
+    this.stream = outbound;
   }
 
   @Override
   public <T> void start(
-      Id recipient,
+      Id receiver,
       Id sender,
       Class<T> protocol,
       Address address,
       Class<? extends Actor> type,
       Object[] parameters) {
-    send(recipient, sender, new Start<>(protocol, address, type, parameters));
+    send(receiver, new Start<>(protocol, address, type, parameters));
   }
 
-  private void send(Id recipient, Id sender, Message message) {
+  private void send(Id recipient, Message message) {
     byte[] payload = encoder.encode(message);
     RawMessage raw = RawMessage.from(
-        sender.value(), -1, payload.length);
+        localNodeId.value(), -1, payload.length);
     raw.putRemaining(ByteBuffer.wrap(payload));
-    outbound.sendTo(raw, recipient);
+    stream.sendTo(raw, recipient);
   }
 
   @Override
   public <T> void deliver(
-      Id recipient,
+      Id receiver,
       Id sender,
       Class<T> protocol,
       Address address,
       SerializableConsumer<T> consumer,
       String representation) {
-    send(recipient, sender, new Deliver<T>(protocol, address, consumer, representation));
+    send(receiver, new Deliver<T>(protocol, address, consumer, representation));
   }
 
   @Override
-  public void answer(Id host, Id ref, Answer answer) {
-    send(host, ref, answer);
+  public void answer(Id receiver, Id ref, Answer answer) {
+    send(receiver, answer);
   }
 
   @Override
-  public void forward(Id recipient, Id sender, Message message) {
-    throw new UnsupportedOperationException();
+  public void forward(Id receiver, Id sender, Message message) {
+    send(receiver, new Forward(sender, message));
   }
 
 

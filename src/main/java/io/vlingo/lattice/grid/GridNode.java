@@ -34,27 +34,30 @@ public class GridNode extends ClusterApplicationAdapter {
   private AttributesProtocol client;
   private final Grid grid;
   private final Node localNode;
-  private ApplicationOutboundStream responder;
+
+  private final OutboundGridActorControl outbound;
 
   final ApplicationMessageHandler applicationMessageHandler;
 
   public GridNode(final Grid grid, final Node localNode) {
     this.grid = grid;
     this.localNode = localNode;
+    this.outbound = new OutboundGridActorControl(localNode.id());
+    this.grid.setOutbound(outbound);
     this.applicationMessageHandler = new GridActorControlMessageHandler(
-        new GridActorControl.Inbound() {
+        localNode.id(), grid.hashRing(), new GridActorControl.Inbound() {
           @Override
-          public void answer(Id host, Id ref, Answer answer) {
+          public void answer(Id receiver, Id ref, Answer answer) {
             logger().debug("GRID: Received application message: Answer");
           }
 
           @Override
-          public void forward(Id recipient, Id sender, Message message) {
-            throw new UnsupportedOperationException("Should be handled in io.vlingo.lattice.grid.application.message.Visitor#accept(Id, Id, Forward) by dispatching the visitor to the enclosed Message");
+          public void forward(Id receiver, Id sender, Message message) {
+            throw new UnsupportedOperationException("Should have been handled in Visitor#accept(Id, Id, Forward) by dispatching the visitor to the enclosed Message");
           }
 
           @Override
-          public <T> void start(Id recipient, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
+          public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
             logger().debug("GRID: Received application message: Start");
             grid.actorFor(protocol, Definition.has(
                 type,
@@ -65,13 +68,13 @@ public class GridNode extends ClusterApplicationAdapter {
           }
 
           @Override
-          public <T> void deliver(Id host, Id ref, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
+          public <T> void deliver(Id receiver, Id ref, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
             logger().debug("GRID: Received application message: Deliver");
             Actor actor = grid.actorAt(address);
             Mailbox mailbox = actor.lifeCycle.environment.mailbox;
             mailbox.send(actor, protocol, consumer, null, representation);
           }
-        }, null);
+        }, outbound);
   }
 
   @Override
@@ -88,8 +91,7 @@ public class GridNode extends ClusterApplicationAdapter {
 
   @Override
   public void informResponder(ApplicationOutboundStream responder) {
-    this.responder = responder;
-    this.grid.setOutbound(new OutboundGridActorControl(responder));
+    this.outbound.setStream(responder);
   }
 
   // hashring ??? THIS ONE ONLY?
