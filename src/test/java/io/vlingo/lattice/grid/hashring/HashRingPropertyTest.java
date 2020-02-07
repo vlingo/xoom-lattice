@@ -3,13 +3,13 @@ package io.vlingo.lattice.grid.hashring;
 import io.vlingo.common.Tuple2;
 import org.junit.Test;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public abstract class HashRingPropertyTest {
 
@@ -61,20 +61,23 @@ public abstract class HashRingPropertyTest {
   @Test
   public void excludingNodesMustRetainAssignmentsToRemainingNodes()
       throws Exception {
+
+    final Collection<UUID> sample = gen(SAMPLE_SIZE);
+
     HashRing<String> ring = includeAll(ring(POINTS_PER_NODE, FACTORY), NODES);
-    Map<String, Set<UUID>> assignments = assignments(ring);
+    Map<String, Set<UUID>> assignments = assignments(sample, ring);
 
     HashRing<String> removed = excludeAll(ring, NODES[1]);
-    Map<String, Set<UUID>> assignmentsRemoved = assignments(removed);
+    Map<String, Set<UUID>> assignmentsRemoved = assignments(sample, removed);
 
-    System.out.println(assignmentsRemoved.get(NODES[0])
+    assertTrue(assignmentsRemoved.get(NODES[0])
         .containsAll(assignments.get(NODES[0])));
-    System.out.println(assignmentsRemoved.get(NODES[2])
+    assertTrue(assignmentsRemoved.get(NODES[2])
         .containsAll(assignments.get(NODES[2])));
   }
 
-  private static Map<String, Set<UUID>> assignments(HashRing<String> ring) {
-    Map<String, List<Tuple2<UUID, String>>> map = gen(SAMPLE_SIZE).stream()
+  private static Map<String, Set<UUID>> assignments(Collection<UUID> sample, HashRing<String> ring) {
+    Map<String, List<Tuple2<UUID, String>>> map = sample.stream()
         .map((uuid) -> Tuple2.from(uuid, ring.nodeOf(uuid)))
         .collect(Collectors.groupingBy((tuple) -> tuple._2));
     Map<String, Set<UUID>> finalMap = new HashMap<>(map.size());
