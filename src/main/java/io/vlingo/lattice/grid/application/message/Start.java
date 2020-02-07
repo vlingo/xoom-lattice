@@ -23,8 +23,8 @@ public class Start<T> implements Serializable, Message {
   }
 
   @Override
-  public void accept(Id recipient, Id sender, Visitor visitor) {
-    visitor.visit(recipient, sender, this);
+  public void accept(Id receiver, Id sender, Visitor visitor) {
+    visitor.visit(receiver, sender, this);
   }
 
   @Override

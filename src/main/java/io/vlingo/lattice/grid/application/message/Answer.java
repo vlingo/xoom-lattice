@@ -10,7 +10,7 @@ public class Answer implements Serializable, Message {
   public Answer() { }
 
   @Override
-  public void accept(Id recipient, Id sender, Visitor visitor) {
-    visitor.visit(recipient, sender, this);
+  public void accept(Id receiver, Id sender, Visitor visitor) {
+    visitor.visit(receiver, sender, this);
   }
 }

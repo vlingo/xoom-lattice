@@ -5,5 +5,5 @@ import io.vlingo.wire.node.Id;
 import java.io.Serializable;
 
 public interface Message extends Serializable {
-  void accept(Id recipient, Id sender, Visitor visitor);
+  void accept(Id receiver, Id sender, Visitor visitor);
 }
