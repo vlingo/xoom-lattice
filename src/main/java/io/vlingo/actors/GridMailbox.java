@@ -1,6 +1,5 @@
-package io.vlingo.lattice.grid;
+package io.vlingo.actors;
 
-import io.vlingo.actors.*;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.hashring.HashRing;

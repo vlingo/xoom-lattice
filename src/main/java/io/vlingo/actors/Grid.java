@@ -5,19 +5,15 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.lattice.grid;
+package io.vlingo.actors;
 
-import io.vlingo.actors.*;
-import io.vlingo.cluster.model.CommunicationsHub;
 import io.vlingo.common.Completes;
 import io.vlingo.common.identity.IdentityGeneratorType;
+import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.cache.Cache;
-import io.vlingo.lattice.grid.cache.CacheNodePoint;
 import io.vlingo.lattice.grid.hashring.HashRing;
-import io.vlingo.lattice.grid.hashring.MurmurArrayHashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
-import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.node.Id;
 
 import java.util.Arrays;
@@ -137,7 +133,17 @@ public class Grid extends Stage {
     world().terminate();
   }
 
-  HashRing<Id> hashRing() {
+  public HashRing<Id> hashRing() {
     return hashRing;
+  }
+
+  /**
+   * Answers the Actor at the specified Address.
+   *
+   * @param address the Address of the actor
+   * @return the Actor
+   */
+  Actor actorAt(Address address) {
+    return directory.actorOf(address);
   }
 }

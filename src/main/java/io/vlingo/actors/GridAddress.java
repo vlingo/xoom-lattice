@@ -5,12 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.lattice.grid;
+package io.vlingo.actors;
 
 import java.io.Serializable;
 import java.util.UUID;
-
-import io.vlingo.actors.Address;
 
 public final class GridAddress implements Address, Serializable {
   private static final long serialVersionUID = -7172480689137574451L;

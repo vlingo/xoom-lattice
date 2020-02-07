@@ -7,10 +7,7 @@
 
 package io.vlingo.lattice.grid;
 
-import io.vlingo.actors.Actor;
-import io.vlingo.actors.Address;
-import io.vlingo.actors.Definition;
-import io.vlingo.actors.Mailbox;
+import io.vlingo.actors.*;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
@@ -45,36 +42,7 @@ public class GridNode extends ClusterApplicationAdapter {
     this.outbound = new OutboundGridActorControl(localNode.id());
     this.grid.setOutbound(outbound);
     this.applicationMessageHandler = new GridActorControlMessageHandler(
-        localNode.id(), grid.hashRing(), new GridActorControl.Inbound() {
-          @Override
-          public void answer(Id receiver, Id ref, Answer answer) {
-            logger().debug("GRID: Received application message: Answer");
-          }
-
-          @Override
-          public void forward(Id receiver, Id sender, Message message) {
-            throw new UnsupportedOperationException("Should have been handled in Visitor#accept(Id, Id, Forward) by dispatching the visitor to the enclosed Message");
-          }
-
-          @Override
-          public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
-            logger().debug("GRID: Received application message: Start");
-            grid.actorFor(protocol, Definition.has(
-                type,
-                parameters == null
-                  ? Collections.EMPTY_LIST
-                    : Arrays.asList(parameters)),
-                address);
-          }
-
-          @Override
-          public <T> void deliver(Id receiver, Id ref, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
-            logger().debug("GRID: Received application message: Deliver");
-            Actor actor = grid.actorAt(address);
-            Mailbox mailbox = actor.lifeCycle.environment.mailbox;
-            mailbox.send(actor, protocol, consumer, null, representation);
-          }
-        }, outbound);
+        localNode.id(), grid.hashRing(), new InboundGridActorControl(logger(), grid), outbound);
   }
 
   @Override

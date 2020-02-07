@@ -13,7 +13,7 @@ import java.util.Optional;
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Definition;
 import io.vlingo.common.Completes;
-import io.vlingo.lattice.grid.Grid;
+import io.vlingo.actors.Grid;
 
 class SpaceItemFactoryRelay implements Space {
   private final Grid grid;

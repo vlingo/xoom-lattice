@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.grid;
 
+import io.vlingo.actors.Grid;
 import io.vlingo.actors.Logger;
 import io.vlingo.actors.World;
 import io.vlingo.cluster.model.Cluster;

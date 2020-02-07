@@ -1,8 +1,6 @@
-package io.vlingo.lattice.grid;
+package io.vlingo.actors;
 
-import io.vlingo.actors.Address;
-import io.vlingo.actors.Mailbox;
-import io.vlingo.actors.Returns;
+import io.vlingo.actors.*;
 import io.vlingo.actors.plugin.mailbox.testkit.TestMailbox;
 import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.cache.CacheNodePoint;

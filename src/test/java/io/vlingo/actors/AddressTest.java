@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.lattice.grid;
+package io.vlingo.actors;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -15,6 +15,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Arrays;
 import java.util.UUID;
 
+import io.vlingo.actors.GridAddressFactory;
 import org.junit.Test;
 
 import io.vlingo.actors.Address;
