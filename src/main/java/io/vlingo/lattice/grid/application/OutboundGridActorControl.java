@@ -4,29 +4,35 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.message.*;
+import io.vlingo.lattice.grid.application.message.serialization.JavaObjectEncoder;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 
 public class OutboundGridActorControl implements GridActorControl.Outbound {
 
   private final Id localNodeId;
   private ApplicationOutboundStream stream;
-  private final JavaObjectEncoder encoder;
+  private final Encoder encoder;
 
   public OutboundGridActorControl(Id localNodeId) {
-    this(localNodeId, null);
+    this(localNodeId, null, new JavaObjectEncoder());
+  }
+
+  public OutboundGridActorControl(Id localNodeId, Encoder encoder) {
+    this(localNodeId, null, encoder);
   }
 
   public OutboundGridActorControl(Id localNodeId, ApplicationOutboundStream stream) {
+    this(localNodeId, stream, new JavaObjectEncoder());
+  }
+
+  public OutboundGridActorControl(Id localNodeId, ApplicationOutboundStream stream, Encoder encoder) {
     this.localNodeId = localNodeId;
     this.stream = stream;
-    this.encoder = new JavaObjectEncoder();
+    this.encoder = encoder;
   }
 
   public void setStream(ApplicationOutboundStream outbound) {
@@ -71,21 +77,5 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
   @Override
   public void forward(Id receiver, Id sender, Message message) {
     send(receiver, new Forward(sender, message));
-  }
-
-
-  private static final class JavaObjectEncoder implements Encoder {
-
-    @Override
-    public byte[] encode(Message message) {
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      try (ObjectOutputStream out = new ObjectOutputStream(bos)) {
-        out.writeObject(message);
-        out.flush();
-        return bos.toByteArray();
-      } catch (IOException e) {
-        throw new RuntimeException("encode failed", e);
-      }
-    }
   }
 }

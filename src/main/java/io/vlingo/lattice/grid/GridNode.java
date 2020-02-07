@@ -7,27 +7,28 @@
 
 package io.vlingo.lattice.grid;
 
-import io.vlingo.actors.*;
+import io.vlingo.actors.Grid;
+import io.vlingo.actors.InboundGridActorControl;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
-import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.ApplicationMessageHandler;
-import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.GridActorControlMessageHandler;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Message;
+import io.vlingo.lattice.grid.application.message.serialization.FSTDecoder;
+import io.vlingo.lattice.grid.application.message.serialization.FSTEncoder;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
+import org.nustaq.serialization.FSTConfiguration;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 public class GridNode extends ClusterApplicationAdapter {
+
+  private static final FSTConfiguration CONF = FSTConfiguration.createDefaultConfiguration();
+
   private AttributesProtocol client;
   private final Grid grid;
   private final Node localNode;
@@ -39,10 +40,10 @@ public class GridNode extends ClusterApplicationAdapter {
   public GridNode(final Grid grid, final Node localNode) {
     this.grid = grid;
     this.localNode = localNode;
-    this.outbound = new OutboundGridActorControl(localNode.id());
+    this.outbound = new OutboundGridActorControl(localNode.id(), new FSTEncoder(CONF));
     this.grid.setOutbound(outbound);
     this.applicationMessageHandler = new GridActorControlMessageHandler(
-        localNode.id(), grid.hashRing(), new InboundGridActorControl(logger(), grid), outbound);
+        localNode.id(), grid.hashRing(), new InboundGridActorControl(logger(), grid), outbound, new FSTDecoder(CONF));
   }
 
   @Override

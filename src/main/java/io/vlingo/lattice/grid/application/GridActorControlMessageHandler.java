@@ -2,13 +2,10 @@ package io.vlingo.lattice.grid.application;
 
 import io.vlingo.actors.Address;
 import io.vlingo.lattice.grid.application.message.*;
+import io.vlingo.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 
 public final class GridActorControlMessageHandler implements ApplicationMessageHandler {
 
@@ -23,7 +20,7 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
       final Id localNode, final HashRing<Id> hashRing,
       final GridActorControl.Inbound inbound,
       final GridActorControl.Outbound outbound) {
-    this(localNode, hashRing, inbound, outbound, new JavaObjectMessageDecoder());
+    this(localNode, hashRing, inbound, outbound, new JavaObjectDecoder());
   }
 
   public GridActorControlMessageHandler(
@@ -88,16 +85,4 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
     }
   }
 
-  static final class JavaObjectMessageDecoder implements Decoder {
-
-    @Override
-    public Message decode(byte[] bytes) {
-      ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-      try (ObjectInputStream in = new ObjectInputStream(bis)) {
-        return (Message) in.readObject();
-      } catch (IOException | ClassNotFoundException e) {
-        throw new IllegalArgumentException("decode failed", e);
-      }
-    }
-  }
 }
