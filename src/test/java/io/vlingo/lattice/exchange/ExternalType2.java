@@ -7,6 +7,8 @@
 
 package io.vlingo.lattice.exchange;
 
+import java.util.Date;
+
 import io.vlingo.common.message.Message;
 
 public class ExternalType2 implements Message {
@@ -21,5 +23,30 @@ public class ExternalType2 implements Message {
   @Override
   public String toString() {
     return "ExternalType[field1=" + field1 + " field2=" + field2 + "]";
+  }
+
+  @Override
+  public String id() {
+    return null;
+  }
+
+  @Override
+  public Date occurredOn() {
+    return null;
+  }
+
+  @Override
+  public <T> T payload() {
+    return null;
+  }
+
+  @Override
+  public String type() {
+    return null;
+  }
+
+  @Override
+  public String version() {
+    return null;
   }
 }
