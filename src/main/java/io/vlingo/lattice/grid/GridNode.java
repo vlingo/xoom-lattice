@@ -9,11 +9,12 @@ package io.vlingo.lattice.grid;
 
 import io.vlingo.actors.Grid;
 import io.vlingo.actors.InboundGridActorControl;
+import io.vlingo.actors.Returns;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
 import io.vlingo.lattice.grid.application.ApplicationMessageHandler;
-import io.vlingo.lattice.grid.application.GridActorControlMessageHandler;
+import io.vlingo.lattice.grid.application.GridApplicationMessageHandler;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.application.message.serialization.FSTDecoder;
 import io.vlingo.lattice.grid.application.message.serialization.FSTEncoder;
@@ -24,10 +25,14 @@ import io.vlingo.wire.node.Node;
 import org.nustaq.serialization.FSTConfiguration;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class GridNode extends ClusterApplicationAdapter {
 
   private static final FSTConfiguration CONF = FSTConfiguration.createDefaultConfiguration();
+  private static final Map<UUID, Returns<?>> correlation = new HashMap<>();
 
   private AttributesProtocol client;
   private final Grid grid;
@@ -40,10 +45,11 @@ public class GridNode extends ClusterApplicationAdapter {
   public GridNode(final Grid grid, final Node localNode) {
     this.grid = grid;
     this.localNode = localNode;
-    this.outbound = new OutboundGridActorControl(localNode.id(), new FSTEncoder(CONF));
+    this.outbound = new OutboundGridActorControl(localNode.id(), new FSTEncoder(CONF), correlation::put);
     this.grid.setOutbound(outbound);
-    this.applicationMessageHandler = new GridActorControlMessageHandler(
-        localNode.id(), grid.hashRing(), new InboundGridActorControl(logger(), grid), outbound, new FSTDecoder(CONF));
+    final InboundGridActorControl inbound = new InboundGridActorControl(logger(), grid, correlation::remove);
+    this.applicationMessageHandler = new GridApplicationMessageHandler(
+        localNode.id(), grid.hashRing(), inbound, outbound, new FSTDecoder(CONF));
   }
 
   @Override

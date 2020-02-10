@@ -8,21 +8,51 @@ import io.vlingo.wire.node.Id;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public class InboundGridActorControl implements GridActorControl.Inbound {
 
   private final Logger logger;
   private final Grid grid;
 
-  public InboundGridActorControl(Logger logger, Grid grid) {
+  private final Function<UUID, Returns<?>> correlation;
+
+
+  public InboundGridActorControl(Logger logger, Grid grid, Function<UUID, Returns<?>> correlation) {
     this.logger = logger;
     this.grid = grid;
+    this.correlation = correlation;
   }
 
 
   @Override
-  public void answer(Id receiver, Id ref, Answer answer) {
-    logger.debug("GRID: Received application message: Answer");
+  public <T> void answer(Id receiver, Id sender, Answer<T> answer) {
+    logger.debug("GRID: Processing application message: Answer");
+    final Returns<Object> clientReturns = (Returns<Object>) correlation.apply(answer.correlationId);
+    if (clientReturns == null) {
+      logger.warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
+      return;
+    }
+    if (answer.error == null) {
+      if (clientReturns.isCompletes()) {
+        clientReturns.asCompletes().with(answer.result);
+      } else if (clientReturns.isCompletableFuture()) {
+        clientReturns.asCompletableFuture().complete(answer.result);
+      } else if (clientReturns.isFuture()) {
+        ((CompletableFuture) clientReturns.asFuture()).complete(answer.result);
+      }
+    }
+    else {
+      if (clientReturns.isCompletes()) {
+        clientReturns.asCompletes().failed(answer.error);
+      } else if (clientReturns.isCompletableFuture()) {
+        clientReturns.asCompletableFuture().completeExceptionally(answer.error);
+      } else if (clientReturns.isFuture()) {
+        ((CompletableFuture) clientReturns.asFuture()).completeExceptionally(answer.error);
+      }
+    }
   }
 
   @Override
@@ -32,7 +62,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
 
   @Override
   public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
-    logger.debug("GRID: Received application message: Start");
+    logger.debug("Processing: Received application message: Start");
     grid.actorFor(protocol, Definition.has(
         type,
         parameters == null
@@ -42,10 +72,11 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   }
 
   @Override
-  public <T> void deliver(Id receiver, Id ref, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
-    logger.debug("GRID: Received application message: Deliver");
+  public <T> void deliver(
+      Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
+    logger.debug("Processing: Received application message: Deliver");
     Actor actor = grid.actorAt(address);
     Mailbox mailbox = actor.lifeCycle.environment.mailbox;
-    mailbox.send(actor, protocol, consumer, null, representation);
+    mailbox.send(actor, protocol, consumer, returns, representation);
   }
 }

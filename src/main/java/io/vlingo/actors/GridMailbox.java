@@ -2,11 +2,13 @@ package io.vlingo.actors;
 
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.GridActorControl;
+import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -96,8 +98,7 @@ public class GridMailbox implements Mailbox {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
       LocalMessage localMessage = (LocalMessage) message; // TODO make this work with Message
-      outbound.deliver(nodeOf, localId, message.protocol(), address, localMessage.consumer(), message.representation());
-      local.send(message);
+      outbound.deliver(nodeOf, localId, localMessage.returns(), message.protocol(), address, localMessage.consumer(), message.representation());
     }, () -> local.send(message));
   }
 
@@ -105,17 +106,13 @@ public class GridMailbox implements Mailbox {
   public void send(Actor actor, Class<?> protocol, SerializableConsumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
-      outbound.deliver(nodeOf, localId, protocol, address, null, representation);
-      local.send(actor, protocol, consumer, returns, representation);
+      outbound.deliver(nodeOf, localId, returns, (Class<Object>)protocol, address, (SerializableConsumer<Object>) consumer, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }
 
   @Override
   public boolean isPreallocated() {
-    return delegateUnlessIsRemote(nodeOf -> {
-      log.debug("Remote::isPreallocated on: " + nodeOf);
-      return local.isPreallocated();
-    }, local::isPreallocated);
+    return local.isPreallocated();
   }
 
   @Override

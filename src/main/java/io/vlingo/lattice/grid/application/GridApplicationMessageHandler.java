@@ -1,13 +1,22 @@
 package io.vlingo.lattice.grid.application;
 
 import io.vlingo.actors.Address;
+import io.vlingo.actors.Returns;
+import io.vlingo.common.Completes;
+import io.vlingo.common.Scheduler;
 import io.vlingo.lattice.grid.application.message.*;
 import io.vlingo.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public final class GridActorControlMessageHandler implements ApplicationMessageHandler {
+import java.util.concurrent.TimeoutException;
+
+public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
+
+  private static final Logger logger = LoggerFactory.getLogger(GridApplicationMessageHandler.class);
 
   private final Id localNode;
   private final HashRing<Id> hashRing;
@@ -16,14 +25,16 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
   private final Decoder decoder;
   private final Visitor visitor;
 
-  public GridActorControlMessageHandler(
+  private final Scheduler scheduler = new Scheduler(); // TODO inject?
+
+  public GridApplicationMessageHandler(
       final Id localNode, final HashRing<Id> hashRing,
       final GridActorControl.Inbound inbound,
       final GridActorControl.Outbound outbound) {
     this(localNode, hashRing, inbound, outbound, new JavaObjectDecoder());
   }
 
-  public GridActorControlMessageHandler(
+  public GridApplicationMessageHandler(
       final Id localNode, final HashRing<Id> hashRing,
       final GridActorControl.Inbound inbound,
       final GridActorControl.Outbound outbound,
@@ -40,8 +51,8 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
   public void handle(RawMessage raw) {
     try {
       Message message = decoder.decode(raw.asBinaryMessage());
-      System.out.println(message);
       Id sender = Id.of(raw.header().nodeId());
+      logger.debug("Received message {} from {}", message, sender);
       message.accept(localNode, sender, visitor);
     } catch (Exception e) {
       e.printStackTrace();
@@ -51,16 +62,27 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
   final class ControlMessageVisitor implements Visitor {
     @Override
     public void visit(Id receiver, Id sender, Answer answer) {
-      inbound.answer(null, null, answer);
+      inbound.answer(receiver, sender, answer);
     }
 
     @Override
     public <T> void visit(Id receiver, Id sender, Deliver<T> deliver) {
       Id recipient = receiver(receiver, deliver.address);
       if (recipient == receiver) {
-        inbound.deliver(receiver, sender, deliver.protocol, deliver.address, deliver.consumer, deliver.representation);
-      }
-      else {
+        final Returns<?> returns;
+        if (deliver.answerCorrelationId == null) {
+          returns = null;
+        } else {
+          returns = Returns.value(
+              Completes.using(scheduler)
+                  .andThen(result -> new Answer<>(deliver.answerCorrelationId, result))
+                  .recoverFrom(error -> new Answer<>(deliver.answerCorrelationId, error))
+                  .andThenConsume(4000, // TODO handle timeout error ?
+                      answer -> outbound.answer(sender, receiver, answer))
+          );
+        }
+        inbound.deliver(receiver, sender, returns, deliver.protocol, deliver.address, deliver.consumer, deliver.representation);
+      } else {
         outbound.forward(recipient, sender, deliver);
       }
     }
@@ -70,8 +92,7 @@ public final class GridActorControlMessageHandler implements ApplicationMessageH
       Id recipient = receiver(receiver, start.address);
       if (recipient == receiver) {
         inbound.start(receiver, sender, start.protocol, start.address, start.type, start.parameters);
-      }
-      else {
+      } else {
         outbound.forward(recipient, sender, start);
       }
     }

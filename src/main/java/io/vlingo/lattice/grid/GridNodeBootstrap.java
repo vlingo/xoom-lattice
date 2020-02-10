@@ -15,7 +15,8 @@ import io.vlingo.cluster.model.ClusterSnapshotControl;
 import io.vlingo.cluster.model.Properties;
 import io.vlingo.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.common.Tuple2;
-import io.vlingo.lattice.grid.example.*;
+import io.vlingo.lattice.grid.example.Greeting;
+import io.vlingo.lattice.grid.example.GreetingActor;
 
 public class GridNodeBootstrap {
   private static GridNodeBootstrap instance;
@@ -32,11 +33,12 @@ public class GridNodeBootstrap {
       System.out.println("WAITING.....");
       Thread.sleep(30000);
       System.out.println("STARTING ACTORS");
-      Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class);
+      Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class, nodeName);
       System.out.println("STARTED ACTORS");
 
       while(true) {
-        greeting.hello(nodeName);
+        greeting.respond("test")
+            .andThenConsume(System.out::println);
         Thread.sleep(4000);
       }
 

@@ -8,6 +8,9 @@
     <logger name="io.rsocket" level="info"/>
     <logger name="reactor" level="info"/>
     <logger name="io.vlingo" level="info"/>
+    <logger name="io.vlingo.lattice.grid.GridNode" level="debug"/>
+    <logger name="io.vlingo.lattice.grid.application.GridApplicationMessageHandler" level="debug"/>
+    <logger name="io.vlingo.lattice.grid.application.OutboundGridActorControl" level="debug"/>
     <logger name="io.vlingo.actors.GridMailbox" level="debug"/>
 
     <root level="DEBUG">

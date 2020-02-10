@@ -1,9 +1,10 @@
 package io.vlingo.lattice.grid.application;
 
-import io.vlingo.actors.Actor;
-import io.vlingo.actors.Address;
+import io.vlingo.actors.*;
 import io.vlingo.common.SerializableConsumer;
+import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.application.message.*;
+import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
@@ -18,25 +19,27 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
 
-public class GridActorControlMessageHandlerTest {
+public class GridApplicationMessageHandlerTest {
 
   private static final Id localNodeId = Id.of(0);
   private static final Id originalSenderNodeId = Id.of(1);
 
-  CountDownLatch startLatch = new CountDownLatch(1);
-  CountDownLatch deliverLatch = new CountDownLatch(1);
-  CountDownLatch answerLatch = new CountDownLatch(1);
-  CountDownLatch forwardLatch = new CountDownLatch(1);
+  private static final Address address = new GridAddressFactory(IdentityGeneratorType.RANDOM).unique();
 
-  private final GridActorControlMessageHandler handler =
-      new GridActorControlMessageHandler(localNodeId, new MurmurSortedMapHashRing<Id>(100), new GridActorControl.Inbound() {
+  private CountDownLatch startLatch = new CountDownLatch(1);
+  private CountDownLatch deliverLatch = new CountDownLatch(1);
+  private CountDownLatch answerLatch = new CountDownLatch(1);
+  private CountDownLatch forwardLatch = new CountDownLatch(1);
+
+  private final GridApplicationMessageHandler handler =
+      new GridApplicationMessageHandler(localNodeId, new MurmurSortedMapHashRing<Id>(100), new GridActorControl.Inbound() {
         @Override
         public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
           startLatch.countDown();
         }
 
         @Override
-        public <T> void deliver(Id receiver, Id sender, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
+        public <T> void deliver(Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
           if (sender.equals(localNodeId))
             deliverLatch.countDown();
           else if (sender.equals(originalSenderNodeId)){
@@ -45,7 +48,7 @@ public class GridActorControlMessageHandlerTest {
         }
 
         @Override
-        public void answer(Id receiver, Id sender, Answer answer) {
+        public <T> void answer(Id receiver, Id sender, Answer<T> answer) {
           answerLatch.countDown();
         }
 
@@ -58,22 +61,22 @@ public class GridActorControlMessageHandlerTest {
 
   @Test
   public void testStart() throws IOException, InterruptedException {
-    test(from(new Start<>(null, null, null, null)), startLatch);
+    test(from(new Start<>(null, address, null, null)), startLatch);
   }
 
   @Test
   public void testDeliver() throws IOException, InterruptedException {
-    test(from(new Deliver<>(null, null, (something) -> {}, null)), deliverLatch);
+    test(from(new Deliver<>(null, address, (something) -> {}, null)), deliverLatch);
   }
 
   @Test
   public void testAnswer() throws IOException, InterruptedException {
-    test(from(new Answer()), answerLatch);
+    test(from(new Answer<>(null, null)), answerLatch);
   }
 
   @Test
   public void testForward() throws IOException, InterruptedException {
-    test(from(new Forward(originalSenderNodeId, new Deliver<>(null, null, (some) -> {}, null))), forwardLatch);
+    test(from(new Forward(originalSenderNodeId, new Deliver<>(null, address, (some) -> {}, null))), forwardLatch);
   }
 
   private void test(RawMessage message, CountDownLatch latch) throws InterruptedException {
