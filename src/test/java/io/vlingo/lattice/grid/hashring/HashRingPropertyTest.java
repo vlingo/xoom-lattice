@@ -1,15 +1,22 @@
 package io.vlingo.lattice.grid.hashring;
 
-import io.vlingo.common.Tuple2;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import io.vlingo.common.Tuple2;
 
 public abstract class HashRingPropertyTest {
 
