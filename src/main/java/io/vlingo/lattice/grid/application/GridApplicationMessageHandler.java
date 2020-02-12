@@ -77,8 +77,10 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
               Completes.using(scheduler)
                   .andThen(result -> new Answer<>(deliver.answerCorrelationId, result))
                   .recoverFrom(error -> new Answer<>(deliver.answerCorrelationId, error))
-                  .andThenConsume(4000, // TODO handle timeout error ?
+                  .otherwise(ignored -> new Answer<>(deliver.answerCorrelationId, new TimeoutException()))
+                  .andThenConsume(4000,
                       answer -> outbound.answer(sender, receiver, answer))
+                  .andFinally()
           );
         }
         inbound.deliver(receiver, sender, returns, deliver.protocol, deliver.address, deliver.consumer, deliver.representation);
