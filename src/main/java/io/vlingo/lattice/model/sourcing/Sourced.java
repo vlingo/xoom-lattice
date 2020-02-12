@@ -412,19 +412,34 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @param source the {@code Source<STT>} to apply
    */
   private <STT> void applyResultVersioned(final Source<STT> source) {
-    final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
-            registeredConsumers.get(getClass());
-
-    if (sourcedTypeMap == null) {
-      disperseStowedMessages();
-      throw new IllegalStateException("No such Sourced type.");
-    }
-
-    BiConsumer<Sourced<?>, Source<?>> consumer = sourcedTypeMap.get(source.getClass());
-
-    consumer.accept(this, source);
+    applySource(source);
 
     ++currentVersion;
+  }
+
+  private <STT> void applySource(final Source<STT> source) {
+    Class<?> type = getClass();
+
+    BiConsumer<Sourced<?>, Source<?>> consumer = null;
+
+    while (type != Sourced.class) {
+      final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
+              registeredConsumers.get(type);
+
+      if (sourcedTypeMap != null) {
+        consumer = sourcedTypeMap.get(source.getClass());
+        if (consumer != null) {
+          consumer.accept(this, source);
+          break;
+        }
+      }
+
+      type = type.getSuperclass();
+    }
+
+    if (consumer == null) {
+      throw new IllegalStateException("No such Sourced type.");
+    }
   }
 
   /**
@@ -478,15 +493,8 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
    * @param currentVersion the int to set as my currentVersion
    */
   private void restoreFrom(final List<Source<T>> stream, final int currentVersion) {
-    final Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>> sourcedTypeMap =
-            registeredConsumers.get(getClass());
-
-    if (sourcedTypeMap == null) {
-      throw new IllegalStateException("No such Sourced type.");
-    }
-
     for (final Source<?> source : stream) {
-      sourcedTypeMap.get(source.getClass()).accept(this, source);
+      applySource(source);
     }
 
     this.currentVersion = currentVersion;
