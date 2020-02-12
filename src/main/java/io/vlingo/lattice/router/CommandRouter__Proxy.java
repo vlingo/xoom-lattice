@@ -11,7 +11,7 @@ import io.vlingo.actors.*;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.model.Command;
 
-public class CommandRouter__Proxy implements io.vlingo.lattice.router.CommandRouter {
+public class CommandRouter__Proxy extends ActorProxyBase<CommandRouter> implements io.vlingo.lattice.router.CommandRouter {
 
   private static final String routeRepresentation1 = "route(io.vlingo.lattice.router.RoutableCommand<P, A>)";
 
@@ -19,6 +19,7 @@ public class CommandRouter__Proxy implements io.vlingo.lattice.router.CommandRou
   private final Mailbox mailbox;
 
   public CommandRouter__Proxy(final Actor actor, final Mailbox mailbox){
+    super(CommandRouter.class, actor.getClass(), actor.address());
     this.actor = actor;
     this.mailbox = mailbox;
   }
@@ -26,7 +27,8 @@ public class CommandRouter__Proxy implements io.vlingo.lattice.router.CommandRou
   @Override
   public <P,C extends Command,A> void route(io.vlingo.lattice.router.RoutableCommand<P,C,A> arg0) {
     if (!actor.isStopped()) {
-      final SerializableConsumer<CommandRouter> consumer = (actor) -> actor.route(arg0);
+      ActorProxyBase<CommandRouter> self = this;
+      final SerializableConsumer<CommandRouter> consumer = (a) -> a.route(ActorProxyBase.thunk(self, (Actor)a, arg0));
       if (mailbox.isPreallocated()) { mailbox.send(actor, CommandRouter.class, consumer, Returns.value(arg0.answer()), routeRepresentation1); }
       else { mailbox.send(new LocalMessage<CommandRouter>(actor, CommandRouter.class, consumer, Returns.value(arg0.answer()), routeRepresentation1)); }
     } else {

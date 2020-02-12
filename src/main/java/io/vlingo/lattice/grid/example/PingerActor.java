@@ -10,11 +10,11 @@ public class PingerActor extends Actor implements Pinger {
   }
 
   @Override
-  public void ping(final Ponger ponger) {
-    System.out.println("Pinger::ping");
+  public void ping(final Ponger ponger, String node) {
+    System.out.printf("Pinger::ping::%s%n", node);
     try {
       Thread.sleep(1000);
-      ponger.pong(self);
+      ponger.pong(self, node);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }

@@ -14,7 +14,7 @@ public class GreetingTest {
   @Test
   public void testRespond() throws ExecutionException, InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
-    Greeting greeting = World.start("my-world")
+    Greeting greeting = World.startWithDefaults("my-world")
         .actorFor(Greeting.class, GreetingActor.class, "node");
     greeting.respond("test").andThenConsume((s) -> {
       assertEquals("Didn't match", "Hello test from node", s);
