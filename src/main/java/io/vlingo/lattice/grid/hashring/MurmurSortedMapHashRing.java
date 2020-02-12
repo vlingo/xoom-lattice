@@ -3,7 +3,6 @@ package io.vlingo.lattice.grid.hashring;
 import java.nio.ByteBuffer;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 
 public class MurmurSortedMapHashRing<T> implements HashRing<T> {
 
