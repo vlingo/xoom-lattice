@@ -11,7 +11,6 @@ import io.vlingo.common.Completes;
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
-import io.vlingo.lattice.grid.application.message.Start;
 import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
@@ -21,10 +20,9 @@ import java.util.Arrays;
 
 public class Grid extends Stage {
 
-  private final Cache cache;
   private final HashRing<Id> hashRing;
 
-  private OutboundGridActorControl outboud;
+  private OutboundGridActorControl outbound;
   private Id nodeId;
 
   public static Grid start(final String worldName, final String gridNodeName) throws Exception {
@@ -69,13 +67,12 @@ public class Grid extends Stage {
 
   public Grid(final World world, final AddressFactory addressFactory, final String gridNodeName) {
     super(world, addressFactory, gridNodeName);
-    this.cache = Cache.defaultCache();
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     extenderStartDirectoryScanner();
   }
 
   public void setOutbound(final OutboundGridActorControl outbound) {
-    this.outboud = outbound;
+    this.outbound = outbound;
   }
   public void setNodeId(final Id nodeId) { this.nodeId = nodeId; }
 
@@ -107,7 +104,7 @@ public class Grid extends Stage {
     Address address = addressFactory().unique();
     Id node = hashRing.nodeOf(address.idString());
     if (node != null && !node.equals(nodeId)) {
-      outboud.start(node, nodeId, protocol, address, type, parameters);
+      outbound.start(node, nodeId, protocol, address, type, parameters);
     }
 
     final T actor = super.actorFor(protocol, Definition.has(type, Arrays.asList(parameters)), address);
@@ -127,7 +124,7 @@ public class Grid extends Stage {
   protected ActorFactory.MailboxWrapper mailboxWrapper() {
     return (address, mailbox) ->
         new GridMailbox(mailbox, nodeId,
-            address, hashRing, outboud);
+            address, hashRing, outbound);
   }
 
   public void terminate() {
