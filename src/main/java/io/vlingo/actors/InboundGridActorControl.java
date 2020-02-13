@@ -36,12 +36,13 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
       return;
     }
     if (answer.error == null) {
+      T result = ActorProxyBase.thunk(grid, answer.result);
       if (clientReturns.isCompletes()) {
-        clientReturns.asCompletes().with(answer.result);
+        clientReturns.asCompletes().with(result);
       } else if (clientReturns.isCompletableFuture()) {
-        clientReturns.asCompletableFuture().complete(answer.result);
+        clientReturns.asCompletableFuture().complete(result);
       } else if (clientReturns.isFuture()) {
-        ((CompletableFuture) clientReturns.asFuture()).complete(answer.result);
+        ((CompletableFuture) clientReturns.asFuture()).complete(result);
       }
     }
     else {
@@ -76,6 +77,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
       Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
     logger.debug("Processing: Received application message: Deliver");
     Actor actor = grid.actorAt(address);
+    // TODO handle null by
     Mailbox mailbox = actor.lifeCycle.environment.mailbox;
     mailbox.send(actor, protocol, consumer, returns, representation);
   }

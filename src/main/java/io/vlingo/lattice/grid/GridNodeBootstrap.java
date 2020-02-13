@@ -15,10 +15,7 @@ import io.vlingo.cluster.model.ClusterSnapshotControl;
 import io.vlingo.cluster.model.Properties;
 import io.vlingo.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.common.Tuple2;
-import io.vlingo.lattice.grid.example.Pinger;
-import io.vlingo.lattice.grid.example.PingerActor;
-import io.vlingo.lattice.grid.example.Ponger;
-import io.vlingo.lattice.grid.example.PongerActor;
+import io.vlingo.lattice.grid.example.*;
 
 public class GridNodeBootstrap {
   private static GridNodeBootstrap instance;
@@ -40,12 +37,15 @@ public class GridNodeBootstrap {
 //      while(true) {
 //        greeting.respond("test")
 //            .andThenConsume(System.out::println);
-//        Thread.sleep(4000);
 //      }
 
-      Pinger pinger = bootstrap.grid.actorFor(Pinger.class, PingerActor.class);
       Ponger ponger = bootstrap.grid.actorFor(Ponger.class, PongerActor.class);
-      pinger.ping(ponger, nodeName);
+      Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class, nodeName);
+      greeting.respond(nodeName)
+          .andThenConsume(pinger -> {
+            System.out.println("staring on " + nodeName);
+            pinger.ping(ponger, nodeName);
+          });
 
 
     } else if (args.length > 1) {

@@ -11,7 +11,6 @@ import io.vlingo.common.Completes;
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
-import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
@@ -96,23 +95,6 @@ public class Grid extends Stage {
   }
 
   @Override
-  public <T> T actorFor(final Class<T> protocol, final Class<? extends Actor> type, final Object...parameters) {
-    if (world().isTerminated()) {
-      throw new IllegalStateException("vlingo/lattice: Grid has stopped.");
-    }
-
-    Address address = addressFactory().unique();
-    Id node = hashRing.nodeOf(address.idString());
-    if (node != null && !node.equals(nodeId)) {
-      outbound.start(node, nodeId, protocol, address, type, parameters);
-    }
-
-    final T actor = super.actorFor(protocol, Definition.has(type, Arrays.asList(parameters)), address);
-
-    return actor;
-  }
-
-  @Override
   public <T> Completes<T> actorOf(final Class<T> protocol, final Address address) {
     if (!address.isDistributable()) {
       throw new IllegalArgumentException("Address is not distributable.");
@@ -133,6 +115,26 @@ public class Grid extends Stage {
 
   public HashRing<Id> hashRing() {
     return hashRing;
+  }
+
+  @Override
+  protected <T> ActorProtocolActor<T> actorProtocolFor(Class<T> protocol, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
+    final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
+    final Id node = hashRing.nodeOf(address.idString());
+    if (node != null && !node.equals(nodeId)) {
+      outbound.start(node, nodeId, protocol, address, definition.type(), definition.parameters().toArray());
+    }
+    return super.actorProtocolFor(protocol, definition, parent, address, maybeMailbox, maybeSupervisor, logger);
+  }
+
+  @Override
+  protected ActorProtocolActor<Object>[] actorProtocolFor(Class<?>[] protocols, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
+    final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
+    final Id node = hashRing.nodeOf(address.idString());
+    if (node != null && !node.equals(nodeId)) {
+      outbound.start(node, nodeId, protocols[0], address, definition.type(), definition.parameters().toArray()); // TODO remote start all protocols
+    }
+    return super.actorProtocolFor(protocols, definition, parent, address, maybeMailbox, maybeSupervisor, logger);
   }
 
   /**

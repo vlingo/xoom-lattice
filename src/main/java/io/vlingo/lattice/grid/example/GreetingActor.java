@@ -1,8 +1,11 @@
 package io.vlingo.lattice.grid.example;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.Definition;
 import io.vlingo.common.BasicCompletes;
 import io.vlingo.common.Completes;
+
+import java.util.Collections;
 
 public class GreetingActor extends Actor implements Greeting {
 
@@ -18,8 +21,9 @@ public class GreetingActor extends Actor implements Greeting {
   }
 
   @Override
-  public Completes<String> respond(String from) {
-    return completes().with(
-        String.format("Hello %s from %s", from, name));
+  public Completes<Pinger> respond(String from) {
+    logger().info("Responding from {}", from);
+    Pinger pinger = childActorFor(Pinger.class, Definition.has(PingerActor.class, Collections.emptyList()));
+    return completes().with(pinger);
   }
 }
