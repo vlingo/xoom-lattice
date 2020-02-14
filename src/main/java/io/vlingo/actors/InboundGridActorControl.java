@@ -47,7 +47,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
     }
     else {
       if (clientReturns.isCompletes()) {
-        clientReturns.asCompletes().failed(answer.error);
+        clientReturns.asCompletes().failed(); // TODO add support for failing with a specific error
       } else if (clientReturns.isCompletableFuture()) {
         clientReturns.asCompletableFuture().completeExceptionally(answer.error);
       } else if (clientReturns.isFuture()) {
