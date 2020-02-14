@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.grid;
 
+import io.vlingo.actors.Address;
 import io.vlingo.actors.Grid;
 import io.vlingo.actors.InboundGridActorControl;
 import io.vlingo.actors.Returns;
@@ -18,6 +19,7 @@ import io.vlingo.lattice.grid.application.GridApplicationMessageHandler;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.application.message.serialization.FSTDecoder;
 import io.vlingo.lattice.grid.application.message.serialization.FSTEncoder;
+import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
@@ -109,7 +111,7 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informNodeJoinedCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node joined: " + nodeId + " and is healthy: " + isHealthyCluster);
-    grid.hashRing().includeNode(nodeId);
+    grid.nodeJoinedCluster(nodeId);
   }
 
   // hashring

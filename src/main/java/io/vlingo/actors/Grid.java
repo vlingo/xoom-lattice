@@ -146,4 +146,16 @@ public class Grid extends Stage {
   Actor actorAt(Address address) {
     return directory.actorOf(address);
   }
+
+  public void nodeJoinedCluster(final Id newNode) {
+    HashRing<Id> next = this.hashRing
+        .copy()
+        .includeNode(newNode);
+    directory.addresses().filter(a -> {
+      final Id currentNodeOf = this.hashRing.nodeOf(a.idString());
+      final Id nextNodeOf = next.nodeOf(a.idString());
+      return (currentNodeOf == null || currentNodeOf.equals(nodeId)) && !nextNodeOf.equals(nodeId);
+    });
+    this.hashRing.includeNode(newNode);
+  }
 }
