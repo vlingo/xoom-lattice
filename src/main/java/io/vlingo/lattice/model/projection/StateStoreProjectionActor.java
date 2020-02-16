@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
+import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.lattice.model.projection.ProjectionControl.Confirmer;
 import io.vlingo.symbio.DefaultTextEntryAdapter;
 import io.vlingo.symbio.DefaultTextStateAdapter;
@@ -93,6 +94,15 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   protected abstract T currentDataFor(final Projectable projectable);
 
   /**
+   * Answer the id to be associated with the data being projected.
+   * @param projectable the Projectable from which the data id is retrieved
+   * @return String
+   */
+  protected String dataIdFor(final Projectable projectable) {
+    return projectable.dataId();
+  }
+
+  /**
    * Answer the {@code EntryAdapter<S,E>} previously registered by construction.
    * @param <S> the {@code Source<?>} type
    * @param <E> the {@code Entry<?>} type
@@ -117,6 +127,12 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   protected abstract T merge(final T previousData, final int previousVersion, final T currentData, final int currentVersion);
 
   /**
+   * Prepare for the merge.
+   * @param projectable the Projectable used for merge preparation
+   */
+  protected void prepareForMergeWith(final Projectable projectable) { }
+
+  /**
    * Answer the {@code StateAdapter<?,ST>} previously registered by construction.
    * @param <ST> the {@code State<?>} type
    * @return {@code StateAdapter<?,ST>}
@@ -135,12 +151,38 @@ public abstract class StateStoreProjectionActor<T> extends Actor
     final T currentData = currentDataFor(projectable);
     final int currentDataVersion = projectable.dataVersion();
 
+    prepareForMergeWith(projectable);
+
+    final String dataId = dataIdFor(projectable);
+
     final BiConsumer<T,Integer> upserter = (previousData, previousVersion) -> {
-      final T data = previousData == null ? currentData : merge(previousData, previousVersion, currentData, currentDataVersion);
-      stateStore.write(projectable.dataId(), data, currentDataVersion, writeInterest, control.confirmerFor(projectable));
+      final T data = merge(previousData, previousVersion, currentData, currentDataVersion);
+      stateStore.write(dataId, data, currentDataVersion, writeInterest, control.confirmerFor(projectable));
     };
 
-    stateStore.read(projectable.dataId(), currentData.getClass(), readInterest, upserter);
+    stateStore.read(dataId, currentData.getClass(), readInterest, upserter);
+  }
+
+  /**
+   * Answer the S typed state from the abstract {@code state}.
+   * @param state the Object to cast to type S
+   * @param <S> the concrete type of the state
+   * @return S
+   */
+  @SuppressWarnings("unchecked")
+  protected <S> S typed(final Object state) {
+    return (S) state;
+  }
+
+  /**
+   * Answer the E typed {@code DomainEvent} from the abstract {@code event}.
+   * @param event the DomainEvent to cast to type E
+   * @param <E> the concrete type of the event
+   * @return E
+   */
+  @SuppressWarnings("unchecked")
+  protected <E> E typed(final DomainEvent event) {
+    return (E) event;
   }
 
   //==================================
@@ -152,7 +194,7 @@ public abstract class StateStoreProjectionActor<T> extends Actor
    */
   @Override
   @SuppressWarnings("unchecked")
-  public <S> void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final Metadata metadata, final Object object) {
+  final public <S> void readResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final Metadata metadata, final Object object) {
     outcome.andThen(result -> {
       ((BiConsumer<S,Integer>) object).accept(state, stateVersion);
       return result;
@@ -175,7 +217,7 @@ public abstract class StateStoreProjectionActor<T> extends Actor
    * FOR INTERNAL USE ONLY.
    */
   @Override
-  public <S,C> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final List<Source<C>> sources, final Object object) {
+  final public <S,C> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final List<Source<C>> sources, final Object object) {
     outcome.andThen(result -> {
       ((Confirmer) object).confirm();
       return result;
