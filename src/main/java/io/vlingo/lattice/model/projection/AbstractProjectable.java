@@ -52,6 +52,9 @@ public abstract class AbstractProjectable implements Projectable {
   @Override
   public int dataVersion() {
     if (state == null) {
+      if (hasEntries()) {
+        return lastEntry().entryVersion();
+      }
       return -1;
     }
     return state.dataVersion;
@@ -68,6 +71,11 @@ public abstract class AbstractProjectable implements Projectable {
   @Override
   public Collection<Entry<?>> entries() {
     return entries;
+  }
+
+  @Override
+  public boolean hasEntries() {
+    return entries != null && !entries.isEmpty();
   }
 
   @Override
@@ -138,5 +146,9 @@ public abstract class AbstractProjectable implements Projectable {
   @SuppressWarnings("unchecked")
   protected State<String> textState() {
     return (State<String>) this.state;
+  }
+
+  private Entry<?> lastEntry() {
+    return entries.stream().reduce((first, second) -> second).get();
   }
 }
