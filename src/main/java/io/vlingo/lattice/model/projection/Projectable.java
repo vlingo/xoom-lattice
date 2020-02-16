@@ -53,6 +53,12 @@ public interface Projectable {
   Collection<Entry<?>> entries();
 
   /**
+   * Answer whether or not there are entries.
+   * @return boolean
+   */
+  boolean hasEntries();
+
+  /**
    * Answer my associated metadata.
    * @return String
    */
