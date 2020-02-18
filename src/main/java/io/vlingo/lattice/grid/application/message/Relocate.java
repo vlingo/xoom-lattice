@@ -4,31 +4,32 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
 import io.vlingo.wire.node.Id;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Relocate<T> {//implements Message {
+public class Relocate implements Message {
   private static final long serialVersionUID = 8992847890818617297L;
 
-  public final Class<T> protocol;
   public final Address address;
   public final Class<? extends Actor> type;
-  public final Object[] parameters;
+  public final Serializable snapshot;
+  public final List<Deliver<?>> pending;
 
-  public final Actor state;
-
-  public final List<Deliver<T>> pending;
-
-  public Relocate(Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters, Actor state, List<Deliver<T>> pending) {
-    this.protocol = protocol;
+  public Relocate(Class<? extends Actor> type, Address address, Serializable snapshot, List<Deliver<?>> pending) {
     this.address = address;
     this.type = type;
-    this.parameters = parameters;
-    this.state = state;
+    this.snapshot = snapshot;
     this.pending = pending;
   }
 
-//  @Override
-//  public void accept(Id receiver, Id sender, Visitor visitor) {
-//    visitor.visit(receiver, sender, this);
-//  }
+  @Override
+  public void accept(Id receiver, Id sender, Visitor visitor) {
+    visitor.visit(receiver, sender, this);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("Relocate(address='%s', type='%s', snapshot='%s', pending='%s')",
+        address, type, snapshot, pending);
+  }
 }

@@ -2,13 +2,11 @@ package io.vlingo.actors;
 
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.message.Deliver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -34,6 +32,10 @@ public class GridMailbox implements Mailbox {
   }
 
   private void delegateUnlessIsRemote(Consumer<Id> remote, Runnable consumer) {
+    if (!address.isDistributable()) {
+      consumer.run();
+      return;
+    }
     Id nodeOf = hashRing.nodeOf(address.idString());
     if (nodeOf == null || nodeOf.equals(localId)) {
       consumer.run();
@@ -44,6 +46,9 @@ public class GridMailbox implements Mailbox {
   }
 
   private <R> R delegateUnlessIsRemote(Function<Id, R> remote, Supplier<R> supplier) {
+    if (!address.isDistributable()) {
+      return supplier.get();
+    }
     Id nodeOf = hashRing.nodeOf(address.idString());
     if (nodeOf == null || nodeOf.equals(localId)) {
       return supplier.get();
@@ -98,7 +103,7 @@ public class GridMailbox implements Mailbox {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
       LocalMessage localMessage = (LocalMessage) message; // TODO make this work with Message
-      outbound.deliver(nodeOf, localId, localMessage.returns(), message.protocol(), address, localMessage.consumer(), message.representation());
+      outbound.deliver(nodeOf, localId, localMessage.returns(), message.protocol(), address, message.actor().getClass(), localMessage.consumer(), message.representation());
     }, () -> local.send(message));
   }
 
@@ -106,7 +111,7 @@ public class GridMailbox implements Mailbox {
   public void send(Actor actor, Class<?> protocol, SerializableConsumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
-      outbound.deliver(nodeOf, localId, returns, (Class<Object>)protocol, address, (SerializableConsumer<Object>) consumer, representation);
+      outbound.deliver(nodeOf, localId, returns, (Class<Object>)protocol, address, actor.getClass(), (SerializableConsumer<Object>) consumer, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }
 
@@ -117,18 +122,17 @@ public class GridMailbox implements Mailbox {
 
   @Override
   public void suspendExceptFor(String name, Class<?>... overrides) {
-    delegateUnlessIsRemote(nodeOf -> {
-      log.debug("Remote::suspendExceptFor on: " + nodeOf);
-      local.suspendExceptFor(name, overrides);
-    }, () -> local.suspendExceptFor(name, overrides));
+    local.suspendExceptFor(name, overrides);
   }
 
   @Override
   public boolean isSuspended() {
-    return delegateUnlessIsRemote(nodeOf -> {
-      log.debug("Remote::isSuspended on: " + nodeOf);
-      return local.isSuspended();
-    }, local::isSuspended);
+    return delegateUnlessIsRemote(nodeOf -> false, local::isSuspended);
+  }
+
+  @Override
+  public boolean isSuspendedFor(String name) {
+    return local.isSuspendedFor(name);
   }
 
   @Override

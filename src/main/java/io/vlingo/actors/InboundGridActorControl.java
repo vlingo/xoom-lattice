@@ -6,9 +6,8 @@ import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.wire.node.Id;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.UUID;
+import java.io.Serializable;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -62,23 +61,54 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
     logger.debug("Processing: Received application message: Start");
-    grid.actorFor(protocol, Definition.has(
-        type,
-        parameters == null
-            ? Collections.EMPTY_LIST
-            : Arrays.asList(parameters)),
-        address);
+    final GridActor<?> actor = (GridActor<?>) grid.actorAt(address);
+    if (actor == null) {
+      grid.actorFor(protocol, Definition.has(
+          type,
+          parameters == null
+              ? Collections.EMPTY_LIST
+              : Arrays.asList(parameters)),
+          address);
+    }
+    else if (actor.isSuspended()) {
+      // a thunk was created due to receiving Answer or Deliver
+      // perhaps require a constructor from snapshot?
+      actor.resume();
+    }
   }
 
   @Override
   public <T> void deliver(
-      Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, SerializableConsumer<T> consumer, String representation) {
+      Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Class<? extends Actor> type, SerializableConsumer<T> consumer, String representation) {
     logger.debug("Processing: Received application message: Deliver");
-    Actor actor = grid.actorAt(address);
-    // TODO handle null by
+    Optional<Actor> maybeActor = Optional.ofNullable(grid.actorAt(address));
+    final Actor actor = maybeActor.orElseGet(() -> {
+      grid.actorThunkFor(protocol, type, address);
+      return grid.actorAt(address);
+    });
     Mailbox mailbox = actor.lifeCycle.environment.mailbox;
     mailbox.send(actor, protocol, consumer, returns, representation);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Serializable snapshot, List<? extends io.vlingo.actors.Message> pending) {
+    logger.debug("Processing: Received application message: Relocate");
+    final Optional<GridActor<?>> maybeActor = Optional.ofNullable((GridActor<?>) grid.actorAt(address));
+    final RelocationSnapshotConsumer<Serializable> consumer = maybeActor.map(a -> grid.actorAs(a, RelocationSnapshotConsumer.class))
+        .orElseGet(() -> grid.actorFor(RelocationSnapshotConsumer.class, Definition.has(type, Collections.emptyList()), address));
+    consumer.applyRelocationSnapshot(snapshot);
+    final GridActor<?> actor = maybeActor.orElseGet(() -> (GridActor<?>) grid.actorAt(address));
+    pending.forEach(m -> {
+      final LocalMessage<?> message = (LocalMessage<?>)m;
+      message.set(actor,
+          message.protocol(), message.consumer(),
+          message.returns(), message.representation());
+      message.deliver();
+    });
+    actor.resume();
   }
 }

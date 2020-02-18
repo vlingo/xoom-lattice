@@ -1,6 +1,7 @@
 package io.vlingo.lattice.grid.application;
 
 import io.vlingo.actors.Address;
+import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Scheduler;
@@ -12,7 +13,10 @@ import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
 
@@ -69,21 +73,10 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     public <T> void visit(Id receiver, Id sender, Deliver<T> deliver) {
       Id recipient = receiver(receiver, deliver.address);
       if (recipient == receiver) {
-        final Returns<?> returns;
-        if (deliver.answerCorrelationId == null) {
-          returns = null;
-        } else {
-          returns = Returns.value(
-              Completes.using(scheduler)
-                  .andThen(result -> new Answer<>(deliver.answerCorrelationId, result))
-                  .recoverFrom(error -> new Answer<>(deliver.answerCorrelationId, error))
-                  .otherwise(ignored -> new Answer<>(deliver.answerCorrelationId, new TimeoutException()))
-                  .andThenConsume(4000,
-                      answer -> outbound.answer(sender, receiver, answer))
-                  .andFinally()
-          );
-        }
-        inbound.deliver(receiver, sender, returns, deliver.protocol, deliver.address, deliver.consumer, deliver.representation);
+        inbound.deliver(
+            receiver, sender,
+            returnsAnswer(receiver, sender, deliver),
+            deliver.protocol, deliver.address, deliver.type, deliver.consumer, deliver.representation);
       } else {
         outbound.forward(recipient, sender, deliver);
       }
@@ -105,6 +98,40 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
         return receiver;
       }
       return recipient;
+    }
+
+    @Override
+    public void visit(Id receiver, Id sender, Relocate relocate) {
+      Id recipient = receiver(receiver, relocate.address);
+      if (recipient == receiver) {
+        List<LocalMessage> pending = relocate.pending.stream()
+            .map(deliver ->
+                new LocalMessage(null, deliver.protocol, deliver.consumer,
+                  returnsAnswer(receiver, sender, deliver), deliver.representation))
+            .collect(Collectors.toCollection(ArrayList::new));
+        inbound.relocate(receiver, sender, relocate.type,
+            relocate.address, relocate.snapshot, pending);
+      } else {
+        outbound.forward(recipient, sender, relocate);
+      }
+    }
+
+    private Returns<?> returnsAnswer(Id receiver, Id sender, Deliver<?> deliver) {
+      final Returns<?> returns;
+      if (deliver.answerCorrelationId == null) {
+        returns = null;
+      } else {
+        returns = Returns.value(
+            Completes.using(scheduler)
+                .andThen(result -> new Answer<>(deliver.answerCorrelationId, result))
+                .recoverFrom(error -> new Answer<>(deliver.answerCorrelationId, error))
+                .otherwise(ignored -> new Answer<>(deliver.answerCorrelationId, new TimeoutException()))
+                .andThenConsume(4000,
+                    answer -> outbound.answer(sender, receiver, answer))
+                .andFinally()
+        );
+      }
+      return returns;
     }
   }
 

@@ -1,9 +1,9 @@
 package io.vlingo.lattice.grid.example;
 
-import io.vlingo.actors.Actor;
+import io.vlingo.actors.StatelessGridActor;
 
-public class PingerActor extends Actor implements Pinger {
-  private final Pinger self;
+public class PingerActor extends StatelessGridActor implements Pinger {
+  private Pinger self;
 
   public PingerActor() {
     self = selfAs(Pinger.class);
@@ -11,7 +11,7 @@ public class PingerActor extends Actor implements Pinger {
 
   @Override
   public void ping(final Ponger ponger, String node) {
-    System.out.printf("Pinger::ping::%s%n", node);
+    System.out.printf("Pinger::ping::%s::%s%n", node, address());
     try {
       Thread.sleep(1000);
       ponger.pong(self, node);

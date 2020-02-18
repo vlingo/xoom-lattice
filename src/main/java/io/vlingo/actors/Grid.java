@@ -7,7 +7,6 @@
 
 package io.vlingo.actors;
 
-import io.vlingo.common.Completes;
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
@@ -15,7 +14,7 @@ import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 public class Grid extends Stage {
 
@@ -76,33 +75,6 @@ public class Grid extends Stage {
   public void setNodeId(final Id nodeId) { this.nodeId = nodeId; }
 
   @Override
-  public <T> T actorFor(final Class<T> protocol, final Definition definition) {
-    return actorFor(protocol, definition, addressFactory().unique());
-  }
-
-  @Override
-  public <T> T actorFor(final Class<T> protocol, final Definition definition, final Address address) {
-    if (world().isTerminated()) {
-      throw new IllegalStateException("vlingo/lattice: Grid has stopped.");
-    }
-    if (!address.isDistributable()) {
-      throw new IllegalArgumentException("Address is not distributable.");
-    }
-
-    final T actor = super.actorFor(protocol, definition, address);
-
-    return actor;
-  }
-
-  @Override
-  public <T> Completes<T> actorOf(final Class<T> protocol, final Address address) {
-    if (!address.isDistributable()) {
-      throw new IllegalArgumentException("Address is not distributable.");
-    }
-    return super.actorOf(protocol, address);
-  }
-
-  @Override
   protected ActorFactory.MailboxWrapper mailboxWrapper() {
     return (address, mailbox) ->
         new GridMailbox(mailbox, nodeId,
@@ -118,23 +90,57 @@ public class Grid extends Stage {
   }
 
   @Override
+  public <T> T actorThunkFor(Class<T> protocol, Class<? extends Actor> type, Address address) {
+    final Definition definition = Definition.has(type, Collections.emptyList());
+    final Mailbox actorMailbox = this.allocateMailbox(definition, address, null);
+    actorMailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
+    final ActorProtocolActor<T> actor =
+        actorProtocolFor(
+            protocol,
+            definition,
+            definition.parentOr(world.defaultParent()),
+            address,
+            actorMailbox,
+            definition.supervisor(),
+            definition.loggerOr(world.defaultLogger()));
+
+    return actor.protocolActor();
+  }
+
+  @Override
   protected <T> ActorProtocolActor<T> actorProtocolFor(Class<T> protocol, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
     final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
     final Id node = hashRing.nodeOf(address.idString());
-    if (node != null && !node.equals(nodeId)) {
+    final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
       outbound.start(node, nodeId, protocol, address, definition.type(), definition.parameters().toArray());
+    });
+    return super.actorProtocolFor(protocol, definition, parent, address, mailbox, maybeSupervisor, logger);
+  }
+
+  private Mailbox maybeRemoteMailbox(final Address address, final Definition definition, final Mailbox maybeMailbox, final Runnable out) {
+    final Id node = hashRing.nodeOf(address.idString());
+    final Mailbox __mailbox;
+    if (node != null && !node.equals(nodeId)) {
+      out.run();
+      __mailbox = allocateMailbox(definition, address, maybeMailbox);
+      if (!__mailbox.isSuspendedFor(GridActor.Resume)) {
+        __mailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
+      }
     }
-    return super.actorProtocolFor(protocol, definition, parent, address, maybeMailbox, maybeSupervisor, logger);
+    else {
+      __mailbox = maybeMailbox;
+    }
+    return __mailbox;
   }
 
   @Override
   protected ActorProtocolActor<Object>[] actorProtocolFor(Class<?>[] protocols, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
     final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
     final Id node = hashRing.nodeOf(address.idString());
-    if (node != null && !node.equals(nodeId)) {
+    final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
       outbound.start(node, nodeId, protocols[0], address, definition.type(), definition.parameters().toArray()); // TODO remote start all protocols
-    }
-    return super.actorProtocolFor(protocols, definition, parent, address, maybeMailbox, maybeSupervisor, logger);
+    });
+    return super.actorProtocolFor(protocols, definition, parent, address, mailbox, maybeSupervisor, logger);
   }
 
   /**
@@ -147,15 +153,34 @@ public class Grid extends Stage {
     return directory.actorOf(address);
   }
 
-  public void nodeJoinedCluster(final Id newNode) {
-    HashRing<Id> next = this.hashRing
-        .copy()
-        .includeNode(newNode);
-    directory.addresses().filter(a -> {
-      final Id currentNodeOf = this.hashRing.nodeOf(a.idString());
-      final Id nextNodeOf = next.nodeOf(a.idString());
-      return (currentNodeOf == null || currentNodeOf.equals(nodeId)) && !nextNodeOf.equals(nodeId);
-    });
+  public void nodeJoined(final Id newNode) {
+    if (nodeId.equals(newNode)) {
+      // self is added to the hash-ring on GridNode#start
+      return;
+    }
+
+    final HashRing<Id> current = this.hashRing.copy();
     this.hashRing.includeNode(newNode);
+
+    directory.addresses().stream()
+        .filter(a ->
+            a.isDistributable() && isReassigned(current, a))
+        .forEach((address -> {
+          final GridActor<?> actor = ((GridActor<?>) directory.actorOf(address));
+          if (!actor.isSuspended()) {
+            actor.suspend();
+            outbound.relocate(
+                newNode, nodeId, actor.getClass(),
+                address, actor.provideRelocationSnapshot(), actor.pending());
+          }
+        }));
+  }
+
+  private boolean isReassigned(HashRing<Id> current, Address a) {
+    return isAssignedToSelf(a, current) && !isAssignedToSelf(a, this.hashRing);
+  }
+
+  private boolean isAssignedToSelf(Address a, HashRing<Id> R) {
+    return nodeId.equals(R.nodeOf(a.idString()));
   }
 }
