@@ -79,6 +79,8 @@ public class GridNodeBootstrap {
   }
 
   private static class GridNodeInstantiator extends ClusterApplicationInstantiator<GridNode> {
+    private static final long serialVersionUID = -7260503652675037148L;
+
     public GridNodeInstantiator() {
       super(GridNode.class);
     }
