@@ -140,15 +140,25 @@ public interface ProjectionDispatcher {
   }
 
   static class BinaryProjectionDispatcherInstantiator implements ActorInstantiator<BinaryProjectionDispatcherActor> {
+    private static final long serialVersionUID = -8778106325710566773L;
+
     private final Collection<ProjectToDescription> projectToDescriptions;
+    private final long multiConfirmationsExpiration;
 
     public BinaryProjectionDispatcherInstantiator(final Collection<ProjectToDescription> projectToDescriptions) {
+      this(projectToDescriptions, MultiConfirming.DefaultExpirationLimit);
+    }
+
+    public BinaryProjectionDispatcherInstantiator(
+            final Collection<ProjectToDescription> projectToDescriptions,
+            final long multiConfirmationsExpiration) {
       this.projectToDescriptions = projectToDescriptions;
+      this.multiConfirmationsExpiration = multiConfirmationsExpiration;
     }
 
     @Override
     public BinaryProjectionDispatcherActor instantiate() {
-      return new BinaryProjectionDispatcherActor(projectToDescriptions);
+      return new BinaryProjectionDispatcherActor(projectToDescriptions, multiConfirmationsExpiration);
     }
 
     @Override
@@ -158,15 +168,26 @@ public interface ProjectionDispatcher {
   }
 
   static class TextProjectionDispatcherInstantiator implements ActorInstantiator<TextProjectionDispatcherActor> {
+    private static final long serialVersionUID = -732875432321359779L;
+
     private final Collection<ProjectToDescription> projectToDescriptions;
+    private final long multiConfirmationsExpiration;
 
     public TextProjectionDispatcherInstantiator(final Collection<ProjectToDescription> projectToDescriptions) {
+      this(projectToDescriptions, MultiConfirming.DefaultExpirationLimit);
+    }
+
+    public TextProjectionDispatcherInstantiator(
+            final Collection<ProjectToDescription> projectToDescriptions,
+            final long multiConfirmationsExpiration) {
+
       this.projectToDescriptions = projectToDescriptions;
+      this.multiConfirmationsExpiration = multiConfirmationsExpiration;
     }
 
     @Override
     public TextProjectionDispatcherActor instantiate() {
-      return new TextProjectionDispatcherActor(projectToDescriptions);
+      return new TextProjectionDispatcherActor(projectToDescriptions, multiConfirmationsExpiration);
     }
 
     @Override
