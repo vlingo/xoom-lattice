@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,11 +20,17 @@ public class TextProjectionDispatcherActor extends ProjectionDispatcherActor<Ent
     implements ProjectionDispatcher {
 
   public TextProjectionDispatcherActor() {
-    super();
+    this(Arrays.asList());
   }
 
   public TextProjectionDispatcherActor(final Collection<ProjectToDescription> projectToDescriptions) {
-    super(projectToDescriptions);
+    this(projectToDescriptions, MultiConfirming.DefaultExpirationLimit);
+  }
+
+  public TextProjectionDispatcherActor(
+          final Collection<ProjectToDescription> projectToDescriptions,
+          final long multiConfirmationsExpiration) {
+    super(projectToDescriptions, multiConfirmationsExpiration);
   }
 
   @Override
