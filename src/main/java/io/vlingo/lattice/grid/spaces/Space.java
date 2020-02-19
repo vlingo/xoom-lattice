@@ -21,6 +21,8 @@ public interface Space {
   <T> Completes<Optional<KeyItem<T>>> take(final Key key, final Period until);
 
   static class SpaceInstantiator implements ActorInstantiator<SpaceActor> {
+    private static final long serialVersionUID = -9069272518290731677L;
+
     private final Duration defaultScanInterval;
 
     public SpaceInstantiator(final Duration defaultScanInterval) {
@@ -39,6 +41,8 @@ public interface Space {
   }
 
   static class PartitioningSpaceRouterInstantiator implements ActorInstantiator<PartitioningSpaceRouter> {
+    private static final long serialVersionUID = 5805822811311721096L;
+
     private final int totalPartitions;
     private final Duration defaultScanInterval;
 
