@@ -15,8 +15,15 @@ import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
 
 import java.util.Collections;
+import java.util.UUID;
 
 public class Grid extends Stage {
+
+  private static final String INSTANCE_NAME = UUID.randomUUID().toString();
+
+  public static Grid resolveDynamic(World world) {
+    return world.resolveDynamic(INSTANCE_NAME, Grid.class);
+  }
 
   private final HashRing<Id> hashRing;
 
@@ -67,6 +74,7 @@ public class Grid extends Stage {
     super(world, addressFactory, gridNodeName);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     extenderStartDirectoryScanner();
+    world.registerDynamic(INSTANCE_NAME, this);
   }
 
   public void setOutbound(final OutboundGridActorControl outbound) {
