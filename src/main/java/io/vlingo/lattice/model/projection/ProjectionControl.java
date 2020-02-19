@@ -33,7 +33,7 @@ public interface ProjectionControl {
   @FunctionalInterface
   public static interface Confirmer {
     /**
-     * Confirms the completion of projections operations. 
+     * Confirms the completion of projections operations.
      */
     void confirm();
   }
