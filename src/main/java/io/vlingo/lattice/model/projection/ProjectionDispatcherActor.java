@@ -9,7 +9,10 @@ package io.vlingo.lattice.model.projection;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
+import io.vlingo.actors.Definition;
+import io.vlingo.actors.Protocols;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.Result;
@@ -23,13 +26,15 @@ public abstract class ProjectionDispatcherActor<E extends Entry<?>, RS extends S
 
   private ConfirmDispatchedResultInterest interest;
   private DispatcherControl control;
+  private final MultiConfirming multiConfirming;
+  private final ProjectionControl multiConfirmingProjectionControl;
   private final ProjectionControl projectionControl;
 
   protected ProjectionDispatcherActor() {
-    this(Arrays.asList());
+    this(Arrays.asList(), MultiConfirming.DefaultExpirationLimit);
   }
 
-  protected ProjectionDispatcherActor(final Collection<ProjectToDescription> projectToDescriptions) {
+  protected ProjectionDispatcherActor(final Collection<ProjectToDescription> projectToDescriptions, final long multiConfirmationsExpiration) {
     super(projectToDescriptions);
 
     this.interest = selfAs(ConfirmDispatchedResultInterest.class);
@@ -43,6 +48,15 @@ public abstract class ProjectionDispatcherActor<E extends Entry<?>, RS extends S
         }
       }
     };
+
+    final Protocols protocols =
+            childActorFor(
+                    new Class[] { MultiConfirming.class, ProjectionControl.class },
+                    Definition.has(MultiConfirmingProjectionControlActor.class,
+                                   Definition.parameters(projectionControl, multiConfirmationsExpiration)));
+
+    this.multiConfirming = protocols.get(0);
+    this.multiConfirmingProjectionControl = protocols.get(1);
   }
 
   //=====================================
@@ -68,8 +82,16 @@ public abstract class ProjectionDispatcherActor<E extends Entry<?>, RS extends S
   protected abstract boolean requiresDispatchedConfirmation();
 
   protected void dispatch(final String dispatchId, final Projectable projectable) {
-    for (final Projection projection : projectionsFor(projectable.becauseOf())) {
-      projection.projectWith(projectable, projectionControl);
+    final List<Projection> projections = projectionsFor(projectable.becauseOf());
+
+    final int count = projections.size();
+
+    if (count > 1) {
+      multiConfirming.manageConfirmationsFor(projectable, count);
+    }
+
+    for (final Projection projection : projections) {
+      projection.projectWith(projectable, count > 1 ? multiConfirmingProjectionControl : projectionControl);
     }
   }
 }
