@@ -8,7 +8,7 @@
 package io.vlingo.lattice.query;
 
 import io.vlingo.lattice.model.CompletionTranslator;
-import io.vlingo.symbio.store.object.QueryExpression;
+import io.vlingo.symbio.store.QueryExpression;
 
 /**
  * The elements used in the attempted {@code queryAll()} or {@code queryObject()}.

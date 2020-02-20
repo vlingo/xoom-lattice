@@ -7,6 +7,11 @@
 
 package io.vlingo.lattice.model.process;
 
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import io.vlingo.actors.World;
 import io.vlingo.common.message.AsyncMessageQueue;
 import io.vlingo.common.message.MessageQueue;
@@ -26,14 +31,10 @@ import io.vlingo.lattice.model.process.FiveStepProcess.DoStepTwo;
 import io.vlingo.lattice.model.process.ProcessTypeRegistry.ObjectProcessInfo;
 import io.vlingo.lattice.model.stateful.MockTextDispatcher;
 import io.vlingo.symbio.EntryAdapterProvider;
-import io.vlingo.symbio.store.object.MapQueryExpression;
+import io.vlingo.symbio.store.MapQueryExpression;
 import io.vlingo.symbio.store.object.ObjectStore;
 import io.vlingo.symbio.store.object.StateObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class ObjectProcessTest {
   private Exchange exchange;

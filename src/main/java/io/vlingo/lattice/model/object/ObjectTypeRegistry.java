@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import io.vlingo.actors.World;
+import io.vlingo.symbio.store.QueryExpression;
 import io.vlingo.symbio.store.object.ObjectStore;
-import io.vlingo.symbio.store.object.QueryExpression;
 import io.vlingo.symbio.store.object.StateObjectMapper;
 
 /**

@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import io.vlingo.lattice.model.CompletionTranslator;
-import io.vlingo.symbio.store.object.QueryExpression;
+import io.vlingo.symbio.store.QueryExpression;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ObjectQueryFailedExceptionTest {
