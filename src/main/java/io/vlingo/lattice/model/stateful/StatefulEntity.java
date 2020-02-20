@@ -417,4 +417,9 @@ public abstract class StatefulEntity<S> extends GridActor<String>
     stowMessages(ReadResultInterest.class);
     info.store.read(id(), info.storeType, readInterest, ignoreNotFound);
   }
+
+  @Override
+  public String provideRelocationSnapshot() {
+    return id();
+  }
 }

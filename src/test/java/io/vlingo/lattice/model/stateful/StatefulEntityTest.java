@@ -284,11 +284,6 @@ public class StatefulEntityTest {
     }
 
     @Override
-    public String provideRelocationSnapshot() {
-      return state.id;
-    }
-
-    @Override
     public void applyRelocationSnapshot(String snapshot) {
       state(new Entity1State(state.id));
     }
@@ -346,11 +341,6 @@ public class StatefulEntityTest {
     @Override
     protected Class<Entity1State> stateType() {
       return Entity1State.class;
-    }
-
-    @Override
-    public String provideRelocationSnapshot() {
-      return state.id;
     }
 
     @Override
