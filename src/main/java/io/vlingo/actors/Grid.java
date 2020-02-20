@@ -21,7 +21,7 @@ public class Grid extends Stage {
 
   private static final String INSTANCE_NAME = UUID.randomUUID().toString();
 
-  public static Grid resolveDynamic(World world) {
+  public static Grid instance(World world) {
     return world.resolveDynamic(INSTANCE_NAME, Grid.class);
   }
 
