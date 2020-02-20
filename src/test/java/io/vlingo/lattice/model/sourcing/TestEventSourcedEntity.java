@@ -47,6 +47,9 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
     return "TestEvent123";
   }
 
+  @Override
+  public void applyRelocationSnapshot(String snapshot) { }
+
   private void applied1(final Test1Happened event) {
     result.access().writeUsing("tested1", true);
     result.access().writeUsing("applied", event);

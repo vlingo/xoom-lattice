@@ -7,17 +7,8 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-
-import io.vlingo.actors.Actor;
 import io.vlingo.actors.CompletionSupplier;
+import io.vlingo.actors.GridActor;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
@@ -33,13 +24,23 @@ import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+
 /**
  * Abstract base for all concrete types that support journaling and application of
  * {@code Source<T>} instances. Provides abstracted {@code Journal} and and state
  * transition control for my concrete extender.
  * @param <T> the concrete type that is being sourced
  */
-public abstract class Sourced<T> extends Actor implements AppendResultInterest {
+public abstract class Sourced<T> extends GridActor<String> implements AppendResultInterest {
   private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();
 
@@ -309,6 +310,10 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
     return builder.toString();
   }
 
+  protected String[] streamNameSegmentsFrom(final String separator, final String streamName) {
+    return streamName.split(Pattern.quote(separator));
+  }
+
   //==================================
   // AppendResultInterest
   //==================================
@@ -535,5 +540,10 @@ public abstract class Sourced<T> extends Actor implements AppendResultInterest {
   @SuppressWarnings("unused")
   private List<Source<T>> wrap(final Source<T>[] sources) {
     return Arrays.asList(sources);
+  }
+
+  @Override
+  public String provideRelocationSnapshot() {
+    return streamName();
   }
 }

@@ -45,6 +45,9 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
     return "TestCommand123";
   }
 
+  @Override
+  public void applyRelocationSnapshot(String snapshot) { }
+
   private void applied1(final DoCommand1 command) {
     result.access().writeUsing("tested1", true);
     result.access().writeUsing("applied", command);
