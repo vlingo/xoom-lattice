@@ -12,10 +12,10 @@ public class Relocate implements Message {
 
   public final Address address;
   public final Class<? extends Actor> type;
-  public final Serializable snapshot;
+  public final Object snapshot;
   public final List<Deliver<?>> pending;
 
-  public Relocate(Class<? extends Actor> type, Address address, Serializable snapshot, List<Deliver<?>> pending) {
+  public Relocate(Class<? extends Actor> type, Address address, Object snapshot, List<Deliver<?>> pending) {
     this.address = address;
     this.type = type;
     this.snapshot = snapshot;

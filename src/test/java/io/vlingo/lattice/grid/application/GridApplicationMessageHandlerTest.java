@@ -64,7 +64,7 @@ public class GridApplicationMessageHandlerTest {
         }
 
         @Override
-        public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Serializable snapshot, List<? extends io.vlingo.actors.Message> pending) {
+        public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
           relocateLatch.countDown();
         }
       }, null);

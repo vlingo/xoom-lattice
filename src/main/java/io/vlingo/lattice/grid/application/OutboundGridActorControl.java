@@ -104,7 +104,7 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
   }
 
   @Override
-  public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Serializable snapshot, List<? extends io.vlingo.actors.Message> pending) {
+  public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
     List<Deliver<?>> messages = pending.stream()
         .map(Deliver.from(correlation))
         .collect(Collectors.toList());

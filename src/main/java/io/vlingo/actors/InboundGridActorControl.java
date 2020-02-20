@@ -95,10 +95,10 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Serializable snapshot, List<? extends io.vlingo.actors.Message> pending) {
+  public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
     logger.debug("Processing: Received application message: Relocate");
     final Optional<GridActor<?>> maybeActor = Optional.ofNullable((GridActor<?>) grid.actorAt(address));
-    final RelocationSnapshotConsumer<Serializable> consumer = maybeActor.map(a -> grid.actorAs(a, RelocationSnapshotConsumer.class))
+    final RelocationSnapshotConsumer<Object> consumer = maybeActor.map(a -> grid.actorAs(a, RelocationSnapshotConsumer.class))
         .orElseGet(() -> grid.actorFor(RelocationSnapshotConsumer.class, Definition.has(type, Collections.emptyList()), address));
     consumer.applyRelocationSnapshot(snapshot);
     final GridActor<?> actor = maybeActor.orElseGet(() -> (GridActor<?>) grid.actorAt(address));

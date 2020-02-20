@@ -39,7 +39,7 @@ public interface GridActorControl {
                 Id sender,
                 Class<? extends Actor> type,
                 Address address,
-                Serializable snapshot,
+                Object snapshot,
                 List<? extends io.vlingo.actors.Message> pending);
 
 

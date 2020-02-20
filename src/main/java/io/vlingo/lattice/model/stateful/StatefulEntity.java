@@ -7,12 +7,8 @@
 
 package io.vlingo.lattice.model.stateful;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
-
-import io.vlingo.actors.Actor;
 import io.vlingo.actors.CompletionSupplier;
+import io.vlingo.actors.GridActor;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple3;
@@ -24,13 +20,17 @@ import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
+
 /**
  * Abstract base for all entity types that require the id-clob/blob state storage
  * typical of a CQRS Command Model and CQRS Query Model. Therefore, extend me
  * for both your Command Model and CQRS Query Model, or for your CQRS Query Model
  * only when your Command Model uses the {@code EventSourced} or {@code EventSourced}.
  */
-public abstract class StatefulEntity<S> extends Actor
+public abstract class StatefulEntity<S> extends GridActor<String>
     implements ReadResultInterest, WriteResultInterest {
 
   private int currentVersion;

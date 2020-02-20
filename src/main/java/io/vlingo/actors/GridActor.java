@@ -5,10 +5,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public abstract class GridActor<T extends Serializable>
+public abstract class GridActor<S extends Serializable>
     extends Actor
-    implements RelocationSnapshotSupplier<T>,
-      RelocationSnapshotConsumer<T> {
+    implements RelocationSnapshotSupplier<S>,
+      RelocationSnapshotConsumer<S> {
 
   public static final String Resume = "GridActor.Resume";
 
