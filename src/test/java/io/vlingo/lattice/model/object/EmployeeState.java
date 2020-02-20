@@ -16,6 +16,10 @@ public class EmployeeState extends StateObject implements Comparable<EmployeeSta
 
   private static final AtomicLong identityGenerator = new AtomicLong(0);
 
+  public static EmployeeState of(String id) {
+    return new EmployeeState(Long.parseLong(id), "", 0);
+  }
+
   public final int salary;
   public final String number;
 
