@@ -39,8 +39,7 @@ public class GridMailbox implements Mailbox {
     Id nodeOf = hashRing.nodeOf(address.idString());
     if (nodeOf == null || nodeOf.equals(localId)) {
       consumer.run();
-    }
-    else {
+    } else {
       remote.accept(nodeOf);
     }
   }
@@ -52,8 +51,7 @@ public class GridMailbox implements Mailbox {
     Id nodeOf = hashRing.nodeOf(address.idString());
     if (nodeOf == null || nodeOf.equals(localId)) {
       return supplier.get();
-    }
-    else {
+    } else {
       return remote.apply(nodeOf);
     }
   }
@@ -102,8 +100,11 @@ public class GridMailbox implements Mailbox {
   public void send(Message message) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
-      LocalMessage localMessage = (LocalMessage) message; // TODO make this work with Message
-      outbound.deliver(nodeOf, localId, localMessage.returns(), message.protocol(), address, message.actor().getClass(), localMessage.consumer(), message.representation());
+      LocalMessage localMessage = (LocalMessage) message; // TODO make this work with Message ?
+      outbound.deliver(
+          nodeOf, localId, localMessage.returns(), message.protocol(),
+          address, Definition.SerializationProxy.from(message.actor().definition()),
+          localMessage.consumer(), message.representation());
     }, () -> local.send(message));
   }
 
@@ -111,7 +112,9 @@ public class GridMailbox implements Mailbox {
   public void send(Actor actor, Class<?> protocol, SerializableConsumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
-      outbound.deliver(nodeOf, localId, returns, (Class<Object>)protocol, address, actor.getClass(), (SerializableConsumer<Object>) consumer, representation);
+      outbound.deliver(nodeOf, localId, returns, (Class<Object>) protocol,
+          address, Definition.SerializationProxy.from(actor.definition()),
+          (SerializableConsumer<Object>) consumer, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
   }
 

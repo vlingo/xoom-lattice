@@ -1,7 +1,7 @@
 package io.vlingo.lattice.grid.application;
 
-import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
+import io.vlingo.actors.Definition;
 import io.vlingo.actors.GridAddressFactory;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.SerializableConsumer;
@@ -15,7 +15,6 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
@@ -40,12 +39,12 @@ public class GridApplicationMessageHandlerTest {
   private final GridApplicationMessageHandler handler =
       new GridApplicationMessageHandler(localNodeId, new MurmurSortedMapHashRing<Id>(100), new GridActorControl.Inbound() {
         @Override
-        public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Class<? extends Actor> type, Object[] parameters) {
+        public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Definition.SerializationProxy definition) {
           startLatch.countDown();
         }
 
         @Override
-        public <T> void deliver(Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Class<? extends Actor> type, SerializableConsumer<T> consumer, String representation) {
+        public <T> void deliver(Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Definition.SerializationProxy definition, SerializableConsumer<T> consumer, String representation) {
           if (sender.equals(localNodeId))
             deliverLatch.countDown();
           else if (sender.equals(originalSenderNodeId)){
@@ -64,7 +63,7 @@ public class GridApplicationMessageHandlerTest {
         }
 
         @Override
-        public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
+        public void relocate(Id receiver, Id sender, Definition.SerializationProxy definition, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
           relocateLatch.countDown();
         }
       }, null);
@@ -72,7 +71,7 @@ public class GridApplicationMessageHandlerTest {
 
   @Test
   public void testStart() throws IOException, InterruptedException {
-    test(from(new Start<>(null, address, null, null)), startLatch);
+    test(from(new Start<>(null, address, null)), startLatch);
   }
 
   @Test
@@ -92,7 +91,7 @@ public class GridApplicationMessageHandlerTest {
 
   @Test
   public void testRelocate() throws IOException, InterruptedException {
-    test(from(new Relocate(null, address, null, Collections.emptyList())), relocateLatch);
+    test(from(new Relocate(address, null, null, Collections.emptyList())), relocateLatch);
   }
 
 

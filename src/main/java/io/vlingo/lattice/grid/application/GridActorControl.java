@@ -1,14 +1,13 @@
 package io.vlingo.lattice.grid.application;
 
-import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
+import io.vlingo.actors.Definition;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.wire.node.Id;
 
-import java.io.Serializable;
 import java.util.List;
 
 public interface GridActorControl {
@@ -17,15 +16,14 @@ public interface GridActorControl {
                  Id sender,
                  Class<T> protocol,
                  Address address,
-                 Class<? extends Actor> type,
-                 Object[] parameters);
+                 Definition.SerializationProxy definitionProxy);
 
   <T> void deliver(Id recipient,
                    Id sender,
                    Returns<?> returns,
                    Class<T> protocol,
                    Address address,
-                   Class<? extends Actor> type,
+                   Definition.SerializationProxy definitionProxy,
                    SerializableConsumer<T> consumer,
                    String representation);
 
@@ -37,7 +35,7 @@ public interface GridActorControl {
 
   void relocate(Id receiver,
                 Id sender,
-                Class<? extends Actor> type,
+                Definition.SerializationProxy definitionProxy,
                 Address address,
                 Object snapshot,
                 List<? extends io.vlingo.actors.Message> pending);

@@ -14,7 +14,6 @@ import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
 
-import java.util.Collections;
 import java.util.UUID;
 
 public class Grid extends Stage {
@@ -98,8 +97,7 @@ public class Grid extends Stage {
   }
 
   @Override
-  public <T> T actorThunkFor(Class<T> protocol, Class<? extends Actor> type, Address address) {
-    final Definition definition = Definition.has(type, Collections.emptyList());
+  public <T> T actorThunkFor(Class<T> protocol, Definition definition, Address address) {
     final Mailbox actorMailbox = this.allocateMailbox(definition, address, null);
     actorMailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
     final ActorProtocolActor<T> actor =
@@ -120,7 +118,7 @@ public class Grid extends Stage {
     final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
     final Id node = hashRing.nodeOf(address.idString());
     final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
-      outbound.start(node, nodeId, protocol, address, definition.type(), definition.parameters().toArray());
+      outbound.start(node, nodeId, protocol, address, Definition.SerializationProxy.from(definition));
     });
     return super.actorProtocolFor(protocol, definition, parent, address, mailbox, maybeSupervisor, logger);
   }
@@ -146,7 +144,7 @@ public class Grid extends Stage {
     final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
     final Id node = hashRing.nodeOf(address.idString());
     final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
-      outbound.start(node, nodeId, protocols[0], address, definition.type(), definition.parameters().toArray()); // TODO remote start all protocols
+      outbound.start(node, nodeId, protocols[0], address, Definition.SerializationProxy.from(definition)); // TODO remote start all protocols
     });
     return super.actorProtocolFor(protocols, definition, parent, address, mailbox, maybeSupervisor, logger);
   }
@@ -178,7 +176,7 @@ public class Grid extends Stage {
           if (!actor.isSuspended()) {
             actor.suspend();
             outbound.relocate(
-                newNode, nodeId, actor.getClass(),
+                newNode, nodeId, Definition.SerializationProxy.from(actor.definition()),
                 address, actor.provideRelocationSnapshot(), actor.pending());
           }
         }));

@@ -1,8 +1,7 @@
 package io.vlingo.lattice.grid.application;
 
-import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
-import io.vlingo.actors.LocalMessage;
+import io.vlingo.actors.Definition;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.message.*;
@@ -13,12 +12,10 @@ import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class OutboundGridActorControl implements GridActorControl.Outbound {
@@ -59,9 +56,8 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
       Id sender,
       Class<T> protocol,
       Address address,
-      Class<? extends Actor> type,
-      Object[] parameters) {
-    send(receiver, new Start<>(protocol, address, type, parameters));
+      Definition.SerializationProxy definitionProxy) {
+    send(receiver, new Start<>(protocol, address, definitionProxy));
   }
 
   private void send(Id recipient, Message message) {
@@ -80,14 +76,15 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
       Returns<?> returns,
       Class<T> protocol,
       Address address,
-      Class<? extends Actor> type, SerializableConsumer<T> consumer,
+      Definition.SerializationProxy definition,
+      SerializableConsumer<T> consumer,
       String representation) {
     final Deliver<T> deliver;
     if (returns == null) {
-      deliver = new Deliver<>(protocol, address, type, consumer, representation);
+      deliver = new Deliver<>(protocol, address, definition, consumer, representation);
     } else {
       final UUID answerCorrelationId = UUID.randomUUID();
-      deliver = new Deliver<>(protocol, address, type, consumer, answerCorrelationId, representation);
+      deliver = new Deliver<>(protocol, address, definition, consumer, answerCorrelationId, representation);
       correlation.accept(answerCorrelationId, returns);
     }
     send(receiver, deliver);
@@ -104,10 +101,10 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
   }
 
   @Override
-  public void relocate(Id receiver, Id sender, Class<? extends Actor> type, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
+  public void relocate(Id receiver, Id sender, Definition.SerializationProxy definition, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
     List<Deliver<?>> messages = pending.stream()
         .map(Deliver.from(correlation))
         .collect(Collectors.toList());
-    send(receiver, new Relocate(type, address, snapshot, messages));
+    send(receiver, new Relocate(address, definition, snapshot, messages));
   }
 }

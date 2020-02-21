@@ -76,7 +76,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
         inbound.deliver(
             receiver, sender,
             returnsAnswer(receiver, sender, deliver),
-            deliver.protocol, deliver.address, deliver.type, deliver.consumer, deliver.representation);
+            deliver.protocol, deliver.address, deliver.definition, deliver.consumer, deliver.representation);
       } else {
         outbound.forward(recipient, sender, deliver);
       }
@@ -86,7 +86,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     public <T> void visit(Id receiver, Id sender, Start<T> start) {
       Id recipient = receiver(receiver, start.address);
       if (recipient == receiver) {
-        inbound.start(receiver, sender, start.protocol, start.address, start.type, start.parameters);
+        inbound.start(receiver, sender, start.protocol, start.address, start.definition);
       } else {
         outbound.forward(recipient, sender, start);
       }
@@ -109,7 +109,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
                 new LocalMessage(null, deliver.protocol, deliver.consumer,
                   returnsAnswer(receiver, sender, deliver), deliver.representation))
             .collect(Collectors.toCollection(ArrayList::new));
-        inbound.relocate(receiver, sender, relocate.type,
+        inbound.relocate(receiver, sender, relocate.definition,
             relocate.address, relocate.snapshot, pending);
       } else {
         outbound.forward(recipient, sender, relocate);
