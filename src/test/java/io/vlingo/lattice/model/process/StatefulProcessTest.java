@@ -7,6 +7,13 @@
 
 package io.vlingo.lattice.model.process;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import io.vlingo.actors.World;
 import io.vlingo.common.message.AsyncMessageQueue;
 import io.vlingo.common.message.MessageQueue;
@@ -28,10 +35,6 @@ import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.store.state.StateStore;
 import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class StatefulProcessTest {
   private MockTextDispatcher dispatcher;
@@ -68,7 +71,7 @@ public class StatefulProcessTest {
     dispatcher = new MockTextDispatcher();
     final MessageQueue queue = new AsyncMessageQueue(null);
     exchange = new LocalExchange(queue);
-    stateStore = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, dispatcher);
+    stateStore = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, Arrays.asList(dispatcher));
     EntryAdapterProvider.instance(world);
     statefulTypeRegistry = new StatefulTypeRegistry(world);
 

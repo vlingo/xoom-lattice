@@ -10,6 +10,7 @@ package io.vlingo.lattice.model.stateful;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
@@ -137,7 +138,7 @@ public class StatefulEntityTest {
     new EntryAdapterProvider(world);
     registry = new StatefulTypeRegistry(world);
 
-    store = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, dispatcher);
+    store = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, Arrays.asList(dispatcher));
 
     registry.register(new Info<>(store, Entity1State.class, Entity1State.class.getSimpleName()));
   }
