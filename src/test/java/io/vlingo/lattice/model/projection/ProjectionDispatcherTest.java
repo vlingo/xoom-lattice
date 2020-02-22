@@ -7,6 +7,8 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 
@@ -55,7 +57,7 @@ public abstract class ProjectionDispatcherTest {
             world.actorFor(
                     new Class<?>[] { stateStoreInterfaceClass(), DispatcherControl.class },
                     InMemoryStateStoreActor.class,
-                    dispatcher);
+                    Arrays.asList(dispatcher));
 
     final Protocols.Two<StateStore, DispatcherControl> storeWithControl = Protocols.two(storeProtocols);
     store = storeWithControl._1;

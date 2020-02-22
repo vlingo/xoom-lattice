@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,7 +109,7 @@ public class StateStoreProjectionTest {
   public void setUp() {
     world = World.startWithDefaults("test-state-store-projection");
 
-    store = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, new NoOpDispatcher());
+    store = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, Arrays.asList(new NoOpDispatcher()));
 
     projection = world.actorFor(Projection.class, WarbleStateStoreProjection.class, store);
 
