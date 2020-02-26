@@ -7,6 +7,8 @@ import io.vlingo.wire.node.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -96,11 +98,18 @@ public class GridMailbox implements Mailbox {
     }, () -> local.resume(name));
   }
 
+  private static final Set<Class<?>> overrides = new HashSet<Class<?>>() {{
+    add(Stoppable.class);
+  }};
+
   @Override
   public void send(Message message) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
       LocalMessage localMessage = (LocalMessage) message; // TODO make this work with Message ?
+      if (overrides.contains(localMessage.protocol())) {
+        local.send(message);
+      }
       outbound.deliver(
           nodeOf, localId, localMessage.returns(), message.protocol(),
           address, Definition.SerializationProxy.from(message.actor().definition()),
@@ -112,6 +121,9 @@ public class GridMailbox implements Mailbox {
   public void send(Actor actor, Class<?> protocol, SerializableConsumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
+      if (overrides.contains(protocol)) {
+        local.send(actor, protocol, consumer, returns, representation);
+      }
       outbound.deliver(nodeOf, localId, returns, (Class<Object>) protocol,
           address, Definition.SerializationProxy.from(actor.definition()),
           (SerializableConsumer<Object>) consumer, representation);
