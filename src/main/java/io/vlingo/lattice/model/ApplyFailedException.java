@@ -9,6 +9,7 @@ package io.vlingo.lattice.model;
 
 import java.util.List;
 
+import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 

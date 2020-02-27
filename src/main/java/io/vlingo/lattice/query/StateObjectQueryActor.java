@@ -12,9 +12,9 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.CompletionTranslator;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
-import io.vlingo.lattice.model.CompletionTranslator;
 import io.vlingo.lattice.query.QueryAttempt.Cardinality;
 import io.vlingo.symbio.store.QueryExpression;
 import io.vlingo.symbio.store.Result;

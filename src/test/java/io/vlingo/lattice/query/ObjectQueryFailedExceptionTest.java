@@ -10,7 +10,7 @@ package io.vlingo.lattice.query;
 import org.junit.Assert;
 import org.junit.Test;
 
-import io.vlingo.lattice.model.CompletionTranslator;
+import io.vlingo.actors.CompletionTranslator;
 import io.vlingo.symbio.store.QueryExpression;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })

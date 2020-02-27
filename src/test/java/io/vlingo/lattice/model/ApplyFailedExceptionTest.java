@@ -12,6 +12,7 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.lattice.model.ApplyFailedException.Applicable;
 import io.vlingo.symbio.Metadata;
 

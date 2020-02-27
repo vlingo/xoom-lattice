@@ -7,7 +7,7 @@
 
 package io.vlingo.lattice.query;
 
-import io.vlingo.lattice.model.CompletionTranslator;
+import io.vlingo.actors.CompletionTranslator;
 import io.vlingo.symbio.store.QueryExpression;
 
 /**

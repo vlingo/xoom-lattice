@@ -17,6 +17,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
@@ -24,7 +25,6 @@ import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.ApplyFailedException;
 import io.vlingo.lattice.model.ApplyFailedException.Applicable;
-import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;

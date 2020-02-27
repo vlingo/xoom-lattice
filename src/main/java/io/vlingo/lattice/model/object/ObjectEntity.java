@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
-import io.vlingo.lattice.model.CompletionSupplier;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
