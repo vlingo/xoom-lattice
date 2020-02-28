@@ -21,7 +21,7 @@ public class CommandRouter__Proxy extends ActorProxyBase<CommandRouter> implemen
   private Mailbox mailbox;
 
   public CommandRouter__Proxy(final Actor actor, final Mailbox mailbox){
-    super(CommandRouter.class, actor);
+    super(CommandRouter.class, Definition.SerializationProxy.from(actor.definition()), actor.address());
     this.actor = actor;
     this.mailbox = mailbox;
   }
