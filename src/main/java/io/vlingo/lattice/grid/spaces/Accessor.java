@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.vlingo.actors.Definition;
-import io.vlingo.lattice.grid.Grid;
+import io.vlingo.actors.Grid;
 import io.vlingo.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
 
 public class Accessor {

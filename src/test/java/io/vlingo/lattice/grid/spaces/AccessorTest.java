@@ -14,7 +14,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.vlingo.lattice.grid.Grid;
+import io.vlingo.actors.Grid;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 
 public class AccessorTest {
@@ -53,7 +53,7 @@ public class AccessorTest {
   public void setUp() throws Exception {
     GridNodeBootstrap.reset();
 
-    grid = Grid.startWith("test-world", "test-grid");
+    grid = Grid.start("test-world", "test-grid");
   }
 
   @After

@@ -58,6 +58,16 @@ public class FiveStepEmittingSourcedProcess extends SourcedProcess<Object> imple
     return id();
   }
 
+  @Override
+  public String provideRelocationSnapshot() {
+    return String.valueOf(stepCount);
+  }
+
+  @Override
+  public void applyRelocationSnapshot(String snapshot) {
+    stepCount = Integer.parseInt(snapshot);
+  }
+
   private void applyProcessMessage(final ProcessMessage message) {
     ++stepCount;
   }

@@ -59,4 +59,9 @@ public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Emplo
   protected Class<EmployeeState> stateObjectType() {
     return EmployeeState.class;
   }
+
+  @Override
+  public void applyRelocationSnapshot(String snapshot) {
+    stateObject(EmployeeState.of(snapshot));
+  }
 }

@@ -7,29 +7,25 @@
 
 package io.vlingo.lattice.model.object;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
-
-import io.vlingo.actors.Actor;
 import io.vlingo.actors.CompletionSupplier;
+import io.vlingo.actors.GridActor;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
-import io.vlingo.symbio.store.ListQueryExpression;
-import io.vlingo.symbio.store.MapQueryExpression;
-import io.vlingo.symbio.store.QueryExpression;
-import io.vlingo.symbio.store.Result;
-import io.vlingo.symbio.store.StorageException;
+import io.vlingo.symbio.store.*;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
 import io.vlingo.symbio.store.object.StateObject;
 import io.vlingo.symbio.store.object.StateSources;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Abstract base type used to preserve and restore object state
@@ -38,7 +34,7 @@ import io.vlingo.symbio.store.object.StateSources;
  * whether formally or informally implemented.
  * @param <T> the type of persistent object
  */
-public abstract class ObjectEntity<T extends StateObject> extends Actor
+public abstract class ObjectEntity<T extends StateObject> extends GridActor<String>
   implements PersistResultInterest, QueryResultInterest {
 
   private final Info<T> info;
@@ -377,5 +373,10 @@ public abstract class ObjectEntity<T extends StateObject> extends Actor
   private void restore(final boolean ignoreNotFound) {
     stowMessages(QueryResultInterest.class);
     info.store.queryObject(queryExpression(), queryResultInterest, ignoreNotFound);
+  }
+
+  @Override
+  public String provideRelocationSnapshot() {
+    return id();
   }
 }

@@ -17,6 +17,11 @@ public class StepCountObjectState extends StateObject implements Comparable<Step
 
   private int stepCount;
 
+  public StepCountObjectState(final String id) {
+    super(Long.parseLong(id));
+    this.stepCount = 0;
+  }
+
   public StepCountObjectState() {
     super(identityGenerator.incrementAndGet());
 

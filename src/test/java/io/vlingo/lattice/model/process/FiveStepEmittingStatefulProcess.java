@@ -71,4 +71,14 @@ public class FiveStepEmittingStatefulProcess extends StatefulProcess<StepCountSt
   protected Class<StepCountState> stateType() {
     return StepCountState.class;
   }
+
+  @Override
+  public String provideRelocationSnapshot() {
+    return String.valueOf(state.stepCount());
+  }
+
+  @Override
+  public void applyRelocationSnapshot(String snapshot) {
+    state(new StepCountState(Integer.parseInt(snapshot)));
+  }
 }

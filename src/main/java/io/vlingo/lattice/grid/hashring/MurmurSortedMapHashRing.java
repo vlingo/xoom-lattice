@@ -25,6 +25,13 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
     this.ring = new TreeMap<>();
   }
 
+  private MurmurSortedMapHashRing(final int pointsPerNode, final int seed, final SortedMap<Integer, T> ring) {
+    this.pointsPerNode = pointsPerNode;
+    this.seed = seed;
+    this.buffer = ByteBuffer.allocate(64);
+    this.ring = ring;
+  }
+
 
   @Override
   public void dump() {
@@ -71,5 +78,11 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
           ring.firstKey() : tailMap.firstKey();
     }
     return ring.get(hash);
+  }
+
+  @Override
+  public HashRing<T> copy() {
+    final TreeMap<Integer, T> _ring = (TreeMap<Integer, T>)this.ring;
+    return new MurmurSortedMapHashRing<>(this.pointsPerNode, this.seed, (TreeMap<Integer, T>)_ring.clone());
   }
 }
