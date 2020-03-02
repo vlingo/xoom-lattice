@@ -57,4 +57,14 @@ public class FiveStepSendingSourcedProcess extends SourcedProcess<Object> implem
   protected String streamName() {
     return id();
   }
+
+  @Override
+  public String provideRelocationSnapshot() {
+    return String.valueOf(stepCount);
+  }
+
+  @Override
+  public void applyRelocationSnapshot(String snapshot) {
+    stepCount = Integer.parseInt(snapshot);
+  }
 }

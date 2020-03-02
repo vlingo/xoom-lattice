@@ -232,6 +232,10 @@ public class StatefulEntityTest {
       this.state = state;
     }
 
+    public Entity1Actor() {
+      this.state = null;
+    }
+
     @Override
     public void start() {
       if (state.hasState()) {
@@ -277,6 +281,11 @@ public class StatefulEntityTest {
     @Override
     protected Class<Entity1State> stateType() {
       return Entity1State.class;
+    }
+
+    @Override
+    public void applyRelocationSnapshot(String snapshot) {
+      state(new Entity1State(state.id));
     }
   }
 
@@ -332,6 +341,11 @@ public class StatefulEntityTest {
     @Override
     protected Class<Entity1State> stateType() {
       return Entity1State.class;
+    }
+
+    @Override
+    public void applyRelocationSnapshot(String snapshot) {
+      state(new Entity1State(state.id));
     }
   }
 }

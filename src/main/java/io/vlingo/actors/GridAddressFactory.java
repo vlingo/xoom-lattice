@@ -5,12 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.lattice.grid;
+package io.vlingo.actors;
 
 import java.util.UUID;
 
-import io.vlingo.actors.Address;
-import io.vlingo.actors.AddressFactory;
 import io.vlingo.common.identity.IdentityGenerator;
 import io.vlingo.common.identity.IdentityGeneratorType;
 

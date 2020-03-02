@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.grid;
 
+import io.vlingo.actors.Grid;
 import io.vlingo.actors.Logger;
 import io.vlingo.actors.World;
 import io.vlingo.cluster.model.Cluster;
@@ -18,11 +19,11 @@ import io.vlingo.common.Tuple2;
 public class GridNodeBootstrap {
   private static GridNodeBootstrap instance;
 
-  private final Tuple2<ClusterSnapshotControl, Logger> clusterSnapshotControl;
   private final GridShutdownHook shutdownHook;
+  private final Grid grid;
 
   public static GridNodeBootstrap boot(final String nodeName) throws Exception {
-    final Grid grid = Grid.startWith("vlingo-lattice-grid", nodeName);
+    final Grid grid = Grid.start("vlingo-lattice-grid", nodeName);
     return boot(grid.world(), grid, nodeName, false);
   }
 
@@ -35,12 +36,11 @@ public class GridNodeBootstrap {
       final Tuple2<ClusterSnapshotControl, Logger> control =
               Cluster.controlFor(
                       world,
-                      grid,
-                      new GridNodeInstantiator(),
+                      new GridNodeInstantiator(grid),
                       io.vlingo.cluster.model.Properties.instance,
                       nodeName);
 
-      GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName);
+      GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName, grid);
 
       control._2.info("Successfully started cluster node: '" + nodeName + "'");
 
@@ -50,6 +50,10 @@ public class GridNodeBootstrap {
     }
 
     return GridNodeBootstrap.instance;
+  }
+
+  public Grid grid() {
+    return grid;
   }
 
   public static boolean exists() {
@@ -67,27 +71,28 @@ public class GridNodeBootstrap {
     }
   }
 
-  public ClusterSnapshotControl clusterSnapshotControl() {
-    return clusterSnapshotControl._1;
-  }
-
-  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName) throws Exception {
-    this.clusterSnapshotControl = control;
+  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName, Grid grid) throws Exception {
+    this.grid = grid;
 
     this.shutdownHook = new GridShutdownHook(nodeName, control);
     this.shutdownHook.register();
   }
 
   private static class GridNodeInstantiator extends ClusterApplicationInstantiator<GridNode> {
-    private static final long serialVersionUID = -7260503652675037148L;
 
-    public GridNodeInstantiator() {
+    private static final long serialVersionUID = -7096922857258549619L;
+
+    private final Grid grid;
+
+    public GridNodeInstantiator(Grid grid) {
       super(GridNode.class);
+      this.grid = grid;
     }
 
     @Override
     public GridNode instantiate() {
-      return new GridNode(node());
+      grid.setNodeId(node().id());
+      return new GridNode(grid, node());
     }
   }
 }

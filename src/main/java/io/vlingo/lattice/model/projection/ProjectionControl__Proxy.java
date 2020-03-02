@@ -7,11 +7,7 @@
 
 package io.vlingo.lattice.model.projection;
 
-import io.vlingo.actors.Actor;
-import io.vlingo.actors.ActorProxyBase;
-import io.vlingo.actors.DeadLetter;
-import io.vlingo.actors.LocalMessage;
-import io.vlingo.actors.Mailbox;
+import io.vlingo.actors.*;
 import io.vlingo.common.SerializableConsumer;
 
 public class ProjectionControl__Proxy extends ActorProxyBase<ProjectionControl> implements io.vlingo.lattice.model.projection.ProjectionControl {
@@ -22,7 +18,7 @@ public class ProjectionControl__Proxy extends ActorProxyBase<ProjectionControl> 
   private final Mailbox mailbox;
 
   public ProjectionControl__Proxy(final Actor actor, final Mailbox mailbox){
-    super(io.vlingo.lattice.model.projection.ProjectionControl.class, actor.getClass(), actor.address());
+    super(io.vlingo.lattice.model.projection.ProjectionControl.class, Definition.SerializationProxy.from(actor.definition()), actor.address());
     this.actor = actor;
     this.mailbox = mailbox;
   }

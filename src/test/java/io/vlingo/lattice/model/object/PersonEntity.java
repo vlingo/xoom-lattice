@@ -59,4 +59,9 @@ public class PersonEntity extends ObjectEntity<PersonState> implements Person {
   protected Class<PersonState> stateObjectType() {
     return PersonState.class;
   }
+
+  @Override
+  public void applyRelocationSnapshot(String snapshot) {
+    stateObject(new PersonState(Long.parseLong(snapshot), null, 0));
+  }
 }

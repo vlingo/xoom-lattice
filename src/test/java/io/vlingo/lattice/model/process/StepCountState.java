@@ -10,6 +10,10 @@ package io.vlingo.lattice.model.process;
 public class StepCountState {
   private int stepCount;
 
+  public StepCountState(int stepCount) {
+    this.stepCount = stepCount;
+  }
+
   public StepCountState() {
     this.stepCount = 0;
   }

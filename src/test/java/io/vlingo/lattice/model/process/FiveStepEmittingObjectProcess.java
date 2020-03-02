@@ -77,4 +77,9 @@ public class FiveStepEmittingObjectProcess extends ObjectProcess<StepCountObject
   protected Class<StepCountObjectState> stateObjectType() {
     return StepCountObjectState.class;
   }
+
+  @Override
+  public void applyRelocationSnapshot(String snapshot) {
+    stateObject(new StepCountObjectState(snapshot));
+  }
 }

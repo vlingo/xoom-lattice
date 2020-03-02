@@ -294,6 +294,19 @@ public class EventSourcedTest {
       return null;
     }
 
+    @Override
+    public String provideRelocationSnapshot() {
+      return streamNameFrom(":", name, description, String.valueOf(price));
+    }
+
+    @Override
+    public void applyRelocationSnapshot(String snapshot) {
+      String[] nameDescriptionAndPrice = streamNameSegmentsFrom(":", snapshot);
+      this.name = nameDescriptionAndPrice[0];
+      this.description = nameDescriptionAndPrice[1];
+      this.price = Long.parseLong(nameDescriptionAndPrice[2]);
+    }
+
     static {
       registerConsumer(ProductEntity.class, ProductDefined.class, ProductEntity::whenProductDefined);
       registerConsumer(ProductEntity.class, ProductDescriptionChanged.class, ProductEntity::whenProductDescriptionChanged);
