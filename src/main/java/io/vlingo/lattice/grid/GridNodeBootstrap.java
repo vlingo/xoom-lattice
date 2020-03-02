@@ -15,47 +15,12 @@ import io.vlingo.cluster.model.ClusterSnapshotControl;
 import io.vlingo.cluster.model.Properties;
 import io.vlingo.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.common.Tuple2;
-import io.vlingo.lattice.grid.example.*;
 
 public class GridNodeBootstrap {
   private static GridNodeBootstrap instance;
 
   private final GridShutdownHook shutdownHook;
-  private final World world;
   private final Grid grid;
-
-  public static void main(final String[] args) throws Exception {
-    if (args.length == 1) {
-      String nodeName = args[0];
-      GridNodeBootstrap bootstrap = boot(nodeName);
-
-      System.out.println("WAITING.....");
-      Thread.sleep(30000);
-      System.out.println("STARTING ACTORS");
-
-//      Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class, nodeName);
-//      while(true) {
-//        greeting.respond("test")
-//            .andThenConsume(System.out::println);
-//      }
-
-      Ponger ponger = bootstrap.grid.actorFor(Ponger.class, PongerActor.class);
-      Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class, nodeName);
-      greeting.respond(nodeName)
-          .andThenConsume(pinger -> {
-            System.out.println("staring on " + nodeName);
-            pinger.ping(ponger, nodeName);
-          });
-
-
-    } else if (args.length > 1) {
-      System.err.println("vlingo/lattice: Too many arguments; provide node name only.");
-      System.exit(1);
-    } else {
-      System.err.println("vlingo/lattice: This node must be named with a command-line argument.");
-      System.exit(1);
-    }
-  }
 
   public static GridNodeBootstrap boot(final String nodeName) throws Exception {
     final Grid grid = Grid.start("vlingo-lattice-grid", nodeName);
@@ -75,7 +40,7 @@ public class GridNodeBootstrap {
                       io.vlingo.cluster.model.Properties.instance,
                       nodeName);
 
-      GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName, world, grid);
+      GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName, grid);
 
       control._2.info("Successfully started cluster node: '" + nodeName + "'");
 
@@ -85,6 +50,10 @@ public class GridNodeBootstrap {
     }
 
     return GridNodeBootstrap.instance;
+  }
+
+  public Grid grid() {
+    return grid;
   }
 
   public static boolean exists() {
@@ -102,8 +71,7 @@ public class GridNodeBootstrap {
     }
   }
 
-  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName, World world, Grid grid) throws Exception {
-    this.world = world;
+  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName, Grid grid) throws Exception {
     this.grid = grid;
 
     this.shutdownHook = new GridShutdownHook(nodeName, control);
@@ -111,6 +79,8 @@ public class GridNodeBootstrap {
   }
 
   private static class GridNodeInstantiator extends ClusterApplicationInstantiator<GridNode> {
+
+    private static final long serialVersionUID = -7096922857258549619L;
 
     private final Grid grid;
 

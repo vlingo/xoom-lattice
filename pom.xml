@@ -44,7 +44,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>io.vlingo.lattice.grid.GridNodeBootstrap</mainClass>
+          <mainClass>io.vlingo.lattice.grid.Main</mainClass>
         </configuration>
       </plugin>
       <plugin>
