@@ -9,6 +9,7 @@ package io.vlingo.lattice.model.projection;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +20,9 @@ import org.junit.Test;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Definition;
+import io.vlingo.actors.Grid;
+import io.vlingo.actors.GridActor;
 import io.vlingo.actors.Protocols;
-import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.serialization.JsonSerialization;
@@ -50,8 +52,8 @@ public class JournalProjectionDispatcherTest {
   private AccessHolder accessHolder;
   private AppendResultInterest appendInterest;
   private Dispatcher<Dispatchable<Entry<String>,State<String>>> dispatcher;
+  private Grid grid;
   private Journal<String> journal;
-  private World world;
 
   @Test
   public void testThatOneTwoAllEventsProject() {
@@ -99,8 +101,8 @@ public class JournalProjectionDispatcherTest {
 
   @Before
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public void setUp() {
-    world = World.startWithDefaults("test-journal-projections");
+  public void setUp() throws Exception {
+    grid = Grid.startWith("test-journal-projections", "node1");
 
     accessHolder = new AccessHolder();
 
@@ -111,7 +113,7 @@ public class JournalProjectionDispatcherTest {
                     ProjectToDescription.with(AllHappenedProjectionActor.class, Optional.of(accessHolder), OneHappened.class.getPackage()));
 
     final Protocols dispatcherProtocols =
-            world.stage().actorFor(
+            grid.actorFor(
                     new Class<?>[] { Dispatcher.class, ProjectionDispatcher.class },
                     Definition.has(TextProjectionDispatcherActor.class, new TextProjectionDispatcherInstantiator(descriptions)));
 
@@ -119,13 +121,13 @@ public class JournalProjectionDispatcherTest {
 
     this.dispatcher = dispatchers._1;
 
-    journal = Journal.using(world.stage(), InMemoryJournalActor.class, this.dispatcher);
+    journal = Journal.using(grid, InMemoryJournalActor.class, this.dispatcher);
 
-    EntryAdapterProvider.instance(world).registerAdapter(OneHappened.class, new OneHappenedAdapter());
-    EntryAdapterProvider.instance(world).registerAdapter(TwoHappened.class, new TwoHappenedAdapter());
-    EntryAdapterProvider.instance(world).registerAdapter(ThreeHappened.class, new ThreeHappenedAdapter());
+    EntryAdapterProvider.instance(grid.world()).registerAdapter(OneHappened.class, new OneHappenedAdapter());
+    EntryAdapterProvider.instance(grid.world()).registerAdapter(TwoHappened.class, new TwoHappenedAdapter());
+    EntryAdapterProvider.instance(grid.world()).registerAdapter(ThreeHappened.class, new ThreeHappenedAdapter());
 
-    appendInterest = world.stage().actorFor(AppendResultInterest.class, JournalAppendResultInterest.class);
+    appendInterest = grid.actorFor(AppendResultInterest.class, JournalAppendResultInterest.class);
   }
 
 
@@ -167,7 +169,7 @@ public class JournalProjectionDispatcherTest {
     ThreeHappened() { }
   }
 
-  public static class OneHappenedProjectionActor extends Actor implements Projection {
+  public static class OneHappenedProjectionActor extends GridActor<OneHappenedProjectionActor.Proxy> implements Projection {
     private final AccessHolder accessHolder;
 
     public OneHappenedProjectionActor(final AccessHolder accessHolder) {
@@ -180,7 +182,7 @@ public class JournalProjectionDispatcherTest {
         switch (entry.typed().getSimpleName()) {
         case "OneHappened":
           accessHolder.accessProjection.writeUsing(AccessProjection, 1);
-          control.confirmerFor(projectable);
+          ProjectionControl.confirmerFor(projectable, control).confirm();
           logger().debug("ONE");
           break;
         default:
@@ -188,9 +190,30 @@ public class JournalProjectionDispatcherTest {
         }
       });
     }
+
+    public static final class Proxy implements Serializable {
+      private static final long serialVersionUID = -2796142731077588067L;
+
+      public Proxy() {
+      }
+
+      @Override
+      public String toString() {
+        return String.format("Proxy(none)");
+      }
+    }
+
+    @Override
+    public Proxy provideRelocationSnapshot() {
+      return new Proxy();
+    }
+
+    @Override
+    public void applyRelocationSnapshot(Proxy snapshot) {
+    }
   }
 
-  public static class TwoHappenedProjectionActor extends Actor implements Projection {
+  public static class TwoHappenedProjectionActor extends GridActor<TwoHappenedProjectionActor.Proxy> implements Projection {
     private final AccessHolder accessHolder;
 
     public TwoHappenedProjectionActor(final AccessHolder accessHolder) {
@@ -203,7 +226,7 @@ public class JournalProjectionDispatcherTest {
         switch (entry.typed().getSimpleName()) {
         case "TwoHappened":
           accessHolder.accessProjection.writeUsing(AccessProjection, 1);
-          control.confirmerFor(projectable);
+          ProjectionControl.confirmerFor(projectable, control).confirm();
           logger().debug("TWO");
           break;
         default:
@@ -211,9 +234,30 @@ public class JournalProjectionDispatcherTest {
         }
       });
     }
+
+    public static final class Proxy implements Serializable {
+      private static final long serialVersionUID = -2796142731077588067L;
+
+      public Proxy() {
+      }
+
+      @Override
+      public String toString() {
+        return String.format("Proxy(none)");
+      }
+    }
+
+    @Override
+    public Proxy provideRelocationSnapshot() {
+      return new Proxy();
+    }
+
+    @Override
+    public void applyRelocationSnapshot(Proxy snapshot) {
+    }
   }
 
-  public static class AllHappenedProjectionActor extends Actor implements Projection {
+  public static class AllHappenedProjectionActor extends GridActor<AllHappenedProjectionActor.Proxy> implements Projection {
     private final AccessHolder accessHolder;
     private int count;
 
@@ -236,7 +280,32 @@ public class JournalProjectionDispatcherTest {
           break;
         }
       });
-      control.confirmerFor(projectable);
+      ProjectionControl.confirmerFor(projectable, control).confirm();
+    }
+
+    public static final class Proxy implements Serializable {
+      private static final long serialVersionUID = -2796142731077588067L;
+
+      final int count;
+
+      public Proxy(int count) {
+        this.count = count;
+      }
+
+      @Override
+      public String toString() {
+        return String.format("Proxy(count='%d')", count);
+      }
+    }
+
+    @Override
+    public Proxy provideRelocationSnapshot() {
+      return new Proxy(count);
+    }
+
+    @Override
+    public void applyRelocationSnapshot(Proxy snapshot) {
+      this.count = snapshot.count;
     }
   }
 

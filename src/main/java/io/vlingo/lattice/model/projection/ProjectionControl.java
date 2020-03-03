@@ -12,20 +12,21 @@ package io.vlingo.lattice.model.projection;
  */
 public interface ProjectionControl {
   /**
+   * Answer the {@code Confirmer} for the given {@code Projectable} through
+   * which confirmation can be performed as a single operation.
+   * @param projectable the Projectable requiring confirmation of completed projections operations
+   * @param projectionControl the ProjectionControl through which the confirmation is performed
+   * @return Confirmer
+   */
+  static Confirmer confirmerFor(final Projectable projectable, final ProjectionControl projectionControl) {
+    return () -> projectionControl.confirmProjected(projectable.projectionId());
+  }
+
+  /**
    * Confirms that all projection operations have been completed.
    * @param projectionId the String unique identity of the projection operation
    */
   void confirmProjected(final String projectionId);
-
-  /**
-   * Answer the {@code Confirmer} for the given {@code Projectable} through
-   * which confirmation can be performed as a single operation.
-   * @param projectable the Projectable requiring confirmation of completed projections operations
-   * @return Confirmer
-   */
-  default Confirmer confirmerFor(final Projectable projectable) {
-    return () -> this.confirmProjected(projectable.projectionId());
-  }
 
   /**
    * Defines the functional interface used to confirm the completion of projections operations.

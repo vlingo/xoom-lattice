@@ -7,10 +7,15 @@
 
 package io.vlingo.lattice.model.projection;
 
-import io.vlingo.actors.*;
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorProxyBase;
+import io.vlingo.actors.DeadLetter;
+import io.vlingo.actors.Definition.SerializationProxy;
+import io.vlingo.actors.LocalMessage;
+import io.vlingo.actors.Mailbox;
 import io.vlingo.common.SerializableConsumer;
 
-public class ProjectionControl__Proxy extends ActorProxyBase<ProjectionControl> implements io.vlingo.lattice.model.projection.ProjectionControl {
+public class ProjectionControl__Proxy extends ActorProxyBase<io.vlingo.lattice.model.projection.ProjectionControl> implements io.vlingo.lattice.model.projection.ProjectionControl {
 
   private static final String confirmProjectedRepresentation1 = "confirmProjected(java.lang.String)";
 
@@ -18,7 +23,7 @@ public class ProjectionControl__Proxy extends ActorProxyBase<ProjectionControl> 
   private final Mailbox mailbox;
 
   public ProjectionControl__Proxy(final Actor actor, final Mailbox mailbox){
-    super(io.vlingo.lattice.model.projection.ProjectionControl.class, Definition.SerializationProxy.from(actor.definition()), actor.address());
+    super(io.vlingo.lattice.model.projection.ProjectionControl.class, SerializationProxy.from(actor.definition()), actor.address());
     this.actor = actor;
     this.mailbox = mailbox;
   }
@@ -39,10 +44,5 @@ public class ProjectionControl__Proxy extends ActorProxyBase<ProjectionControl> 
     } else {
       actor.deadLetters().failedDelivery(new DeadLetter(actor, confirmProjectedRepresentation1));
     }
-  }
-
-  @Override
-  public Confirmer confirmerFor(io.vlingo.lattice.model.projection.Projectable projectable) {
-    return () -> this.confirmProjected(projectable.projectionId());
   }
 }

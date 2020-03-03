@@ -7,6 +7,13 @@
 
 package io.vlingo.lattice.grid;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.nustaq.serialization.FSTConfiguration;
+
 import io.vlingo.actors.Grid;
 import io.vlingo.actors.InboundGridActorControl;
 import io.vlingo.actors.Returns;
@@ -22,12 +29,6 @@ import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
-import org.nustaq.serialization.FSTConfiguration;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class GridNode extends ClusterApplicationAdapter {
 

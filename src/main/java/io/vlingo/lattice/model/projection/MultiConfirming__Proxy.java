@@ -7,11 +7,15 @@
 
 package io.vlingo.lattice.model.projection;
 
-import io.vlingo.actors.*;
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorProxyBase;
+import io.vlingo.actors.DeadLetter;
+import io.vlingo.actors.Definition.SerializationProxy;
+import io.vlingo.actors.LocalMessage;
+import io.vlingo.actors.Mailbox;
+import io.vlingo.actors.Returns;
 import io.vlingo.common.Completes;
 import io.vlingo.common.SerializableConsumer;
-
-import java.util.List;
 
 public class MultiConfirming__Proxy extends ActorProxyBase<io.vlingo.lattice.model.projection.MultiConfirming> implements io.vlingo.lattice.model.projection.MultiConfirming {
 
@@ -22,7 +26,7 @@ public class MultiConfirming__Proxy extends ActorProxyBase<io.vlingo.lattice.mod
   private final Mailbox mailbox;
 
   public MultiConfirming__Proxy(final Actor actor, final Mailbox mailbox){
-    super(io.vlingo.lattice.model.projection.MultiConfirming.class, Definition.SerializationProxy.from(actor.definition()), actor.address());
+    super(io.vlingo.lattice.model.projection.MultiConfirming.class, SerializationProxy.from(actor.definition()), actor.address());
     this.actor = actor;
     this.mailbox = mailbox;
   }
@@ -44,12 +48,13 @@ public class MultiConfirming__Proxy extends ActorProxyBase<io.vlingo.lattice.mod
       actor.deadLetters().failedDelivery(new DeadLetter(actor, manageConfirmationsForRepresentation1));
     }
   }
-
   @Override
-  public Completes<List<Projectable>> managedConfirmations() {
+  public io.vlingo.common.Completes<java.util.List<io.vlingo.lattice.model.projection.Projectable>> managedConfirmations() {
     if (!actor.isStopped()) {
+      @SuppressWarnings("unused")
+      ActorProxyBase<MultiConfirming> self = this;
       final SerializableConsumer<MultiConfirming> consumer = (actor) -> actor.managedConfirmations();
-      final Completes<List<Projectable>> returnValue = Completes.using(actor.scheduler());
+      final io.vlingo.common.Completes<java.util.List<io.vlingo.lattice.model.projection.Projectable>> returnValue = Completes.using(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, MultiConfirming.class, consumer, Returns.value(returnValue), managedConfirmationsRepresentation2); }
       else { mailbox.send(new LocalMessage<MultiConfirming>(actor, MultiConfirming.class, consumer, Returns.value(returnValue), managedConfirmationsRepresentation2)); }
       return returnValue;
