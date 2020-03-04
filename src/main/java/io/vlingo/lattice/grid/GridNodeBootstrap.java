@@ -17,61 +17,53 @@ import io.vlingo.cluster.model.application.ClusterApplication.ClusterApplication
 import io.vlingo.common.Tuple2;
 
 public class GridNodeBootstrap {
-  private static GridNodeBootstrap instance;
+  private final Tuple2<ClusterSnapshotControl, Logger> clusterSnapshotControl;
 
   private final GridShutdownHook shutdownHook;
   private final Grid grid;
 
-  public static GridNodeBootstrap boot(final String nodeName) throws Exception {
+  public static GridNodeBootstrap boot(final String nodeName, final io.vlingo.cluster.model.Properties properties) throws Exception {
     final Grid grid = Grid.start("vlingo-lattice-grid", nodeName);
-    return boot(grid.world(), grid, nodeName, false);
+    final GridNodeBootstrap gridNodeBootstrap = boot(grid.world(), grid, nodeName, properties, false);
+    grid.gridNodeBootstrap(gridNodeBootstrap);
+    return gridNodeBootstrap;
   }
 
   public static GridNodeBootstrap boot(final World world, final Grid grid, final String nodeName, final boolean embedded) throws Exception {
-    final boolean mustBoot = GridNodeBootstrap.instance == null || !Cluster.isRunning();
+    return boot(world, grid, nodeName, io.vlingo.cluster.model.Properties.instance, embedded);
+  }
 
-    if (mustBoot) {
-      Properties.instance.validateRequired(nodeName);
+  public static GridNodeBootstrap boot(final World world, final Grid grid, final String nodeName, final io.vlingo.cluster.model.Properties properties, final boolean embedded) throws Exception {
+    Properties.instance.validateRequired(nodeName);
 
-      final Tuple2<ClusterSnapshotControl, Logger> control =
-              Cluster.controlFor(
-                      world,
-                      new GridNodeInstantiator(grid),
-                      io.vlingo.cluster.model.Properties.instance,
-                      nodeName);
+    final Tuple2<ClusterSnapshotControl, Logger> control =
+            Cluster.controlFor(
+                    world,
+                    new GridNodeInstantiator(grid),
+                    properties,
+                    nodeName);
 
-      GridNodeBootstrap.instance = new GridNodeBootstrap(control, nodeName, grid);
+    final GridNodeBootstrap instance = new GridNodeBootstrap(control, nodeName, grid);
 
-      control._2.info("Successfully started cluster node: '" + nodeName + "'");
+    control._2.info("Successfully started cluster node: '" + nodeName + "'");
 
-      if (!embedded) {
-        control._2.info("==========");
-      }
+    if (!embedded) {
+      control._2.info("==========");
     }
 
-    return GridNodeBootstrap.instance;
+    return instance;
+  }
+
+  public ClusterSnapshotControl clusterSnapshotControl() {
+    return clusterSnapshotControl._1;
   }
 
   public Grid grid() {
     return grid;
   }
 
-  public static boolean exists() {
-    return instance != null;
-  }
-
-  public static GridNodeBootstrap instance() {
-    return instance;
-  }
-
-  public static void reset() {
-    if (GridNodeBootstrap.instance != null) {
-      Cluster.reset();
-      GridNodeBootstrap.instance = null;
-    }
-  }
-
-  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName, Grid grid) throws Exception {
+  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName, final Grid grid) throws Exception {
+    this.clusterSnapshotControl = control;
     this.grid = grid;
 
     this.shutdownHook = new GridShutdownHook(nodeName, control);
