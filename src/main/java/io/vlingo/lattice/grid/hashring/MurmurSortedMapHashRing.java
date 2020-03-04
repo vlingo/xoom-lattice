@@ -81,6 +81,7 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public HashRing<T> copy() {
     final TreeMap<Integer, T> _ring = (TreeMap<Integer, T>)this.ring;
     return new MurmurSortedMapHashRing<>(this.pointsPerNode, this.seed, (TreeMap<Integer, T>)_ring.clone());
