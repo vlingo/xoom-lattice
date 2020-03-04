@@ -7,14 +7,14 @@
 
 package io.vlingo.actors;
 
+import java.util.UUID;
+
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
-
-import java.util.UUID;
 
 public class Grid extends Stage {
 
@@ -26,47 +26,38 @@ public class Grid extends Stage {
 
   private final HashRing<Id> hashRing;
 
+  private GridNodeBootstrap gridNodeBootstrap;
   private OutboundGridActorControl outbound;
   private Id nodeId;
 
   public static Grid start(final String worldName, final String gridNodeName) throws Exception {
-    mustNotExist();
     final World world = World.startWithDefaults(worldName);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
     final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
     return grid;
   }
 
   public static Grid start(final String worldName, final java.util.Properties properties, final String gridNodeName) throws Exception {
-    mustNotExist();
     final World world = World.start(worldName, properties);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
     final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
     return grid;
   }
 
   public static Grid start(final String worldName, final Configuration configuration, final String gridNodeName) throws Exception {
-    mustNotExist();
     final World world = World.start(worldName, configuration);
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
     final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
     return grid;
   }
 
   public static Grid start(final World world, final AddressFactory addressFactory, final String gridNodeName) throws Exception {
-    mustNotExist();
     final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    GridNodeBootstrap.boot(world, grid, gridNodeName, false);
+    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
     return grid;
-  }
-
-  private static void mustNotExist() {
-    if (GridNodeBootstrap.exists()) {
-      throw new IllegalStateException("Grid already exists.");
-    }
   }
 
   public Grid(final World world, final AddressFactory addressFactory, final String gridNodeName) {
@@ -75,11 +66,6 @@ public class Grid extends Stage {
     extenderStartDirectoryScanner();
     world.registerDynamic(INSTANCE_NAME, this);
   }
-
-  public void setOutbound(final OutboundGridActorControl outbound) {
-    this.outbound = outbound;
-  }
-  public void setNodeId(final Id nodeId) { this.nodeId = nodeId; }
 
   @Override
   protected ActorFactory.MailboxWrapper mailboxWrapper() {
@@ -188,5 +174,24 @@ public class Grid extends Stage {
 
   private boolean isAssignedToSelf(Address a, HashRing<Id> R) {
     return nodeId.equals(R.nodeOf(a.idString()));
+  }
+
+  public GridNodeBootstrap gridNodeBootstrap() {
+    return gridNodeBootstrap;
+  }
+
+  public void gridNodeBootstrap(final GridNodeBootstrap gridNodeBootstrap) {
+    if (gridNodeBootstrap == null) {
+      throw new IllegalStateException("Grid already exists.");
+    }
+    this.gridNodeBootstrap = gridNodeBootstrap;
+  }
+
+  public void setOutbound(final OutboundGridActorControl outbound) {
+    this.outbound = outbound;
+  }
+
+  public void setNodeId(final Id nodeId) {
+    this.nodeId = nodeId;
   }
 }
