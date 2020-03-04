@@ -1,5 +1,11 @@
 package io.vlingo.lattice.grid.application.message;
 
+import java.io.Serializable;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
 import io.vlingo.actors.Address;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.LocalMessage;
@@ -7,15 +13,10 @@ import io.vlingo.actors.Returns;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.wire.node.Id;
 
-import java.io.Serializable;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
 public class Deliver<T> implements Serializable, Message {
   private static final long serialVersionUID = 591702431591762704L;
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public static Function<io.vlingo.actors.Message, Deliver<?>> from(BiConsumer<UUID, Returns<?>> correlation) {
     return (message) -> {
       final LocalMessage<?> __message = (LocalMessage<?>) message;
