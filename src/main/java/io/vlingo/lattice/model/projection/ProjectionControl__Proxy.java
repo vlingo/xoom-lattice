@@ -7,7 +7,12 @@
 
 package io.vlingo.lattice.model.projection;
 
-import io.vlingo.actors.*;
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorProxyBase;
+import io.vlingo.actors.DeadLetter;
+import io.vlingo.actors.Definition;
+import io.vlingo.actors.LocalMessage;
+import io.vlingo.actors.Mailbox;
 import io.vlingo.common.SerializableConsumer;
 
 public class ProjectionControl__Proxy extends ActorProxyBase<ProjectionControl> implements io.vlingo.lattice.model.projection.ProjectionControl {
@@ -39,10 +44,5 @@ public class ProjectionControl__Proxy extends ActorProxyBase<ProjectionControl> 
     } else {
       actor.deadLetters().failedDelivery(new DeadLetter(actor, confirmProjectedRepresentation1));
     }
-  }
-
-  @Override
-  public Confirmer confirmerFor(io.vlingo.lattice.model.projection.Projectable projectable) {
-    return () -> this.confirmProjected(projectable.projectionId());
   }
 }
