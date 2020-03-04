@@ -1,17 +1,18 @@
 package io.vlingo.actors;
 
-import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.hashring.HashRing;
-import io.vlingo.wire.node.Id;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.vlingo.common.SerializableConsumer;
+import io.vlingo.lattice.grid.application.GridActorControl;
+import io.vlingo.lattice.grid.hashring.HashRing;
+import io.vlingo.wire.node.Id;
 
 public class GridMailbox implements Mailbox {
 
@@ -98,11 +99,13 @@ public class GridMailbox implements Mailbox {
     }, () -> local.resume(name));
   }
 
+  @SuppressWarnings("serial")
   private static final Set<Class<?>> overrides = new HashSet<Class<?>>() {{
     add(Stoppable.class);
   }};
 
   @Override
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public void send(Message message) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Message) on: " + nodeOf);
@@ -118,6 +121,7 @@ public class GridMailbox implements Mailbox {
   }
 
   @Override
+  @SuppressWarnings({ "unchecked" })
   public void send(Actor actor, Class<?> protocol, SerializableConsumer<?> consumer, Returns<?> returns, String representation) {
     delegateUnlessIsRemote(nodeOf -> {
       log.debug("Remote::send(Actor, ...) on: " + nodeOf);
