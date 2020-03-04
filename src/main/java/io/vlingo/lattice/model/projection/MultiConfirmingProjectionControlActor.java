@@ -66,7 +66,7 @@ public class MultiConfirmingProjectionControlActor extends Actor implements Mult
     if (confirmable.count < total) {
       confirmables.put(projectionId, confirmable.incrementTotal());
     } else {
-      projectionControl.confirmerFor(confirmable.projectable).confirm();
+      ProjectionControl.confirmerFor(confirmable.projectable, projectionControl).confirm();
       confirmables.remove(projectionId);
     }
   }
