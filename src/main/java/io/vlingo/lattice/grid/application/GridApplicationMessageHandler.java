@@ -1,22 +1,29 @@
 package io.vlingo.lattice.grid.application;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.vlingo.actors.Address;
 import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Scheduler;
-import io.vlingo.lattice.grid.application.message.*;
+import io.vlingo.lattice.grid.application.message.Answer;
+import io.vlingo.lattice.grid.application.message.Decoder;
+import io.vlingo.lattice.grid.application.message.Deliver;
+import io.vlingo.lattice.grid.application.message.Message;
+import io.vlingo.lattice.grid.application.message.Relocate;
+import io.vlingo.lattice.grid.application.message.Start;
+import io.vlingo.lattice.grid.application.message.Visitor;
 import io.vlingo.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
 
@@ -52,6 +59,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     this.visitor = new ControlMessageVisitor();
   }
 
+  @Override
   public void handle(RawMessage raw) {
     try {
       Message message = decoder.decode(raw.asBinaryMessage());
@@ -65,6 +73,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
 
   final class ControlMessageVisitor implements Visitor {
     @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public void visit(Id receiver, Id sender, Answer answer) {
       inbound.answer(receiver, sender, answer);
     }
@@ -101,6 +110,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
 
     @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public void visit(Id receiver, Id sender, Relocate relocate) {
       Id recipient = receiver(receiver, relocate.address);
       if (recipient == receiver) {
