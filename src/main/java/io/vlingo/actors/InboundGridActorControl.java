@@ -1,16 +1,16 @@
 package io.vlingo.actors;
 
-import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Message;
-import io.vlingo.wire.node.Id;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+
+import io.vlingo.common.SerializableConsumer;
+import io.vlingo.lattice.grid.application.GridActorControl;
+import io.vlingo.lattice.grid.application.message.Answer;
+import io.vlingo.lattice.grid.application.message.Message;
+import io.vlingo.wire.node.Id;
 
 public class InboundGridActorControl implements GridActorControl.Inbound {
 
@@ -28,6 +28,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
 
 
   @Override
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public <T> void answer(Id receiver, Id sender, Answer<T> answer) {
     logger.debug("GRID: Processing application message: Answer");
     final Returns<Object> clientReturns = (Returns<Object>) correlation.apply(answer.correlationId);
@@ -62,7 +63,6 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Definition.SerializationProxy definition) {
     logger.debug("Processing: Received application message: Start");
     final GridActor<?> actor = (GridActor<?>) grid.actorAt(address);
