@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.vlingo.actors.Grid;
-import io.vlingo.lattice.grid.GridNodeBootstrap;
 
 public class AccessorTest {
   private Grid grid;
@@ -51,8 +50,6 @@ public class AccessorTest {
 
   @Before
   public void setUp() throws Exception {
-    GridNodeBootstrap.reset();
-
     grid = Grid.start("test-world", "test-grid");
   }
 

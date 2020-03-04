@@ -1,6 +1,11 @@
 package io.vlingo.actors;
 
-import io.vlingo.actors.*;
+import java.util.UUID;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+
+import org.junit.Test;
+
 import io.vlingo.actors.plugin.mailbox.testkit.TestMailbox;
 import io.vlingo.lattice.grid.cache.Cache;
 import io.vlingo.lattice.grid.cache.CacheNodePoint;
@@ -9,11 +14,6 @@ import io.vlingo.lattice.grid.hashring.HashedNodePoint;
 import io.vlingo.lattice.grid.hashring.MD5ArrayHashRing;
 import io.vlingo.lattice.grid.hashring.MurmurArrayHashRing;
 import io.vlingo.wire.node.Id;
-import org.junit.Test;
-
-import java.util.UUID;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 public class GridMailboxTest {
 
@@ -21,6 +21,7 @@ public class GridMailboxTest {
   final BiFunction<Integer, Id, HashedNodePoint<Id>> factory =  (hash, node) -> new CacheNodePoint<Id>(cache, hash, node);
 
   @Test
+  @SuppressWarnings("unused")
   public void testMurmurArrayHashRing() {
     HashRing<Id> hashRing = new MurmurArrayHashRing<>(100, factory);
 
@@ -43,6 +44,7 @@ public class GridMailboxTest {
   }
 
   @Test
+  @SuppressWarnings("unused")
   public void testMD5ArrayHashRing() throws Exception {
     HashRing<Id> hashRing = new MD5ArrayHashRing<>(100, factory);
 
