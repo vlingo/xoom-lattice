@@ -157,7 +157,7 @@ public abstract class StateStoreProjectionActor<T> extends Actor
 
     final BiConsumer<T,Integer> upserter = (previousData, previousVersion) -> {
       final T data = merge(previousData, previousVersion, currentData, currentDataVersion);
-      stateStore.write(dataId, data, currentDataVersion, writeInterest, control.confirmerFor(projectable));
+      stateStore.write(dataId, data, currentDataVersion, writeInterest, ProjectionControl.confirmerFor(projectable, control));
     };
 
     stateStore.read(dataId, currentData.getClass(), readInterest, upserter);
