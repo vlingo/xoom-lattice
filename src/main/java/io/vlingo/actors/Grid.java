@@ -16,55 +16,56 @@ import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
 
-public class Grid extends Stage {
+public class Grid extends Stage implements GridRuntime {
 
   private static final String INSTANCE_NAME = UUID.randomUUID().toString();
+
+  private final GridNodeBootstrap gridNodeBootstrap;
+  private final HashRing<Id> hashRing;
+
+  private Id nodeId;
+  private OutboundGridActorControl outbound;
 
   public static Grid instance(World world) {
     return world.resolveDynamic(INSTANCE_NAME, Grid.class);
   }
 
-  private final HashRing<Id> hashRing;
-
-  private GridNodeBootstrap gridNodeBootstrap;
-  private OutboundGridActorControl outbound;
-  private Id nodeId;
-
   public static Grid start(final String worldName, final String gridNodeName) throws Exception {
-    final World world = World.startWithDefaults(worldName);
-    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
-    final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
+    return start(worldName, Configuration.define(), io.vlingo.cluster.model.Properties.open(), gridNodeName);
+  }
+
+  public static Grid start(final World world, final String gridNodeName) throws Exception {
+    return start(world, new GridAddressFactory(IdentityGeneratorType.RANDOM), io.vlingo.cluster.model.Properties.open(), gridNodeName);
+  }
+
+  public static Grid start(final String worldName, final Configuration worldConfiguration, final String gridNodeName) throws Exception {
+    return start(worldName, worldConfiguration, io.vlingo.cluster.model.Properties.open(), gridNodeName);
+  }
+
+  public static Grid start(final String worldName, final Configuration worldConfiguration, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+    return start(worldName, new GridAddressFactory(IdentityGeneratorType.RANDOM), worldConfiguration, clusterProperties, gridNodeName);
+  }
+
+  public static Grid start(final World world, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+    return start(world, new GridAddressFactory(IdentityGeneratorType.RANDOM), clusterProperties, gridNodeName);
+  }
+
+  public static Grid start(final String worldName, final AddressFactory addressFactory, final Configuration worldConfiguration, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+    final World world = World.start(worldName, worldConfiguration);
+    final Grid grid = new Grid(world, addressFactory, clusterProperties, gridNodeName);
     return grid;
   }
 
-  public static Grid start(final String worldName, final java.util.Properties properties, final String gridNodeName) throws Exception {
-    final World world = World.start(worldName, properties);
-    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
-    final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
-    return grid;
+  public static Grid start(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+    return new Grid(world, addressFactory, clusterProperties, gridNodeName);
   }
 
-  public static Grid start(final String worldName, final Configuration configuration, final String gridNodeName) throws Exception {
-    final World world = World.start(worldName, configuration);
-    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
-    final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
-    return grid;
-  }
-
-  public static Grid start(final World world, final AddressFactory addressFactory, final String gridNodeName) throws Exception {
-    final Grid grid = new Grid(world, addressFactory, gridNodeName);
-    grid.gridNodeBootstrap(GridNodeBootstrap.boot(world, grid, gridNodeName, false));
-    return grid;
-  }
-
-  public Grid(final World world, final AddressFactory addressFactory, final String gridNodeName) {
+  public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName);
+    world.registerDynamic(INSTANCE_NAME, this);
+    this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     extenderStartDirectoryScanner();
-    world.registerDynamic(INSTANCE_NAME, this);
   }
 
   @Override
@@ -78,8 +79,19 @@ public class Grid extends Stage {
     world().terminate();
   }
 
-  public HashRing<Id> hashRing() {
-    return hashRing;
+  //====================================
+  // GridRuntime
+  //====================================
+
+  /**
+   * Answers the Actor at the specified Address.
+   *
+   * @param address the Address of the actor
+   * @return the Actor
+   */
+  @Override
+  public Actor actorAt(Address address) {
+    return directory.actorOf(address);
   }
 
   @Override
@@ -100,51 +112,16 @@ public class Grid extends Stage {
   }
 
   @Override
-  protected <T> ActorProtocolActor<T> actorProtocolFor(Class<T> protocol, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
-    final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
-    final Id node = hashRing.nodeOf(address.idString());
-    final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
-      outbound.start(node, nodeId, protocol, address, Definition.SerializationProxy.from(definition));
-    });
-    return super.actorProtocolFor(protocol, definition, parent, address, mailbox, maybeSupervisor, logger);
-  }
-
-  private Mailbox maybeRemoteMailbox(final Address address, final Definition definition, final Mailbox maybeMailbox, final Runnable out) {
-    final Id node = hashRing.nodeOf(address.idString());
-    final Mailbox __mailbox;
-    if (node != null && !node.equals(nodeId)) {
-      out.run();
-      __mailbox = allocateMailbox(definition, address, maybeMailbox);
-      if (!__mailbox.isSuspendedFor(GridActor.Resume)) {
-        __mailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
-      }
-    }
-    else {
-      __mailbox = maybeMailbox;
-    }
-    return __mailbox;
+  public GridNodeBootstrap gridNodeBootstrap() {
+    return gridNodeBootstrap;
   }
 
   @Override
-  protected ActorProtocolActor<Object>[] actorProtocolFor(Class<?>[] protocols, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
-    final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
-    final Id node = hashRing.nodeOf(address.idString());
-    final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
-      outbound.start(node, nodeId, protocols[0], address, Definition.SerializationProxy.from(definition)); // TODO remote start all protocols
-    });
-    return super.actorProtocolFor(protocols, definition, parent, address, mailbox, maybeSupervisor, logger);
+  public HashRing<Id> hashRing() {
+    return hashRing;
   }
 
-  /**
-   * Answers the Actor at the specified Address.
-   *
-   * @param address the Address of the actor
-   * @return the Actor
-   */
-  Actor actorAt(Address address) {
-    return directory.actorOf(address);
-  }
-
+  @Override
   public void nodeJoined(final Id newNode) {
     if (nodeId.equals(newNode)) {
       // self is added to the hash-ring on GridNode#start
@@ -168,30 +145,61 @@ public class Grid extends Stage {
         }));
   }
 
+  @Override
+  public void setOutbound(final OutboundGridActorControl outbound) {
+    this.outbound = outbound;
+  }
+
+  @Override
+  public void setNodeId(final Id nodeId) {
+    this.nodeId = nodeId;
+  }
+
+  //====================================
+  // Internal implementation
+  //====================================
+
+  @Override
+  protected <T> ActorProtocolActor<T> actorProtocolFor(Class<T> protocol, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
+    final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
+    final Id node = hashRing.nodeOf(address.idString());
+    final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
+      outbound.start(node, nodeId, protocol, address, Definition.SerializationProxy.from(definition));
+    });
+    return super.actorProtocolFor(protocol, definition, parent, address, mailbox, maybeSupervisor, logger);
+  }
+
+  @Override
+  protected ActorProtocolActor<Object>[] actorProtocolFor(Class<?>[] protocols, Definition definition, Actor parent, Address maybeAddress, Mailbox maybeMailbox, Supervisor maybeSupervisor, Logger logger) {
+    final Address address = maybeAddress == null ? addressFactory().unique() : maybeAddress;
+    final Id node = hashRing.nodeOf(address.idString());
+    final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
+      outbound.start(node, nodeId, protocols[0], address, Definition.SerializationProxy.from(definition)); // TODO remote start all protocols
+    });
+    return super.actorProtocolFor(protocols, definition, parent, address, mailbox, maybeSupervisor, logger);
+  }
+
+  private Mailbox maybeRemoteMailbox(final Address address, final Definition definition, final Mailbox maybeMailbox, final Runnable out) {
+    final Id node = hashRing.nodeOf(address.idString());
+    final Mailbox __mailbox;
+    if (node != null && !node.equals(nodeId)) {
+      out.run();
+      __mailbox = allocateMailbox(definition, address, maybeMailbox);
+      if (!__mailbox.isSuspendedFor(GridActor.Resume)) {
+        __mailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
+      }
+    }
+    else {
+      __mailbox = maybeMailbox;
+    }
+    return __mailbox;
+  }
+
   private boolean isReassigned(HashRing<Id> current, Address a) {
     return isAssignedToSelf(a, current) && !isAssignedToSelf(a, this.hashRing);
   }
 
   private boolean isAssignedToSelf(Address a, HashRing<Id> R) {
     return nodeId.equals(R.nodeOf(a.idString()));
-  }
-
-  public GridNodeBootstrap gridNodeBootstrap() {
-    return gridNodeBootstrap;
-  }
-
-  public void gridNodeBootstrap(final GridNodeBootstrap gridNodeBootstrap) {
-    if (gridNodeBootstrap == null) {
-      throw new IllegalStateException("Grid already exists.");
-    }
-    this.gridNodeBootstrap = gridNodeBootstrap;
-  }
-
-  public void setOutbound(final OutboundGridActorControl outbound) {
-    this.outbound = outbound;
-  }
-
-  public void setNodeId(final Id nodeId) {
-    this.nodeId = nodeId;
   }
 }
