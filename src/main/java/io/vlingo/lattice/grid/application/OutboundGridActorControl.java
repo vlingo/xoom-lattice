@@ -1,22 +1,36 @@
-package io.vlingo.lattice.grid.application;
+// Copyright © 2012-2020 VLINGO LABS. All rights reserved.
+//
+// This Source Code Form is subject to the terms of the
+// Mozilla Public License, v. 2.0. If a copy of the MPL
+// was not distributed with this file, You can obtain
+// one at https://mozilla.org/MPL/2.0/.
 
-import io.vlingo.actors.Address;
-import io.vlingo.actors.Definition;
-import io.vlingo.actors.Returns;
-import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.message.*;
-import io.vlingo.lattice.grid.application.message.serialization.JavaObjectEncoder;
-import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
-import io.vlingo.wire.message.RawMessage;
-import io.vlingo.wire.node.Id;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package io.vlingo.lattice.grid.application;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.vlingo.actors.Address;
+import io.vlingo.actors.Definition;
+import io.vlingo.actors.Returns;
+import io.vlingo.common.SerializableConsumer;
+import io.vlingo.lattice.grid.application.message.Answer;
+import io.vlingo.lattice.grid.application.message.Deliver;
+import io.vlingo.lattice.grid.application.message.Encoder;
+import io.vlingo.lattice.grid.application.message.Forward;
+import io.vlingo.lattice.grid.application.message.Message;
+import io.vlingo.lattice.grid.application.message.Relocate;
+import io.vlingo.lattice.grid.application.message.Start;
+import io.vlingo.lattice.grid.application.message.serialization.JavaObjectEncoder;
+import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
+import io.vlingo.wire.message.RawMessage;
+import io.vlingo.wire.node.Id;
 
 public class OutboundGridActorControl implements GridActorControl.Outbound {
 
