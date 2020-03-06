@@ -62,10 +62,10 @@ public class Grid extends Stage implements GridRuntime {
 
   public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName);
-    world.registerDynamic(INSTANCE_NAME, this);
-    this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     extenderStartDirectoryScanner();
+    this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
+    world.registerDynamic(INSTANCE_NAME, this);
   }
 
   @Override
