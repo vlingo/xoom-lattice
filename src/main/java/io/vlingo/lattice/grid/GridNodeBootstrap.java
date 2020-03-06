@@ -25,7 +25,7 @@ public class GridNodeBootstrap {
   }
 
   public static GridNodeBootstrap boot(final Grid grid, final String nodeName, final io.vlingo.cluster.model.Properties properties, final boolean embedded) throws Exception {
-    Properties.instance.validateRequired(nodeName);
+    properties.validateRequired(nodeName);
 
     final Tuple2<ClusterSnapshotControl, Logger> control =
             Cluster.controlFor(
