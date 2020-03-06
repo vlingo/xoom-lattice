@@ -1,4 +1,13 @@
+// Copyright © 2012-2020 VLINGO LABS. All rights reserved.
+//
+// This Source Code Form is subject to the terms of the
+// Mozilla Public License, v. 2.0. If a copy of the MPL
+// was not distributed with this file, You can obtain
+// one at https://mozilla.org/MPL/2.0/.
+
 package io.vlingo.lattice.grid.application;
+
+import java.util.List;
 
 import io.vlingo.actors.Address;
 import io.vlingo.actors.Definition;
@@ -7,8 +16,6 @@ import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.wire.node.Id;
-
-import java.util.List;
 
 public interface GridActorControl {
 
