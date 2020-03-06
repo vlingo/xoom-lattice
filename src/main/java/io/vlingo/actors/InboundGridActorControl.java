@@ -55,7 +55,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
     }
     else {
       if (clientReturns.isCompletes()) {
-        clientReturns.asCompletes().failed(); // TODO add support for failing with a specific error
+        clientReturns.asCompletes().failed(new RuntimeException("Remote actor call failed", answer.error));
       } else if (clientReturns.isCompletableFuture()) {
         clientReturns.asCompletableFuture().completeExceptionally(answer.error);
       } else if (clientReturns.isFuture()) {
