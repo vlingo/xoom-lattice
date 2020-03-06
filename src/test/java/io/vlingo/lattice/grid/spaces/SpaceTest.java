@@ -15,8 +15,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import io.vlingo.actors.Configuration;
 import io.vlingo.actors.Grid;
 import io.vlingo.common.Completes;
+import io.vlingo.lattice.grid.ClusterProperties;
 
 public class SpaceTest {
   private static final String DefaultItem = "ThisIsAnItem";
@@ -80,12 +82,12 @@ public class SpaceTest {
 
   @Before
   public void setUp() throws Exception {
-    grid = Grid.start("test-world", "test-grid");
+    grid = Grid.start("test-world", Configuration.define(), ClusterProperties.oneNode(), "node1");
   }
 
   @After
   public void tearDown() {
-    //grid.terminate();
+    grid.terminate();
   }
 
   private void pause(final int seconds) {

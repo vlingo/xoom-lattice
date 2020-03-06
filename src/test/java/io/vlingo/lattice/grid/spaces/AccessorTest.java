@@ -14,7 +14,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import io.vlingo.actors.Configuration;
 import io.vlingo.actors.Grid;
+import io.vlingo.lattice.grid.ClusterProperties;
 
 public class AccessorTest {
   private Grid grid;
@@ -50,11 +52,11 @@ public class AccessorTest {
 
   @Before
   public void setUp() throws Exception {
-    grid = Grid.start("test-world", "test-grid");
+    grid = Grid.start("test-world", Configuration.define(), ClusterProperties.oneNode(), "node1");
   }
 
   @After
   public void tearDown() {
-    //grid.terminate();
+    grid.terminate();
   }
 }
