@@ -12,6 +12,21 @@ package io.vlingo.lattice.model;
  */
 public abstract class IdentifiedDomainEvent extends DomainEvent {
   /**
+   * Construct my default state with a type version of 1.
+   */
+  public IdentifiedDomainEvent() {
+    super();
+  }
+
+  /**
+   * Construct my default state with a {@code eventTypeVersion} greater than 1.
+   * @param eventTypeVersion the int version of this event type
+   */
+  public IdentifiedDomainEvent(final int eventTypeVersion) {
+    super(eventTypeVersion);
+  }
+
+  /**
    * Answer the {@code String} identity of this {@code DomainEvent}.
    * @return String
    */
