@@ -180,7 +180,7 @@ public class JournalProjectionDispatcherTest {
         switch (entry.typed().getSimpleName()) {
         case "OneHappened":
           accessHolder.accessProjection.writeUsing(AccessProjection, 1);
-          ProjectionControl.confirmerFor(projectable, control);
+          ProjectionControl.confirmerFor(projectable, control).confirm();
           logger().debug("ONE");
           break;
         default:
@@ -203,7 +203,7 @@ public class JournalProjectionDispatcherTest {
         switch (entry.typed().getSimpleName()) {
         case "TwoHappened":
           accessHolder.accessProjection.writeUsing(AccessProjection, 1);
-          ProjectionControl.confirmerFor(projectable, control);
+          ProjectionControl.confirmerFor(projectable, control).confirm();
           logger().debug("TWO");
           break;
         default:
@@ -236,7 +236,7 @@ public class JournalProjectionDispatcherTest {
           break;
         }
       });
-      ProjectionControl.confirmerFor(projectable, control);
+      ProjectionControl.confirmerFor(projectable, control).confirm();
     }
   }
 
