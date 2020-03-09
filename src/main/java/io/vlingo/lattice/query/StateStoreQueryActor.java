@@ -56,7 +56,29 @@ public abstract class StateStoreQueryActor extends Actor implements ReadResultIn
    */
   @SuppressWarnings("unchecked")
   protected <T> Completes<ObjectState<T>> queryObjectStateFor(final String id, final Class<T> type) {
-    return (Completes<ObjectState<T>>) queryFor(id, type, QueryResultHandler.ResultType.ObjectState);
+    return (Completes<ObjectState<T>>) queryFor(id, type, QueryResultHandler.ResultType.ObjectState, (T) ObjectState.Null);
+  }
+
+  /**
+   * Answer a {@code Completes<ObjectState<T>>} of the eventual result of querying
+   * for the state of the {@code type} and identified by {@code id}.
+   *
+   * <p>If the state is found, the {@code ObjectState} will contain a valid {@code state}
+   * of the {@code type}, the {@code stateVersion}, and {@code metadata}. The contents of
+   * the {@code metadata} depends on whether or not it as included in the corresponding
+   * {@code write()} operation.
+   *
+   * <p>If the state is not found, the {@code ObjectState} will be {@code notFoundState}.
+   *
+   * @param id the String unique identity of the state to query
+   * @param type the {@code Class<T>} type of the state to query
+   * @param notFoundState the T state to answer if the query doesn't find the desired state
+   * @param <T> the type of the state
+   * @return {@code Completes<ObjectState<T>>}
+   */
+  @SuppressWarnings("unchecked")
+  protected <T> Completes<ObjectState<T>> queryObjectStateFor(final String id, final Class<T> type, final ObjectState<T> notFoundState) {
+    return (Completes<ObjectState<T>>) queryFor(id, type, QueryResultHandler.ResultType.ObjectState, (T) notFoundState);
   }
 
   /**
@@ -73,13 +95,31 @@ public abstract class StateStoreQueryActor extends Actor implements ReadResultIn
    * @return {@code Completes<T>}
    */
   protected <T> Completes<T> queryStateFor(final String id, final Class<T> type) {
-    return queryFor(id, type, QueryResultHandler.ResultType.Unwrapped);
+    return queryFor(id, type, QueryResultHandler.ResultType.Unwrapped, null);
   }
 
-  private <T> Completes<T> queryFor(final String id, final Class<T> type, final QueryResultHandler.ResultType resultType) {
+  /**
+   * Answer a {@code Completes<T>} of the eventual result of querying
+   * for the state of the {@code type} and identified by {@code id}.
+   *
+   * <p>If the state is found, the outcome is the {@code T} instance.
+   *
+   * <p>If the state is not found, the outcome is {@code notFoundState}.
+   *
+   * @param id the String unique identity of the state to query
+   * @param type the {@code Class<T>} type of the state to query
+   * @param notFoundState the T state to answer if the query doesn't find the desired state
+   * @param <T> the type of the state
+   * @return {@code Completes<T>}
+   */
+  protected <T> Completes<T> queryStateFor(final String id, final Class<T> type, final T notFoundState) {
+    return queryFor(id, type, QueryResultHandler.ResultType.Unwrapped, notFoundState);
+  }
+
+  private <T> Completes<T> queryFor(final String id, final Class<T> type, final QueryResultHandler.ResultType resultType, final T notFoundState) {
     final CompletesEventually completes = completesEventually();
     final Consumer<T> answer = (maybeFoundState) -> completes.with(maybeFoundState);
-    stateStore.read(id, type, readInterest, new QueryResultHandler<>(answer, resultType));
+    stateStore.read(id, type, readInterest, new QueryResultHandler<>(answer, resultType, notFoundState));
     return completes();
   }
 
@@ -110,6 +150,7 @@ public abstract class StateStoreQueryActor extends Actor implements ReadResultIn
     private enum ResultType { ObjectState, Unwrapped };
 
     final Consumer<T> consumer;
+    final T notFoundState;
     final ResultType resultType;
 
     @SuppressWarnings("rawtypes")
@@ -117,19 +158,14 @@ public abstract class StateStoreQueryActor extends Actor implements ReadResultIn
       return (QueryResultHandler) handler;
     }
 
-    QueryResultHandler(final Consumer<T> consumer, final ResultType resultType) {
+    QueryResultHandler(final Consumer<T> consumer, final ResultType resultType, final T notFoundState) {
       this.consumer = consumer;
       this.resultType = resultType;
+      this.notFoundState = notFoundState;
     }
 
-    @SuppressWarnings("unchecked")
     void completeNotFound() {
-      switch (resultType) {
-      case ObjectState:
-        consumer.accept((T) ObjectState.Null);
-      case Unwrapped:
-        consumer.accept(null);
-      }
+      consumer.accept(notFoundState);
     }
 
     @SuppressWarnings("unchecked")
