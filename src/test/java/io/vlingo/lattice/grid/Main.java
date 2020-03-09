@@ -14,12 +14,17 @@ import io.vlingo.lattice.grid.example.GreetingActor;
 import io.vlingo.lattice.grid.example.Ponger;
 import io.vlingo.lattice.grid.example.PongerActor;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Main  {
+
+  private static AtomicInteger PORT_SEED = new AtomicInteger(37370);
+
   public static void main(final String[] args) throws Exception {
     if (args.length == 1) {
       String nodeName = args[0];
 
-      Grid grid = Grid.start("main-grid-world", Configuration.define(), ClusterProperties.allNodes(), nodeName);
+      Grid grid = Grid.start("main-grid-world", Configuration.define(), ClusterProperties.allNodes(PORT_SEED), nodeName);
 
       System.out.println("WAITING.....");
       Thread.sleep(30000);

@@ -8,9 +8,13 @@ public class ClusterProperties {
   private static AtomicInteger PORT_TO_USE = new AtomicInteger(10_000 + random.nextInt(50_000));
 
   public static io.vlingo.cluster.model.Properties allNodes() {
+    return allNodes(PORT_TO_USE);
+  }
+
+  public static io.vlingo.cluster.model.Properties allNodes(final AtomicInteger portSeed) {
     java.util.Properties properties = new java.util.Properties();
 
-    properties = common(allOf(properties), 3);
+    properties = common(allOf(properties, portSeed), 3);
 
     final io.vlingo.cluster.model.Properties clusterProperties =
             io.vlingo.cluster.model.Properties.openForTest(properties);
@@ -19,9 +23,13 @@ public class ClusterProperties {
   }
 
   public static io.vlingo.cluster.model.Properties oneNode() {
+    return oneNode(PORT_TO_USE);
+  }
+
+  public static io.vlingo.cluster.model.Properties oneNode(final AtomicInteger portSeed) {
     java.util.Properties properties = new java.util.Properties();
 
-    properties = common(oneOnly(properties), 1);
+    properties = common(oneOnly(properties, portSeed), 1);
 
     final io.vlingo.cluster.model.Properties clusterProperties =
             io.vlingo.cluster.model.Properties.openForTest(properties);
@@ -29,30 +37,30 @@ public class ClusterProperties {
     return clusterProperties;
   }
 
-  private static java.util.Properties oneOnly(final java.util.Properties properties) {
+  private static java.util.Properties oneOnly(final java.util.Properties properties, final AtomicInteger portSeed) {
     properties.setProperty("node.node1.id", "1");
     properties.setProperty("node.node1.name", "node1");
     properties.setProperty("node.node1.host", "localhost");
-    properties.setProperty("node.node1.op.port", nextPortToUseString());
-    properties.setProperty("node.node1.app.port", nextPortToUseString());
+    properties.setProperty("node.node1.op.port", nextPortToUseString(portSeed));
+    properties.setProperty("node.node1.app.port", nextPortToUseString(portSeed));
 
     return properties;
   }
 
-  private static java.util.Properties allOf(final java.util.Properties properties) {
-    oneOnly(properties);
+  private static java.util.Properties allOf(final java.util.Properties properties, final AtomicInteger portSeed) {
+    oneOnly(properties, portSeed);
 
     properties.setProperty("node.node2.id", "2");
     properties.setProperty("node.node2.name", "node2");
     properties.setProperty("node.node2.host", "localhost");
-    properties.setProperty("node.node2.op.port", nextPortToUseString());
-    properties.setProperty("node.node2.app.port", nextPortToUseString());
+    properties.setProperty("node.node2.op.port", nextPortToUseString(portSeed));
+    properties.setProperty("node.node2.app.port", nextPortToUseString(portSeed));
 
     properties.setProperty("node.node3.id", "3");
     properties.setProperty("node.node3.name", "node3");
     properties.setProperty("node.node3.host", "localhost");
-    properties.setProperty("node.node3.op.port", nextPortToUseString());
-    properties.setProperty("node.node3.app.port", nextPortToUseString());
+    properties.setProperty("node.node3.op.port", nextPortToUseString(portSeed));
+    properties.setProperty("node.node3.app.port", nextPortToUseString(portSeed));
 
     return properties;
   }
@@ -86,11 +94,11 @@ public class ClusterProperties {
     return properties;
   }
 
-  private static int nextPortToUse() {
-    return PORT_TO_USE.incrementAndGet();
+  private static int nextPortToUse(final AtomicInteger portSeed) {
+    return portSeed.incrementAndGet();
   }
 
-  private static String nextPortToUseString() {
-    return "" + nextPortToUse();
+  private static String nextPortToUseString(final AtomicInteger portSeed) {
+    return "" + nextPortToUse(portSeed);
   }
 }
