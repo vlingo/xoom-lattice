@@ -5,7 +5,7 @@
         "subject": "vlingo",
         "desc": "Tooling for reactive Domain-Driven Design projects that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, CQRS, and Event Sourcing support.",
         "website_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice",
-        "issue_tracker_url": "https://github.com/vlingo/vlingo-lattice/1.2.7/issues",
+        "issue_tracker_url": "https://github.com/vlingo/vlingo-lattice/1.2.8/issues",
         "vcs_url": "https://github.com/vlingo/vlingo-lattice/vlingo-lattice.git",
         "licenses": ["MPL-2.0"],
         "public_download_numbers": true,
@@ -13,21 +13,21 @@
     },
 
     "version": {
-        "name": "1.2.7",
+        "name": "1.2.8",
         "gpgSign": true
     },
 
     "files": [
         {
             "includePattern": "target/(.*).jar",
-            "uploadPattern": "/io/vlingo/vlingo-lattice/1.2.7/$1.jar",
+            "uploadPattern": "/io/vlingo/vlingo-lattice/1.2.8/$1.jar",
             "matrixParams": {
                 "override": 1
             }
         },
         {
             "includePattern": "pom.xml",
-            "uploadPattern": "/io/vlingo/vlingo-lattice/1.2.7/vlingo-lattice-1.2.7.pom",
+            "uploadPattern": "/io/vlingo/vlingo-lattice/1.2.8/vlingo-lattice-1.2.8.pom",
             "matrixParams": {
                 "override": 1
             }
