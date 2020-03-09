@@ -35,6 +35,7 @@ public class GridApplicationMessageHandlerTest {
   private CountDownLatch answerLatch = new CountDownLatch(1);
   private CountDownLatch forwardLatch = new CountDownLatch(1);
   private CountDownLatch relocateLatch = new CountDownLatch(1);
+  private CountDownLatch recoverLatch = new CountDownLatch(1);
 
   private final GridApplicationMessageHandler handler =
       new GridApplicationMessageHandler(localNodeId, new MurmurSortedMapHashRing<Id>(100), new GridActorControl.Inbound() {
@@ -66,6 +67,11 @@ public class GridApplicationMessageHandlerTest {
         public void relocate(Id receiver, Id sender, Definition.SerializationProxy definition, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
           relocateLatch.countDown();
         }
+
+        @Override
+        public void recover(Id recipient, Id sender, Definition.SerializationProxy definitionProxy, Address address) {
+          recoverLatch.countDown();
+        }
       }, null);
 
 
@@ -94,8 +100,12 @@ public class GridApplicationMessageHandlerTest {
     test(from(new Relocate(address, null, null, Collections.emptyList())), relocateLatch);
   }
 
+  @Test
+  public void testRecover() throws IOException, InterruptedException {
+    test(from(new Recover(address, null)), recoverLatch);
+  }
 
-
+  
   private void test(RawMessage message, CountDownLatch latch) throws InterruptedException {
     handler.handle(message);
     assertTrue("Didn't handle " + message.getClass().getName(), latch.await(1, TimeUnit.MILLISECONDS));

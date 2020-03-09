@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import io.vlingo.lattice.grid.application.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,13 +21,6 @@ import io.vlingo.actors.Address;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Deliver;
-import io.vlingo.lattice.grid.application.message.Encoder;
-import io.vlingo.lattice.grid.application.message.Forward;
-import io.vlingo.lattice.grid.application.message.Message;
-import io.vlingo.lattice.grid.application.message.Relocate;
-import io.vlingo.lattice.grid.application.message.Start;
 import io.vlingo.lattice.grid.application.message.serialization.JavaObjectEncoder;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
@@ -120,5 +114,10 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
         .map(Deliver.from(correlation))
         .collect(Collectors.toList());
     send(receiver, new Relocate(address, definition, snapshot, messages));
+  }
+
+  @Override
+  public void recover(Id recipient, Id sender, Definition.SerializationProxy definitionProxy, Address address) {
+    send(recipient, new Recover(address, definitionProxy));
   }
 }

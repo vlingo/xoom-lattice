@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import io.vlingo.lattice.grid.application.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,13 +21,6 @@ import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Scheduler;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Decoder;
-import io.vlingo.lattice.grid.application.message.Deliver;
-import io.vlingo.lattice.grid.application.message.Message;
-import io.vlingo.lattice.grid.application.message.Relocate;
-import io.vlingo.lattice.grid.application.message.Start;
-import io.vlingo.lattice.grid.application.message.Visitor;
 import io.vlingo.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.message.RawMessage;
@@ -124,7 +118,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
         List<LocalMessage> pending = relocate.pending.stream()
             .map(deliver ->
                 new LocalMessage(null, deliver.protocol, deliver.consumer,
-                  returnsAnswer(receiver, sender, deliver), deliver.representation))
+                    returnsAnswer(receiver, sender, deliver), deliver.representation))
             .collect(Collectors.toCollection(ArrayList::new));
         inbound.relocate(receiver, sender, relocate.definition,
             relocate.address, relocate.snapshot, pending);
@@ -149,6 +143,17 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
         );
       }
       return returns;
+    }
+
+    @Override
+    public void visit(Id receiver, Id sender, Recover recover) {
+      Id recipient = receiver(receiver, recover.address);
+      if (recipient == receiver) {
+        inbound.recover(receiver, sender, recover.definition,
+            recover.address);
+      } else {
+        outbound.forward(recipient, sender, recover);
+      }
     }
   }
 

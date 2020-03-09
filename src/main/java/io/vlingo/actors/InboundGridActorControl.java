@@ -112,4 +112,12 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
     });
     actor.resumeFromRelocation();
   }
+
+  @Override
+  public void recover(Id recipient, Id sender, Definition.SerializationProxy definitionProxy, Address address) {
+    logger.debug("Processing: Received application message: Recover");
+    final Optional<GridActor<?>> maybeActor = Optional.ofNullable((GridActor<?>) grid.actorAt(address));
+    final GridActor<?> actor = maybeActor.orElseGet(() -> (GridActor<?>) grid.actorAt(address));
+    actor.resumeFromRelocation(); // TODO Not enough for lattice models
+  }
 }

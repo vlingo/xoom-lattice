@@ -17,6 +17,7 @@ public interface GridRuntime {
   GridNodeBootstrap gridNodeBootstrap();
   HashRing<Id> hashRing();
   void nodeJoined(final Id newNode);
+  void nodeLeft(final Id removedNode);
   void setNodeId(final Id nodeId);
   void setOutbound(final OutboundGridActorControl outbound);
 }

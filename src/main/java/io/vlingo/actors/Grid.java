@@ -155,6 +155,28 @@ public class Grid extends Stage implements GridRuntime {
   }
 
   @Override
+  public void nodeLeft(final Id removedNode) {
+    if (nodeId.equals(removedNode)) {
+      // we don't want to remove ourselves
+      return;
+    }
+
+    final HashRing<Id> copy = this.hashRing.copy();
+    this.hashRing.excludeNode(removedNode);
+
+    directory.addresses().stream()
+        .filter(address ->
+            address.isDistributable() && isAssignedTo(copy, address, removedNode))
+        .forEach(address -> {
+          final Actor actor = directory.actorOf(address);
+          outbound.recover(this.hashRing.nodeOf(address.idString()),
+              nodeId,
+              Definition.SerializationProxy.from(actor.definition()),
+              address);
+        });
+  }
+
+  @Override
   public void setOutbound(final OutboundGridActorControl outbound) {
     this.outbound = outbound;
   }
