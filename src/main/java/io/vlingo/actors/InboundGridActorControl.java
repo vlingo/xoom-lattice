@@ -76,9 +76,9 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
     if (actor == null) {
       grid.actorFor(protocol, Definition.from(grid, definition, grid.world.defaultLogger()), address);
     }
-    else if (actor.isSuspended()) {
+    else if (actor.isSuspendedForRelocation()) {
       logger.debug("Resuming thunk found at {} with definition='{}'", address, actor.definition());
-      actor.resume();
+      actor.resumeFromRelocation();
     }
   }
 
@@ -112,6 +112,6 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
           message.returns(), message.representation());
       message.deliver();
     });
-    actor.resume();
+    actor.resumeFromRelocation();
   }
 }

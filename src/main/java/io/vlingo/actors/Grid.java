@@ -136,8 +136,8 @@ public class Grid extends Stage implements GridRuntime {
             a.isDistributable() && isReassigned(current, a))
         .forEach((address -> {
           final GridActor<?> actor = ((GridActor<?>) directory.actorOf(address));
-          if (!actor.isSuspended()) {
-            actor.suspend();
+          if (!actor.isSuspendedForRelocation()) {
+            actor.suspendForRelocation();
             outbound.relocate(
                 newNode, nodeId, Definition.SerializationProxy.from(actor.definition()),
                 address, actor.provideRelocationSnapshot(), actor.pending());

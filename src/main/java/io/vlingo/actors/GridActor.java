@@ -22,21 +22,21 @@ public abstract class GridActor<S extends Serializable>
     implements RelocationSnapshotSupplier<S>,
       RelocationSnapshotConsumer<S> {
 
-  public static final String Resume = "GridActor.Resume";
+  static final String Resume = "GridActor.Resume";
 
-  protected final void suspend() {
+  final void suspendForRelocation() {
     lifeCycle.environment.mailbox.suspendExceptFor(Resume, RelocationSnapshotConsumer.class);
   }
 
-  protected final boolean isSuspended() {
+  final boolean isSuspendedForRelocation() {
     return lifeCycle.environment.mailbox.isSuspendedFor(Resume);
   }
 
-  protected final void resume() {
+  final void resumeFromRelocation() {
     lifeCycle.environment.mailbox.resume(Resume);
   }
 
-  public final List<Message> pending() {
+  final List<Message> pending() {
     final Mailbox mailbox = lifeCycle.environment.mailbox;
     return StreamSupport.stream(
         Spliterators.spliterator(new PendingMessageIterator(mailbox), mailbox.pendingMessages(), Spliterator.ORDERED),
