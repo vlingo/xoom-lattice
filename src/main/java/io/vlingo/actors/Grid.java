@@ -128,13 +128,13 @@ public class Grid extends Stage implements GridRuntime {
       return;
     }
 
-    final HashRing<Id> current = this.hashRing.copy();
+    final HashRing<Id> copy = this.hashRing.copy();
     this.hashRing.includeNode(newNode);
 
     directory.addresses().stream()
-        .filter(a ->
-            a.isDistributable() && isReassigned(current, a))
-        .forEach((address -> {
+        .filter(address ->
+            address.isDistributable() && shouldRelocateTo(copy, address, newNode))
+        .forEach(address -> {
           final GridActor<?> actor = ((GridActor<?>) directory.actorOf(address));
           if (!actor.isSuspendedForRelocation()) {
             actor.suspendForRelocation();
@@ -142,7 +142,16 @@ public class Grid extends Stage implements GridRuntime {
                 newNode, nodeId, Definition.SerializationProxy.from(actor.definition()),
                 address, actor.provideRelocationSnapshot(), actor.pending());
           }
-        }));
+        });
+  }
+
+  private boolean shouldRelocateTo(HashRing<Id> previous, Address address, Id newNode) {
+    return isAssignedTo(previous, address, nodeId)
+        && isAssignedTo(this.hashRing, address, newNode);
+  }
+
+  private static boolean isAssignedTo(HashRing<Id> ring, Address a, Id node) {
+    return node.equals(ring.nodeOf(a.idString()));
   }
 
   @Override
@@ -193,13 +202,5 @@ public class Grid extends Stage implements GridRuntime {
       __mailbox = maybeMailbox;
     }
     return __mailbox;
-  }
-
-  private boolean isReassigned(HashRing<Id> current, Address a) {
-    return isAssignedToSelf(a, current) && !isAssignedToSelf(a, this.hashRing);
-  }
-
-  private boolean isAssignedToSelf(Address a, HashRing<Id> R) {
-    return nodeId.equals(R.nodeOf(a.idString()));
   }
 }
