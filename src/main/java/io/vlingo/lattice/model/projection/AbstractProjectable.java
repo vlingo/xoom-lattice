@@ -138,6 +138,11 @@ public abstract class AbstractProjectable implements Projectable {
     return state.typeVersion;
   }
 
+  @Override
+  public String toString() {
+    return "Projectable [projectionId=" + projectionId + ", state=" + state + ", entries=" + entries + ", index=" + index + "]";
+  }
+
   @SuppressWarnings("unchecked")
   protected State<byte[]> binaryState() {
     return (State<byte[]>) this.state;
