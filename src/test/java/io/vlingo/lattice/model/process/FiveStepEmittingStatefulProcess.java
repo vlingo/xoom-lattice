@@ -14,6 +14,7 @@ public class FiveStepEmittingStatefulProcess extends StatefulProcess<StepCountSt
   private StepCountState state;
 
   public FiveStepEmittingStatefulProcess() {
+    super("12345");
     this.state = new StepCountState();
     this.chronicle = new Chronicle<>(state);
   }
@@ -59,7 +60,7 @@ public class FiveStepEmittingStatefulProcess extends StatefulProcess<StepCountSt
 
   @Override
   public String id() {
-    return "12345";
+    return id;
   }
 
   @Override
@@ -70,15 +71,5 @@ public class FiveStepEmittingStatefulProcess extends StatefulProcess<StepCountSt
   @Override
   protected Class<StepCountState> stateType() {
     return StepCountState.class;
-  }
-
-  @Override
-  public String provideRelocationSnapshot() {
-    return String.valueOf(state.stepCount());
-  }
-
-  @Override
-  public void applyRelocationSnapshot(String snapshot) {
-    state(new StepCountState(Integer.parseInt(snapshot)));
   }
 }

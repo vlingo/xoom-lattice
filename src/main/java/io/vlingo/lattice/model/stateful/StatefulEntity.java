@@ -8,7 +8,7 @@
 package io.vlingo.lattice.model.stateful;
 
 import io.vlingo.actors.CompletionSupplier;
-import io.vlingo.actors.GridActor;
+import io.vlingo.actors.StatelessGridActor;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple3;
@@ -30,8 +30,10 @@ import java.util.function.Supplier;
  * for both your Command Model and CQRS Query Model, or for your CQRS Query Model
  * only when your Command Model uses the {@code EventSourced} or {@code EventSourced}.
  */
-public abstract class StatefulEntity<S> extends GridActor<String>
+public abstract class StatefulEntity<S> extends StatelessGridActor
     implements ReadResultInterest, WriteResultInterest {
+
+  protected final String id;
 
   private int currentVersion;
   private final Info<S> info;
@@ -41,7 +43,8 @@ public abstract class StatefulEntity<S> extends GridActor<String>
   /**
    * Construct my default state.
    */
-  protected StatefulEntity() {
+  protected StatefulEntity(final String id) {
+    this.id = id;
     this.currentVersion = 0;
     this.info = info();
     this.readInterest = selfAs(ReadResultInterest.class);
@@ -84,7 +87,7 @@ public abstract class StatefulEntity<S> extends GridActor<String>
    * my concrete extender by overriding.
    * @return String
    */
-  protected abstract String id();
+//  protected abstract String id();
 
   /**
    * Answer a representation of a number of segments as a
@@ -120,7 +123,7 @@ public abstract class StatefulEntity<S> extends GridActor<String>
   protected <C,RT> Completes<RT> apply(final S state, final List<Source<C>> sources, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     stowMessages(WriteResultInterest.class);
-    info.store.write(id(), state, nextVersion(), sources, metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    info.store.write(id, state, nextVersion(), sources, metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -139,7 +142,7 @@ public abstract class StatefulEntity<S> extends GridActor<String>
   protected <RT> Completes<RT> apply(final S state, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
     stowMessages(WriteResultInterest.class);
-    info.store.write(id(), state, nextVersion(), metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    info.store.write(id, state, nextVersion(), metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -415,11 +418,12 @@ public abstract class StatefulEntity<S> extends GridActor<String>
    */
   private void restore(final boolean ignoreNotFound) {
     stowMessages(ReadResultInterest.class);
-    info.store.read(id(), info.storeType, readInterest, ignoreNotFound);
+    info.store.read(id, info.storeType, readInterest, ignoreNotFound);
   }
 
   @Override
-  public String provideRelocationSnapshot() {
-    return id();
+  protected final void resumeFromRelocation() {
+    restore();
+    super.resumeFromRelocation();
   }
 }

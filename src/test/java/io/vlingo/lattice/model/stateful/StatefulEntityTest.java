@@ -173,7 +173,7 @@ public class StatefulEntityTest {
     }
   }
 
-  public static interface Entity1 {
+  public interface Entity1 {
     Completes<Entity1State> current();
     void changeName(final String name);
     void increaseAge();
@@ -229,11 +229,8 @@ public class StatefulEntityTest {
     private Entity1State state;
 
     public Entity1Actor(final Entity1State state) {
+      super(state.id);
       this.state = state;
-    }
-
-    public Entity1Actor() {
-      this.state = null;
     }
 
     @Override
@@ -269,11 +266,6 @@ public class StatefulEntityTest {
     //===================================
 
     @Override
-    protected String id() {
-      return state.id;
-    }
-
-    @Override
     protected void state(final Entity1State state) {
       this.state = state;
     }
@@ -282,17 +274,13 @@ public class StatefulEntityTest {
     protected Class<Entity1State> stateType() {
       return Entity1State.class;
     }
-
-    @Override
-    public void applyRelocationSnapshot(String snapshot) {
-      state(new Entity1State(state.id));
-    }
   }
 
   public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State> implements Entity1 {
     private Entity1State state;
 
     public Entity1MetadataCallbackActor(final Entity1State state) {
+      super(state.id);
       this.state = state;
     }
 
@@ -329,11 +317,6 @@ public class StatefulEntityTest {
     //===================================
 
     @Override
-    protected String id() {
-      return state.id;
-    }
-
-    @Override
     protected void state(final Entity1State state) {
       this.state = state;
     }
@@ -341,11 +324,6 @@ public class StatefulEntityTest {
     @Override
     protected Class<Entity1State> stateType() {
       return Entity1State.class;
-    }
-
-    @Override
-    public void applyRelocationSnapshot(String snapshot) {
-      state(new Entity1State(state.id));
     }
   }
 }
