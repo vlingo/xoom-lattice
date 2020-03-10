@@ -8,7 +8,7 @@
 package io.vlingo.lattice.model.sourcing;
 
 import io.vlingo.actors.CompletionSupplier;
-import io.vlingo.actors.GridActor;
+import io.vlingo.actors.StatelessGridActor;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
@@ -40,14 +40,10 @@ import java.util.regex.Pattern;
  * transition control for my concrete extender.
  * @param <T> the concrete type that is being sourced
  */
-public abstract class Sourced<T> extends GridActor<String> implements AppendResultInterest {
+public abstract class Sourced<T> extends StatelessGridActor implements AppendResultInterest {
+
   private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();
-
-  private TestContext testContext;
-  private int currentVersion;
-  private SourcedTypeRegistry.Info<?> journalInfo;
-  private AppendResultInterest interest;
 
   /**
    * Register the means to apply {@code sourceType} instances for state transition
@@ -74,6 +70,27 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
 
     sourcedTypeMap.put((Class<Source<?>>) sourceType, (BiConsumer<Sourced<?>, Source<?>>) consumer);
   }
+
+
+  protected final String streamName;
+
+  private TestContext testContext;
+  private int currentVersion;
+  private SourcedTypeRegistry.Info<?> journalInfo;
+  private AppendResultInterest interest;
+
+
+  /**
+   * Construct my default state.
+   * @param streamName
+   */
+  protected Sourced(String streamName) {
+    this.streamName = streamName;
+    this.currentVersion = 0;
+    this.journalInfo = info();
+    this.interest = selfAs(AppendResultInterest.class);
+  }
+
   /*
    * @see io.vlingo.actors.Actor#start()
    */
@@ -83,6 +100,7 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
 
     restore();
   }
+
 
   /*
    * @see io.vlingo.actors.Actor#viewTestStateInitialization(io.vlingo.actors.testkit.TestContext)
@@ -103,15 +121,6 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
     final TestState testState = new TestState();
     testState.putValue("applied", testContext.referenceValue());
     return testState;
-  }
-
-  /**
-   * Construct my default state.
-   */
-  protected Sourced() {
-    this.currentVersion = 0;
-    this.journalInfo = info();
-    this.interest = selfAs(AppendResultInterest.class);
   }
 
   /**
@@ -150,7 +159,7 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
     beforeApply(sources);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), sources, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(this.streamName, nextVersion(), sources, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -191,7 +200,7 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
     beforeApply(toApply);
     final Journal<?> journal = journalInfo.journal();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(streamName(), nextVersion(), toApply, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
+    journal.appendAllWith(this.streamName, nextVersion(), toApply, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
     return andThen == null ? null : completes();
   }
 
@@ -288,12 +297,6 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
   }
 
   /**
-   * Answer my stream name. Must override.
-   * @return String
-   */
-  protected abstract String streamName();
-
-  /**
    * Answer a representation of a number of segments as a
    * composite stream name. The implementor of {@code streamName()}
    * would use this method if the its stream name is built from segments.
@@ -359,7 +362,7 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
       })
       .otherwise(cause -> {
         final Applicable<?> applicable = new Applicable<>(null, Arrays.asList(source), metadata, (CompletionSupplier<?>) supplier);
-        final String message = "Source (count 1) not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+        final String message = "Source (count 1) not appended for: " + type() + "(" + this.streamName + ") because: " + cause.result + " with: " + cause.getMessage();
         final ApplyFailedException exception = new ApplyFailedException(applicable, message, cause);
         final Optional<ApplyFailedException> maybeException = afterApplyFailed(exception);
         disperseStowedMessages();
@@ -394,7 +397,7 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
       })
       .otherwise(cause -> {
         final Applicable<?> applicable = new Applicable(null, sources, metadata, (CompletionSupplier<?>) supplier);
-        final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + streamName() + ") because: " + cause.result + " with: " + cause.getMessage();
+        final String message = "Source (count " + sources.size() + ") not appended for: " + type() + "(" + this.streamName + ") because: " + cause.result + " with: " + cause.getMessage();
         final ApplyFailedException exception = new ApplyFailedException(applicable, message, cause);
         final Optional<ApplyFailedException> maybeException = afterApplyFailed(exception);
         disperseStowedMessages();
@@ -475,7 +478,7 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
     stowMessages(Stoppable.class);
 
     journalInfo.journal.streamReader(getClass().getSimpleName())
-      .andThenTo(reader -> reader.streamFor(streamName()))
+      .andThenTo(reader -> reader.streamFor(this.streamName))
       .andThenConsume(stream -> {
         restoreSnapshot(stream.snapshot);
         restoreFrom(journalInfo.entryAdapterProvider.asSources(stream.entries), stream.streamVersion);
@@ -486,7 +489,7 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
       })
       .recoverFrom(cause -> {
         disperseStowedMessages();
-        final String message = "Stream not recovered for: " + type() + "(" + streamName() + ") because: " + cause.getMessage();
+        final String message = "Stream not recovered for: " + type() + "(" + this.streamName + ") because: " + cause.getMessage();
         throw new StorageException(Result.Failure, message, cause);
       });
   }
@@ -540,10 +543,5 @@ public abstract class Sourced<T> extends GridActor<String> implements AppendResu
   @SuppressWarnings("unused")
   private List<Source<T>> wrap(final Source<T>[] sources) {
     return Arrays.asList(sources);
-  }
-
-  @Override
-  public String provideRelocationSnapshot() {
-    return streamName();
   }
 }

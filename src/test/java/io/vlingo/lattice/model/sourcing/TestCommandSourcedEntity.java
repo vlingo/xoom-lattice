@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import io.vlingo.common.Completes;
 
 public class TestCommandSourcedEntity extends CommandSourced implements Entity {
+
   static {
     final BiConsumer<TestCommandSourcedEntity,DoCommand1> bi1 = TestCommandSourcedEntity::applied1;
     registerConsumer(TestCommandSourcedEntity.class, DoCommand1.class, bi1);
@@ -22,6 +23,7 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   private final Result result;
 
   public TestCommandSourcedEntity(final Result result) {
+    super("TestCommand123");
     this.result = result;
   }
 
@@ -39,14 +41,6 @@ public class TestCommandSourcedEntity extends CommandSourced implements Entity {
   public Completes<String> doTest3() {
     return apply(new DoCommand3(), () -> "hello");
   }
-
-  @Override
-  protected String streamName() {
-    return "TestCommand123";
-  }
-
-  @Override
-  public void applyRelocationSnapshot(String snapshot) { }
 
   private void applied1(final DoCommand1 command) {
     result.access().writeUsing("tested1", true);
