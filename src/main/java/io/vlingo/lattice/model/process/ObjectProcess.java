@@ -28,6 +28,15 @@ public abstract class ObjectProcess<T extends StateObject> extends ObjectEntity<
   private List<Source<?>> applied;
 
   /**
+   * Construct my default state.
+   */
+  protected ObjectProcess(final String id) {
+    super(id);
+    this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
+    this.applied = new ArrayList<>(2);
+  }
+
+  /**
    * @see io.vlingo.lattice.model.process.Process#process(io.vlingo.lattice.model.Command)
    */
   @Override
@@ -95,14 +104,6 @@ public abstract class ObjectProcess<T extends StateObject> extends ObjectEntity<
   @Override
   public void send(final DomainEvent event) {
     info.exchange.send(event);
-  }
-
-  /**
-   * Construct my default state.
-   */
-  protected ObjectProcess() {
-    this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
-    this.applied = new ArrayList<>(2);
   }
 
   /**

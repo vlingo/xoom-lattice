@@ -8,7 +8,7 @@
 package io.vlingo.lattice.model.object;
 
 import io.vlingo.actors.CompletionSupplier;
-import io.vlingo.actors.GridActor;
+import io.vlingo.actors.StatelessGridActor;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
@@ -34,9 +34,10 @@ import java.util.function.Supplier;
  * whether formally or informally implemented.
  * @param <T> the type of persistent object
  */
-public abstract class ObjectEntity<T extends StateObject> extends GridActor<String>
+public abstract class ObjectEntity<T extends StateObject> extends StatelessGridActor
   implements PersistResultInterest, QueryResultInterest {
 
+  protected final String id;
   private final Info<T> info;
   private final PersistResultInterest persistResultInterest;
   private final QueryResultInterest queryResultInterest;
@@ -45,7 +46,8 @@ public abstract class ObjectEntity<T extends StateObject> extends GridActor<Stri
   /**
    * Construct my default state.
    */
-  protected ObjectEntity() {
+  protected ObjectEntity(final String id) {
+    this.id = id;
     this.info = info();
     this.persistResultInterest = selfAs(PersistResultInterest.class);
     this.queryResultInterest = selfAs(QueryResultInterest.class);
@@ -191,13 +193,6 @@ public abstract class ObjectEntity<T extends StateObject> extends GridActor<Stri
   }
 
   /**
-   * Answer my unique identity, which much be provided by
-   * my concrete extender by overriding.
-   * @return String
-   */
-  protected abstract String id();
-
-  /**
    * Answer a representation of a number of segments as a
    * composite id. The implementor of {@code id()} would use
    * this method if the its id is built from segments.
@@ -293,7 +288,7 @@ public abstract class ObjectEntity<T extends StateObject> extends GridActor<Stri
         disperseStowedMessages();
         final boolean ignoreNotFound = (boolean) object;
         if (!ignoreNotFound) {
-          final String message = "State not restored for: " + getClass() + "(" + id() + ") because: " + cause.result + " with: " + cause.getMessage();
+          final String message = "State not restored for: " + getClass() + "(" + this.id + ") because: " + cause.result + " with: " + cause.getMessage();
           logger().error(message, cause);
           throw new IllegalStateException(message, cause);
         }
@@ -315,7 +310,7 @@ public abstract class ObjectEntity<T extends StateObject> extends GridActor<Stri
     })
     .otherwise(cause -> {
       disperseStowedMessages();
-      final String message = "State not preserved for: " + getClass() + "(" + id() + ") because: " + cause.result + " with: " + cause.getMessage();
+      final String message = "State not preserved for: " + getClass() + "(" + this.id + ") because: " + cause.result + " with: " + cause.getMessage();
       logger().error(message, cause);
       throw new IllegalStateException(message, cause);
     });
@@ -373,10 +368,5 @@ public abstract class ObjectEntity<T extends StateObject> extends GridActor<Stri
   private void restore(final boolean ignoreNotFound) {
     stowMessages(QueryResultInterest.class);
     info.store.queryObject(queryExpression(), queryResultInterest, ignoreNotFound);
-  }
-
-  @Override
-  public String provideRelocationSnapshot() {
-    return id();
   }
 }

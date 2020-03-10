@@ -8,15 +8,18 @@
 package io.vlingo.lattice.model.object;
 
 import io.vlingo.common.Completes;
+import io.vlingo.symbio.store.object.StateObject;
 
 public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Employee {
   private EmployeeState employee;
 
   public EmployeeEntity() {
+    super(String.valueOf(StateObject.unidentified()));
     this.employee = new EmployeeState(); // unidentified
   }
 
   public EmployeeEntity(final long id) {
+    super(String.valueOf(id));
     this.employee = new EmployeeState(id, "", 0); // recover
   }
 
@@ -41,11 +44,6 @@ public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Emplo
   }
 
   @Override
-  protected String id() {
-    return String.valueOf(employee.persistenceId());
-  }
-
-  @Override
   protected EmployeeState stateObject() {
     return employee;
   }
@@ -58,10 +56,5 @@ public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Emplo
   @Override
   protected Class<EmployeeState> stateObjectType() {
     return EmployeeState.class;
-  }
-
-  @Override
-  public void applyRelocationSnapshot(String snapshot) {
-    stateObject(EmployeeState.of(snapshot));
   }
 }

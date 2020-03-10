@@ -9,12 +9,22 @@ package io.vlingo.lattice.model.process;
 
 import io.vlingo.common.Completes;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class FiveStepEmittingObjectProcess extends ObjectProcess<StepCountObjectState> implements FiveStepProcess {
+
+  private static final AtomicLong IdGenerator = new AtomicLong(0);
+
   private final Chronicle<StepCountObjectState> chronicle;
   private StepCountObjectState state;
 
   public FiveStepEmittingObjectProcess() {
-    this.state = new StepCountObjectState();
+    this(IdGenerator.incrementAndGet());
+  }
+
+  public FiveStepEmittingObjectProcess(final long id) {
+    super(String.valueOf(id));
+    this.state = new StepCountObjectState(id);
     this.chronicle = new Chronicle<>(state);
   }
 
@@ -59,7 +69,7 @@ public class FiveStepEmittingObjectProcess extends ObjectProcess<StepCountObject
 
   @Override
   public String id() {
-    return String.valueOf(state.persistenceId());
+    return id;
   }
 
   @Override
@@ -76,10 +86,5 @@ public class FiveStepEmittingObjectProcess extends ObjectProcess<StepCountObject
   @Override
   protected Class<StepCountObjectState> stateObjectType() {
     return StepCountObjectState.class;
-  }
-
-  @Override
-  public void applyRelocationSnapshot(String snapshot) {
-    stateObject(new StepCountObjectState(snapshot));
   }
 }
