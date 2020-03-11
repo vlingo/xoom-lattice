@@ -8,10 +8,10 @@
 package io.vlingo.lattice.model.stateful;
 
 import io.vlingo.actors.CompletionSupplier;
-import io.vlingo.actors.StatelessGridActor;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple3;
+import io.vlingo.lattice.model.EntityGridActor;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  * for both your Command Model and CQRS Query Model, or for your CQRS Query Model
  * only when your Command Model uses the {@code EventSourced} or {@code EventSourced}.
  */
-public abstract class StatefulEntity<S> extends StatelessGridActor
+public abstract class StatefulEntity<S> extends EntityGridActor
     implements ReadResultInterest, WriteResultInterest {
 
   protected final String id;
@@ -308,7 +308,8 @@ public abstract class StatefulEntity<S> extends StatelessGridActor
   /**
    * Restore my current state, dispatching to {@code state(final S state)} when completed.
    */
-  protected void restore() {
+  @Override
+  protected final void restore() {
     restore(false);
   }
 
@@ -419,11 +420,5 @@ public abstract class StatefulEntity<S> extends StatelessGridActor
   private void restore(final boolean ignoreNotFound) {
     stowMessages(ReadResultInterest.class);
     info.store.read(id, info.storeType, readInterest, ignoreNotFound);
-  }
-
-  @Override
-  protected final void resumeFromRelocation() {
-    restore();
-    super.resumeFromRelocation();
   }
 }

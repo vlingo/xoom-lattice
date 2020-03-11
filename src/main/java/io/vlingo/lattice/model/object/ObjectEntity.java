@@ -8,10 +8,10 @@
 package io.vlingo.lattice.model.object;
 
 import io.vlingo.actors.CompletionSupplier;
-import io.vlingo.actors.StatelessGridActor;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
+import io.vlingo.lattice.model.EntityGridActor;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
@@ -34,11 +34,11 @@ import java.util.function.Supplier;
  * whether formally or informally implemented.
  * @param <T> the type of persistent object
  */
-public abstract class ObjectEntity<T extends StateObject> extends StatelessGridActor
+public abstract class ObjectEntity<T extends StateObject> extends EntityGridActor
   implements PersistResultInterest, QueryResultInterest {
 
   protected final String id;
-  
+
   private final Info<T> info;
   private final PersistResultInterest persistResultInterest;
   private final QueryResultInterest queryResultInterest;
@@ -242,7 +242,8 @@ public abstract class ObjectEntity<T extends StateObject> extends StatelessGridA
   /**
    * Restore my current state, dispatching to {@code state(final S state)} when completed.
    */
-  protected void restore() {
+  @Override
+  protected final void restore() {
     restore(false);
   }
 

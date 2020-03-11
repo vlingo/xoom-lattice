@@ -8,7 +8,6 @@
 package io.vlingo.lattice.model.sourcing;
 
 import io.vlingo.actors.CompletionSupplier;
-import io.vlingo.actors.StatelessGridActor;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
 import io.vlingo.actors.testkit.TestState;
@@ -16,6 +15,7 @@ import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.ApplyFailedException;
 import io.vlingo.lattice.model.ApplyFailedException.Applicable;
+import io.vlingo.lattice.model.EntityGridActor;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * transition control for my concrete extender.
  * @param <T> the concrete type that is being sourced
  */
-public abstract class Sourced<T> extends StatelessGridActor implements AppendResultInterest {
+public abstract class Sourced<T> extends EntityGridActor implements AppendResultInterest {
 
   private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();
@@ -474,7 +474,8 @@ public abstract class Sourced<T> extends StatelessGridActor implements AppendRes
    * Restore the state of my concrete extender from a possibly snaptshot
    * and stream of events.
    */
-  private void restore() {
+  @Override
+  protected final void restore() {
     stowMessages(Stoppable.class);
 
     journalInfo.journal.streamReader(getClass().getSimpleName())
