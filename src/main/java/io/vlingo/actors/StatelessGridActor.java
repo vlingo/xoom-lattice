@@ -13,10 +13,10 @@ public abstract class StatelessGridActor
     extends GridActor<StatelessGridActor.Null> {
 
   @Override
-  public void applyRelocationSnapshot(Null snapshot) { }
+  public final void applyRelocationSnapshot(Null snapshot) { }
 
   @Override
-  public Null provideRelocationSnapshot() { return null; }
+  public final Null provideRelocationSnapshot() { return null; }
 
   public interface Null extends Serializable { }
 }

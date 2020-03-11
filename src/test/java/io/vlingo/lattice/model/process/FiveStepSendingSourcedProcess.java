@@ -12,7 +12,9 @@ import io.vlingo.common.Completes;
 public class FiveStepSendingSourcedProcess extends SourcedProcess<Object> implements FiveStepProcess {
   private int stepCount;
 
-  public FiveStepSendingSourcedProcess() { }
+  public FiveStepSendingSourcedProcess() {
+    super("12345");
+  }
 
   @Override
   public Completes<Integer> queryStepCount() {
@@ -50,21 +52,6 @@ public class FiveStepSendingSourcedProcess extends SourcedProcess<Object> implem
 
   @Override
   public String id() {
-    return "12345";
-  }
-
-  @Override
-  protected String streamName() {
-    return id();
-  }
-
-  @Override
-  public String provideRelocationSnapshot() {
-    return String.valueOf(stepCount);
-  }
-
-  @Override
-  public void applyRelocationSnapshot(String snapshot) {
-    stepCount = Integer.parseInt(snapshot);
+    return streamName;
   }
 }

@@ -24,6 +24,7 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
   private final Result result;
 
   public TestEventSourcedEntity(final Result result) {
+    super("TestEvent123");
     this.result = result;
   }
 
@@ -41,14 +42,6 @@ public class TestEventSourcedEntity extends EventSourced implements Entity {
   public Completes<String> doTest3() {
     return apply(new Test3Happened(), () -> "hello");
   }
-
-  @Override
-  protected String streamName() {
-    return "TestEvent123";
-  }
-
-  @Override
-  public void applyRelocationSnapshot(String snapshot) { }
 
   private void applied1(final Test1Happened event) {
     result.access().writeUsing("tested1", true);

@@ -96,7 +96,8 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
     info.exchange.send(event);
   }
 
-  protected StatefulProcess() {
+  protected StatefulProcess(final String id) {
+    super(id);
     this.info = stage().world().resolveDynamic(ProcessTypeRegistry.INTERNAL_NAME, ProcessTypeRegistry.class).info(getClass());
     this.applied = new ArrayList<>(2);
   }

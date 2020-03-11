@@ -32,7 +32,7 @@ public abstract class GridActor<S extends Serializable>
     return lifeCycle.environment.mailbox.isSuspendedFor(Resume);
   }
 
-  final void resumeFromRelocation() {
+  protected void resumeFromRelocation() {
     lifeCycle.environment.mailbox.resume(Resume);
   }
 

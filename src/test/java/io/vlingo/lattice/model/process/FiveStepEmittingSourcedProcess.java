@@ -16,7 +16,9 @@ public class FiveStepEmittingSourcedProcess extends SourcedProcess<Object> imple
 
   private int stepCount;
 
-  public FiveStepEmittingSourcedProcess() { }
+  public FiveStepEmittingSourcedProcess() {
+    super("12345");
+  }
 
   @Override
   public Completes<Integer> queryStepCount() {
@@ -50,22 +52,7 @@ public class FiveStepEmittingSourcedProcess extends SourcedProcess<Object> imple
 
   @Override
   public String id() {
-    return "12345";
-  }
-
-  @Override
-  protected String streamName() {
-    return id();
-  }
-
-  @Override
-  public String provideRelocationSnapshot() {
-    return String.valueOf(stepCount);
-  }
-
-  @Override
-  public void applyRelocationSnapshot(String snapshot) {
-    stepCount = Integer.parseInt(snapshot);
+    return streamName;
   }
 
   private void applyProcessMessage(final ProcessMessage message) {

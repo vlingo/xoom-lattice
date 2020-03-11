@@ -13,18 +13,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class StepCountObjectState extends StateObject implements Comparable<StepCountObjectState> {
   private static final long serialVersionUID = 1L;
-  private static final AtomicLong identityGenerator = new AtomicLong(0);
 
   private int stepCount;
 
-  public StepCountObjectState(final String id) {
-    super(Long.parseLong(id));
-    this.stepCount = 0;
-  }
-
-  public StepCountObjectState() {
-    super(identityGenerator.incrementAndGet());
-
+  public StepCountObjectState(final long id) {
+    super(id);
     this.stepCount = 0;
   }
 

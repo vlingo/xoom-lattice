@@ -27,24 +27,21 @@ public class EmployeeEntityTest {
 
   @Test
   public void testThatEmployeeIdentifiesModifiesRecovers() {
-    final Employee employee = world.actorFor(Employee.class, EmployeeEntity.class);
+    final String employeeNumber = "12345";
 
-    final EmployeeState state1 = employee.hire("12345", 50000).await();
+    final Employee employee = world.actorFor(Employee.class, EmployeeEntity.class, () -> new EmployeeEntity(employeeNumber));
+
+    final EmployeeState state1 = employee.hire(50000).await();
     assertTrue(state1.persistenceId() > 0);
-    assertEquals("12345", state1.number);
+    assertEquals(employeeNumber, state1.number);
     assertEquals(50000, state1.salary);
-
-    final EmployeeState state2 = employee.assign("67890").await();
-    assertEquals(state1.persistenceId(), state2.persistenceId());
-    assertEquals("67890", state2.number);
-    assertEquals(50000, state2.salary);
 
     final EmployeeState state3 = employee.adjust(55000).await();
     assertEquals(state1.persistenceId(), state3.persistenceId());
-    assertEquals("67890", state3.number);
+    assertEquals(employeeNumber, state3.number);
     assertEquals(55000, state3.salary);
 
-    final Employee employeeRecovered = world.actorFor(Employee.class, EmployeeEntity.class, state1.persistenceId());
+    final Employee employeeRecovered = world.actorFor(Employee.class, EmployeeEntity.class, employeeNumber);
     final EmployeeState state4 = employeeRecovered.current().await();
     assertEquals(state3, state4);
 
@@ -66,7 +63,7 @@ public class EmployeeEntityTest {
             objectStore,
             EmployeeState.class,
             "HR-Database",
-            MapQueryExpression.using(Employee.class, "find", MapQueryExpression.map("id", "id")),
+            MapQueryExpression.using(Employee.class, "find", MapQueryExpression.map("number", "number")),
             StateObjectMapper.with(Employee.class, new Object(), new Object()));
 
     registry.register(employeeInfo);

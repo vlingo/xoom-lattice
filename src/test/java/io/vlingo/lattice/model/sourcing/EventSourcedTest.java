@@ -194,6 +194,10 @@ public class EventSourcedTest {
   public static abstract class ProductGrandparent extends EventSourced implements Product {
     private String type;
 
+    public ProductGrandparent(String streamName) {
+      super(streamName);
+    }
+
     @Override
     public void declareType(final String type) {
       apply(new ProductTyped(type));
@@ -215,6 +219,10 @@ public class EventSourcedTest {
 
   public static abstract class ProductParent extends ProductGrandparent {
     private String category;
+
+    public ProductParent(String streamName) {
+      super(streamName);
+    }
 
     @Override
     public void categorize(final String category) {
@@ -240,7 +248,9 @@ public class EventSourcedTest {
     public String description;
     public long price;
 
-    public ProductEntity() { }
+    public ProductEntity() {
+      super(null);
+    }
 
     @Override
     public void define(String type, String category, String name, String description, long price) {
@@ -287,24 +297,6 @@ public class EventSourcedTest {
 
     public void whenProductPriceChanged(final ProductPriceChanged event) {
       this.price = event.price;
-    }
-
-    @Override
-    protected String streamName() {
-      return null;
-    }
-
-    @Override
-    public String provideRelocationSnapshot() {
-      return streamNameFrom(":", name, description, String.valueOf(price));
-    }
-
-    @Override
-    public void applyRelocationSnapshot(String snapshot) {
-      String[] nameDescriptionAndPrice = streamNameSegmentsFrom(":", snapshot);
-      this.name = nameDescriptionAndPrice[0];
-      this.description = nameDescriptionAndPrice[1];
-      this.price = Long.parseLong(nameDescriptionAndPrice[2]);
     }
 
     static {
