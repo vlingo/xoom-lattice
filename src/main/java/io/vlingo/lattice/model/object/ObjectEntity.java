@@ -37,7 +37,8 @@ import java.util.function.Supplier;
 public abstract class ObjectEntity<T extends StateObject> extends StatelessGridActor
   implements PersistResultInterest, QueryResultInterest {
 
-  protected String id;
+  protected final String id;
+  
   private final Info<T> info;
   private final PersistResultInterest persistResultInterest;
   private final QueryResultInterest queryResultInterest;
@@ -280,9 +281,7 @@ public abstract class ObjectEntity<T extends StateObject> extends StatelessGridA
           final Object object) {
     outcome
       .andThen(result -> {
-        final T stateObject = (T) queryResult.stateObject;
-        this.id = String.valueOf(stateObject.persistenceId());
-        stateObject(stateObject);
+        stateObject((T) queryResult.stateObject);
         disperseStowedMessages();
         return result;
       })

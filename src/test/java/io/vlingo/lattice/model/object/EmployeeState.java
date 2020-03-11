@@ -7,36 +7,18 @@
 
 package io.vlingo.lattice.model.object;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import io.vlingo.symbio.store.object.StateObject;
 
 public class EmployeeState extends StateObject implements Comparable<EmployeeState> {
   private static final long serialVersionUID = 1L;
 
-  private static final AtomicLong identityGenerator = new AtomicLong(0);
-
-  public static EmployeeState of(String id) {
-    return new EmployeeState(Long.parseLong(id), "", 0);
-  }
-
   public final int salary;
   public final String number;
-
-  public EmployeeState(final String number, final int salary) {
-    this(identityGenerator.incrementAndGet(), number, salary);
-  }
 
   public EmployeeState(final long id, final String number, final int salary) {
     super(id);
     this.number = number;
     this.salary = salary;
-  }
-
-  EmployeeState() {
-    super(identityGenerator.incrementAndGet());
-    this.number = "";
-    this.salary = 0;
   }
 
   public EmployeeState with(final String number) {

@@ -8,19 +8,13 @@
 package io.vlingo.lattice.model.object;
 
 import io.vlingo.common.Completes;
-import io.vlingo.symbio.store.object.StateObject;
 
 public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Employee {
   private EmployeeState employee;
 
-  public EmployeeEntity() {
-    super(String.valueOf(StateObject.unidentified()));
-    this.employee = new EmployeeState(); // unidentified
-  }
-
-  public EmployeeEntity(final long id) {
-    super(String.valueOf(id));
-    this.employee = new EmployeeState(id, "", 0); // recover
+  public EmployeeEntity(final String id) {
+    super(id);
+    this.employee = new EmployeeState(Long.parseLong(id), id, 0);
   }
 
   @Override
@@ -29,18 +23,13 @@ public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Emplo
   }
 
   @Override
-  public Completes<EmployeeState> assign(final String number) {
-    return apply(employee.with(number), new EmployeeNumberAssigned(), () -> employee);
-  }
-
-  @Override
   public Completes<EmployeeState> adjust(final int salary) {
     return apply(employee.with(salary), new EmployeeSalaryAdjusted(), () -> employee);
   }
 
   @Override
-  public Completes<EmployeeState> hire(final String number, final int salary) {
-    return apply(employee.with(number).with(salary), new EmployeeHired(), () -> employee);
+  public Completes<EmployeeState> hire(final int salary) {
+    return apply(employee.with(salary), new EmployeeHired(), () -> employee);
   }
 
   @Override
