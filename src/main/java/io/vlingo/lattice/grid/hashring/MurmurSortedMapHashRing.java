@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.grid.hashring;
 
+import io.vlingo.common.pool.ElasticResourcePool;
+import io.vlingo.common.pool.ResourceFactory;
+import io.vlingo.common.pool.ResourcePool;
+
 import java.nio.ByteBuffer;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -18,7 +22,35 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
   private final int pointsPerNode;
   private final int seed;
 
-  private final ByteBuffer buffer;
+  private final ResourcePool<ByteBuffer, Void> byteBufferPool =
+      new ElasticResourcePool<>(ElasticResourcePool.Config.of(10),
+          new ResourceFactory<ByteBuffer, Void>() {
+            @Override
+            public Class<ByteBuffer> type() {
+              return ByteBuffer.class;
+            }
+
+            @Override
+            public ByteBuffer create(Void aVoid) {
+              return ByteBuffer.allocate(36);
+            }
+
+            @Override
+            public Void defaultArguments() {
+              return null;
+            }
+
+            @Override
+            public ByteBuffer reset(ByteBuffer byteBuffer, Void aVoid) {
+              byteBuffer.clear();
+              return byteBuffer;
+            }
+
+            @Override
+            public void destroy(ByteBuffer byteBuffer) {
+            }
+          });
+
   private final SortedMap<Integer, T> ring;
 
   public MurmurSortedMapHashRing(final int pointsPerNode) {
@@ -28,14 +60,12 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
   public MurmurSortedMapHashRing(final int pointsPerNode, final int seed) {
     this.pointsPerNode = pointsPerNode;
     this.seed = seed;
-    this.buffer = ByteBuffer.allocate(64);
     this.ring = new TreeMap<>();
   }
 
   private MurmurSortedMapHashRing(final int pointsPerNode, final int seed, final SortedMap<Integer, T> ring) {
     this.pointsPerNode = pointsPerNode;
     this.seed = seed;
-    this.buffer = ByteBuffer.allocate(64);
     this.ring = ring;
   }
 
@@ -58,9 +88,16 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
   }
 
   private int hashed(final Object id) {
-    buffer.clear();
-    buffer.put(id.toString().getBytes());
-    return MurmurHash.hash32(buffer, 0, buffer.position(), seed);
+    final ByteBuffer buffer = byteBufferPool.acquire();
+    final int hash;
+    try {
+      buffer.put(id.toString().getBytes());
+      hash = MurmurHash.hash32(buffer, 0, buffer.position(), seed);
+    }
+    finally {
+      byteBufferPool.release(buffer);
+    }
+    return hash;
   }
 
   @Override
@@ -90,7 +127,7 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
   @Override
   @SuppressWarnings("unchecked")
   public HashRing<T> copy() {
-    final TreeMap<Integer, T> _ring = (TreeMap<Integer, T>)this.ring;
-    return new MurmurSortedMapHashRing<>(this.pointsPerNode, this.seed, (TreeMap<Integer, T>)_ring.clone());
+    final TreeMap<Integer, T> _ring = (TreeMap<Integer, T>) this.ring;
+    return new MurmurSortedMapHashRing<>(this.pointsPerNode, this.seed, (TreeMap<Integer, T>) _ring.clone());
   }
 }
