@@ -150,8 +150,8 @@ public class Grid extends Stage implements GridRuntime {
         && isAssignedTo(this.hashRing, address, newNode);
   }
 
-  private static boolean isAssignedTo(HashRing<Id> ring, Address a, Id node) {
-    return node.equals(ring.nodeOf(a.idString()));
+  private static boolean isAssignedTo(HashRing<Id> ring, Address address, Id node) {
+    return node.equals(ring.nodeOf(address.idString()));
   }
 
   @Override

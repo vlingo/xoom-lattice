@@ -69,25 +69,23 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   }
 
   @Override
-  public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Definition.SerializationProxy definition) {
+  public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Definition.SerializationProxy definitionProxy) {
     logger.debug("Processing: Received application message: Start");
     final GridActor<?> actor = (GridActor<?>) grid.rawLookupOrStart(
-        Definition.from(grid, definition, grid.world.defaultLogger()),
+        Definition.from(grid, definitionProxy, grid.world.defaultLogger()),
         address);
     if (actor.isSuspendedForRelocation()) {
-      logger.debug("Resuming thunk found at {} with definition='{}'",
-          address,
-          actor.definition());
-      actor.resumeFromRelocation();
+      logger.warn("Found thunk at {}. No further messages will be delivered to this address ",
+          address);
     }
   }
 
   @Override
   public <T> void deliver(
-      Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Definition.SerializationProxy definition, SerializableConsumer<T> consumer, String representation) {
+      Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Definition.SerializationProxy definitionProxy, SerializableConsumer<T> consumer, String representation) {
     logger.debug("Processing: Received application message: Deliver");
     final Actor actor = grid.actorLookupOrStartThunk(
-        Definition.from(grid, definition, grid.world.defaultLogger()),
+        Definition.from(grid, definitionProxy, grid.world.defaultLogger()),
         address);
     Mailbox mailbox = actor.lifeCycle.environment.mailbox;
     mailbox.send(actor, protocol, consumer, returns, representation);
@@ -95,10 +93,10 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void relocate(Id receiver, Id sender, Definition.SerializationProxy definition, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
+  public void relocate(Id receiver, Id sender, Definition.SerializationProxy definitionProxy, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
     logger.debug("Processing: Received application message: Relocate");
     final GridActor<?> actor = (GridActor<?>) grid.actorLookupOrStartThunk(
-        Definition.from(grid, definition, grid.world.defaultLogger()),
+        Definition.from(grid, definitionProxy, grid.world.defaultLogger()),
         address);
     final RelocationSnapshotConsumer<Object> consumer = grid.actorAs(actor,
         RelocationSnapshotConsumer.class);
@@ -116,8 +114,16 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   @Override
   public void recover(Id recipient, Id sender, Definition.SerializationProxy definitionProxy, Address address) {
     logger.debug("Processing: Received application message: Recover");
-    final Optional<GridActor<?>> maybeActor = Optional.ofNullable((GridActor<?>) grid.actorAt(address));
-    final GridActor<?> actor = maybeActor.orElseGet(() -> (GridActor<?>) grid.actorAt(address));
-    actor.resumeFromRelocation(); // TODO Not enough for lattice models
+    final GridActor<?> actor = (GridActor<?>) grid.actorLookupOrStart(
+            Definition.from(grid, definitionProxy, grid.world.defaultLogger()),
+        address);
+    if (actor.isSuspendedForRelocation()) {
+      actor.resumeFromRelocation();
+    }
+    if (! (actor instanceof StatelessGridActor)) {
+      logger.warn(
+          "Resuming work of stateful (in-memory state) actor at {} without recovering the lost, in-memory state",
+          address);
+    }
   }
 }
