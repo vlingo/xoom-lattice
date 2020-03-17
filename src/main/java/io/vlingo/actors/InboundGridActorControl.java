@@ -87,7 +87,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   public <T> void deliver(
       Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Definition.SerializationProxy definition, SerializableConsumer<T> consumer, String representation) {
     logger.debug("Processing: Received application message: Deliver");
-    final Actor actor = grid.actorLookupOrStart(
+    final Actor actor = grid.actorLookupOrStartThunk(
         Definition.from(grid, definition, grid.world.defaultLogger()),
         address);
     Mailbox mailbox = actor.lifeCycle.environment.mailbox;
@@ -98,7 +98,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   @SuppressWarnings("unchecked")
   public void relocate(Id receiver, Id sender, Definition.SerializationProxy definition, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
     logger.debug("Processing: Received application message: Relocate");
-    final GridActor<?> actor = (GridActor<?>) grid.actorLookupOrStart(
+    final GridActor<?> actor = (GridActor<?>) grid.actorLookupOrStartThunk(
         Definition.from(grid, definition, grid.world.defaultLogger()),
         address);
     final RelocationSnapshotConsumer<Object> consumer = grid.actorAs(actor,
