@@ -27,7 +27,7 @@ public class Main  {
       Grid grid = Grid.start("main-grid-world", Configuration.define(), ClusterProperties.allNodes(PORT_SEED), nodeName);
 
       System.out.println("WAITING.....");
-      Thread.sleep(30000);
+      Thread.sleep(10000);
       System.out.println("STARTING ACTORS");
 
 //      Greeting greeting = bootstrap.grid.actorFor(Greeting.class, GreetingActor.class, nodeName);
