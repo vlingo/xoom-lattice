@@ -120,7 +120,7 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
-    grid.hashRing().excludeNode(nodeId);
+    grid.nodeLeft(nodeId);
   }
 
   @Override
