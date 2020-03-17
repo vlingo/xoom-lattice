@@ -95,7 +95,7 @@ public class Grid extends Stage implements GridRuntime {
   }
 
   @Override
-  public <T> T actorThunkFor(Class<T> protocol, Definition definition, Address address) {
+  <T> T actorThunkFor(Class<T> protocol, Definition definition, Address address) {
     final Mailbox actorMailbox = this.allocateMailbox(definition, address, null);
     actorMailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
     final ActorProtocolActor<T> actor =
