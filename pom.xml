@@ -116,6 +116,11 @@
     </dependency>
     <dependency>
       <groupId>io.vlingo</groupId>
+      <artifactId>vlingo-streams</artifactId>
+      <version>1.2.8</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vlingo</groupId>
       <artifactId>vlingo-cluster</artifactId>
       <version>1.2.8</version>
     </dependency>
