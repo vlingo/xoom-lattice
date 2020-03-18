@@ -88,7 +88,7 @@
   </build>
   <repositories>
     <repository>
-      <id>jcenter</id>
+      <id>1_jcenter</id>
       <url>https://jcenter.bintray.com/</url>
     </repository>
   </repositories>
