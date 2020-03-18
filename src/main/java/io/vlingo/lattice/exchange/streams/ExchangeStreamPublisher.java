@@ -11,9 +11,12 @@ import io.vlingo.lattice.exchange.Exchange;
 import io.vlingo.lattice.exchange.ExchangeReceiver;
 import io.vlingo.reactivestreams.PublisherConfiguration;
 import io.vlingo.reactivestreams.StreamPublisher;
+import io.vlingo.reactivestreams.Streams;
 
 /**
  * This class receives messages from an {@link Exchange} and streams them using {@link StreamPublisher} capabilities.
+ * This class requires careful {@link PublisherConfiguration}, especially {@link Streams.OverflowPolicy} since inappropriate overflow policy
+ * may fill up {@link ExchangeStreamSource} source.
  *
  * @param <T> Type of the message.
  */

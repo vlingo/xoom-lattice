@@ -21,6 +21,7 @@ import io.vlingo.lattice.exchange.local.LocalExchangeSender;
 import io.vlingo.reactivestreams.PublisherConfiguration;
 import io.vlingo.reactivestreams.StreamSubscriber;
 import io.vlingo.reactivestreams.Streams;
+import io.vlingo.reactivestreams.sink.test.SafeConsumerSink;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
