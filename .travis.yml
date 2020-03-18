@@ -1,6 +1,7 @@
 language: java
 dist: trusty
 before_install:
+- rm -rf $HOME/.m2/repository/io/vlingo
 - cd ${TRAVIS_BUILD_DIR}/..
 - git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-common.git
 - cd vlingo-common && mvn install -DskipTests=true
