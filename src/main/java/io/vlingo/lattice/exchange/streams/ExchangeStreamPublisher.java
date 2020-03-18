@@ -17,10 +17,10 @@ import io.vlingo.reactivestreams.StreamPublisher;
  *
  * @param <T> Type of the message.
  */
-public class ExchangeStreamProxy<T> extends StreamPublisher<T> implements ExchangeReceiver<T> {
+public class ExchangeStreamPublisher<T> extends StreamPublisher<T> implements ExchangeReceiver<T> {
     private final ExchangeStreamSource<T> source;
 
-    public ExchangeStreamProxy(ExchangeStreamSource<T> source, PublisherConfiguration configuration) {
+    public ExchangeStreamPublisher(ExchangeStreamSource<T> source, PublisherConfiguration configuration) {
         super(source, configuration);
         this.source = source;
     }

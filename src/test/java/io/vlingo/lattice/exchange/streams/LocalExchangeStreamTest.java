@@ -49,7 +49,7 @@ public class LocalExchangeStreamTest {
     }
 
     private void createProxyWith(final ExchangeStreamSource<LocalType1> source) {
-        final Definition definition = Definition.has(ExchangeStreamProxy.class, Definition.parameters(source,
+        final Definition definition = Definition.has(ExchangeStreamPublisher.class, Definition.parameters(source,
                 new PublisherConfiguration(5, Streams.OverflowPolicy.DropHead)));
         final Protocols protocols = world.actorFor(new Class[] { Publisher.class, ExchangeReceiver.class }, definition);
         publisher = protocols.get(0);
