@@ -15,7 +15,7 @@ import java.util.List;
  * through which forwarding is accomplished.
  */
 public class Forwarder {
-  private final List<Covey<?,?,?>> coveys;
+  private final List<Covey<?, ?, ?>> coveys;
 
   /**
    * Constructs this Forwarder.
@@ -50,7 +50,6 @@ public class Forwarder {
 
   /**
    * Answer the {@code Covey<?,?,?>} of the {@code exchangeMessage}.
-   * @param coveys the {@code Collection<Covey<?,?,?>>} to search within
    * @param exchangeMessage the Object to match
    * @return {@code Covey<?,?,?>}
    */
@@ -65,7 +64,6 @@ public class Forwarder {
 
   /**
    * Answer the {@code Covey<?,?,?>} of the {@code objectType}.
-   * @param coveys the {@code Collection<Covey<?,?,?>>} to search within
    * @param objectType the {@code Class<?>} to match
    * @return {@code Covey<?,?,?>}
    */
