@@ -16,8 +16,8 @@ import io.vlingo.reactivestreams.Streams;
 /**
  * This class receives messages from an {@link Exchange} and streams them using {@link StreamPublisher} capabilities.
  * This class requires careful {@link PublisherConfiguration}, especially {@link Streams.OverflowPolicy} in conjunction with {@link ExchangeStreamSource} source.
- * Low level values for {@link PublisherConfiguration#bufferSize} reduces memory usage (heap) while overflow drop rate may increase.
- * On the other hand, high level values for {@link PublisherConfiguration#bufferSize} decrease overflow drop rate while increasing memory usage (heap).
+ * Low numeric values for {@link PublisherConfiguration#bufferSize} reduces memory usage (heap) while overflow drop rate may increase.
+ * On the other hand, high numeric values for {@link PublisherConfiguration#bufferSize} decrease overflow drop rate while increasing memory usage (heap).
  *
  * @param <T> Type of the message.
  */
