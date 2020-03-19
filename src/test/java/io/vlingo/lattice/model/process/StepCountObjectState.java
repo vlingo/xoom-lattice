@@ -9,8 +9,6 @@ package io.vlingo.lattice.model.process;
 
 import io.vlingo.symbio.store.object.StateObject;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 public class StepCountObjectState extends StateObject implements Comparable<StepCountObjectState> {
   private static final long serialVersionUID = 1L;
 

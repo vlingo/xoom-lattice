@@ -158,10 +158,11 @@ public class EventSourcedTest {
 
     EntryAdapterProvider entryAdapterProvider = EntryAdapterProvider.instance(world);
 
-    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, dispatcher);
     entryAdapterProvider.registerAdapter(Test1Happened.class, new Test1HappenedAdapter());
     entryAdapterProvider.registerAdapter(Test2Happened.class, new Test2HappenedAdapter());
     entryAdapterProvider.registerAdapter(Test3Happened.class, new Test3HappenedAdapter());
+
+    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, dispatcher);
 
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));
