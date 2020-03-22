@@ -7,13 +7,27 @@
 
 package io.vlingo.lattice.exchange.streams;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.Protocols;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.common.message.AsyncMessageQueue;
 import io.vlingo.common.message.MessageQueue;
-import io.vlingo.lattice.exchange.*;
+import io.vlingo.lattice.exchange.Covey;
+import io.vlingo.lattice.exchange.Exchange;
+import io.vlingo.lattice.exchange.ExchangeReceiver;
+import io.vlingo.lattice.exchange.ExternalType1;
+import io.vlingo.lattice.exchange.LocalType1;
 import io.vlingo.lattice.exchange.local.LocalExchange;
 import io.vlingo.lattice.exchange.local.LocalExchangeAdapter;
 import io.vlingo.lattice.exchange.local.LocalExchangeMessage;
@@ -22,15 +36,6 @@ import io.vlingo.reactivestreams.PublisherConfiguration;
 import io.vlingo.reactivestreams.StreamSubscriber;
 import io.vlingo.reactivestreams.Streams;
 import io.vlingo.reactivestreams.sink.test.SafeConsumerSink;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class LocalExchangeStreamTest {
     private World world;
@@ -58,6 +63,7 @@ public class LocalExchangeStreamTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testExchangeStreams() {
         final MessageQueue queue = new AsyncMessageQueue(null);
         createProxyWith(new ExchangeStreamSource<>(false));
