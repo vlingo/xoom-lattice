@@ -12,14 +12,6 @@
       <url>https://mozilla.org/MPL/2.0/</url>
     </license>
   </licenses>
-  <developers>
-    <developer>
-      <name>Vaughn Vernon</name>
-      <email>vaughn@kalele.io</email>
-      <organization>Kalele</organization>
-      <organizationUrl>http://kalele.io</organizationUrl>
-    </developer>
-  </developers>
   <scm>
     <connection>scm:git:git://github.com/vlingo/vlingo-lattice.git</connection>
     <developerConnection>scm:git:ssh://github.com/vlingo/vlingo-lattice.git</developerConnection>
