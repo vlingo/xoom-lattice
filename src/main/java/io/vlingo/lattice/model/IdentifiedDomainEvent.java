@@ -31,4 +31,13 @@ public abstract class IdentifiedDomainEvent extends DomainEvent {
    * @return String
    */
   public abstract String identity();
+
+  /**
+   * Answer the {@code String} parent identity of this {@code DomainEvent}.
+   * Must be overridden for supplying meaningful values.
+   * @return String
+   */
+  public String parentIdentity() {
+    return "";
+  }
 }
