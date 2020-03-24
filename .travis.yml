@@ -1,27 +1,19 @@
 language: java
 dist: trusty
+
 before_install:
-- cd ${TRAVIS_BUILD_DIR}/..
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-common.git
-- cd vlingo-common && mvn install -DskipTests=true
-- cd ${TRAVIS_BUILD_DIR}/..
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-actors.git
-- cd vlingo-actors && mvn install -DskipTests=true
-- cd ${TRAVIS_BUILD_DIR}/..
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-streams.git
-- cd vlingo-streams && mvn install -DskipTests=true
-- cd ${TRAVIS_BUILD_DIR}/..
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-wire.git
-- cd vlingo-wire && mvn install -DskipTests=true
-- cd ${TRAVIS_BUILD_DIR}/..
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-cluster.git
-- cd vlingo-cluster && mvn install -DskipTests=true
-- cd ${TRAVIS_BUILD_DIR}/..
-- git clone --depth=50 --branch=master https://github.com/vlingo/vlingo-symbio.git
-- cd vlingo-symbio && mvn install -DskipTests=true
-- cd ${TRAVIS_BUILD_DIR}
+  - rm -rf $HOME/.m2/repository/io/vlingo
+  - cp travis_settings.xml $HOME/.m2/settings.xml
+  
 script:
-- mvn install
+  - mvn install
+
+before_cache:
+  - rm -f $HOME/.m2/repository/io/vlingo
+cache:
+  directories:
+    - $HOME/.m2/repository
+
 deploy:
   provider: bintray
   file: bintray.json
