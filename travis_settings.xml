@@ -6,19 +6,6 @@
         <profile>
             <id>vlingo-platform-profile</id>
 
-            <repositories>
-                <repository>
-                    <id>bintray-vlingo-platform</id>
-                    <name>bintray-vlingo-platform</name>
-                    <url>https://dl.bintray.com/vlingo/vlingo-platform-java</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
         </profile>
     </profiles>
 

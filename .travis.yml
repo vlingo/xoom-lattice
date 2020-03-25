@@ -9,7 +9,7 @@ script:
   - mvn install
 
 before_cache:
-  - rm -f $HOME/.m2/repository/io/vlingo
+  - rm -rf $HOME/.m2/repository/io/vlingo
 cache:
   directories:
     - $HOME/.m2/repository
