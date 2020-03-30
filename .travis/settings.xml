@@ -2,15 +2,18 @@
 <settings xmlns="http://maven.apache.org/SETTINGS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd">
 
-    <profiles>
-        <profile>
-            <id>vlingo-platform-profile</id>
+    <servers>
+        <server>
+            <id>bintray-deploy</id>
+            <username>${env.BINTRAY_USERNAME}</username>
+            <password>${env.BINTRAY_PASSWORD}</password>
+        </server>
 
-        </profile>
-    </profiles>
-
-    <activeProfiles>
-        <activeProfile>vlingo-platform-profile</activeProfile>
-    </activeProfiles>
+        <server>
+            <id>oss-jfrog-snapshot-deploy</id>
+            <username>${env.BINTRAY_USERNAME}</username>
+            <password>${env.BINTRAY_PASSWORD}</password>
+        </server>
+    </servers>
 
 </settings>

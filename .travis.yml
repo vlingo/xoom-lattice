@@ -15,16 +15,17 @@ cache:
     - $HOME/.m2/repository
 
 deploy:
-  provider: bintray
-  file: .travis/bintray.json
-  skip_cleanup: true
-  user: vaughnvernon
-  on:
-    branch: master
-  key:
-    secure: ViFqWpgm/6F8AAYxdZrU8zcAHjDxEc/rzGk2xKWtleJPiOlRDB3r+zH66hfsQP78jeOaQ9ErdItqIS9SCEFU3Brq5cH1sv/AI1cFYdOvz1zAIxsoUdPGWhntLuZxVXHoavzx3Ctsul3ckoU7l45cPf6P8u6YFZop095mo9s5Sm6BlFV1NQQohr9hLflUxj71KZcLaDtX2+t5H+MbuBzwYUrbvHVBnEF5P9zmJeJrPHtpIDH611eVnQB572iq7LgVKrt0jz7RBGYPgkJPFD+63jLm2eJ+1UvPmCuleGrXjUuqUDio8OK8Y5SlcHg5sR1Te02auwZziEdpqAOLFdNSwwhQeMPjwvtnbzV2LC1JNyrohOzqusxHcZGoLnErI3EUcCkFl84V2gxDn8Te6xvss1UXbKVWilXWsFyWBGRpjI2YMRSYVatStiE8WW8fPN7dMW8QrQeXfO2k6UptCRLuaAqBKq/3ZCu/+f0sgk4RhaD+ys4fsm6ISYCTYw0s4/e5BZcVWc04hWEJEgE32TdbrzQDMA/ZlfcsP0+L0WlzkNrMu/Fld5GIKYoSNqX6GEtdTDXooQTFkQFlpPJZVGxnvUwwfVaEnfypHqiCZQ8Jq0X0UBkN0s/ApNvu6SGAEeMLity9fPsUxlgPc4dYmON3kGRRA+mMxof+kHuDdhTR52c=
-  passphrase:
-    secure: jno/hK+LJjINavDAPfUnNcBtXYqih1HETU7TcaTJbo3zePzfXLJSx2YdVyXFRcf3yEnTIv2Ib7yyry3KSYBiMcZPFMOinP0jwERH+ylIfa0IsiEASwhytG1uTBiURhqQuLeST4FsL/sO/XEfGkfY585RzcnYEKyWpb59b69sqgs91T9uGZBDjnq+a1W+5qei02A63K+vK0vRzAFGhutLcSzIwgGnwjEDbXIXJnG9W9iuK9CGoGqIz50TCwWDek+gSNdTL5H/rjZqVPuIaetoqSd0kh3PFdkjSiHxQJ/mmNZWAM1o7H1TA+efywvCmKgan344d+LyKMkR3kVfb2yl7Rb0a2Bqd3g4+16omf0P53q1fZgPO+oRcXb6kC80jqKNGJX67sS8C1w1HpcVZp/tNuVmUzw/9/SmQ1G76IrWA3XTdmlgqvZUu+gH14dN24ofoBu6vWAmt2bKN3nBkp4Xck+eDnoe2zs6yaE0Q2WpM1ULLnpgzvxSlyGdJf2lf6w1DRoaoFF7B3cXqXMNF4X8N+rmJw8WcG4y7nndtuuIGxoCE+/aQWZCRB9Z7sByv2plaDuaXt/mgnA8lHCR/CZgAqgYRHHYEA9T8Jk+Fp20bC9kKd6j9Oa8kDaIpPQwy/I5jj536g/msctJykuFBh2nlJdCNFyVgX/xegDE2r0IC/g=
+  - provider: script
+    script: "mvn deploy -DskipTests"
+    skip_cleanup: true
+    on:
+      tags: true
+  - provider: script
+    script: "mvn deploy -DskipTests"
+    skip_cleanup: true
+    on:
+      branch: master
+
 notifications:
   slack:
     secure: AgEmeaQl5W+pb11ThGexSGdjQGHnkpOmRiQRBQbpcbG+B9JrItWirboKbLN4MlLMFz+sAX3IBI9LY09IcWT/ycmn4rXDIdfdfzH3edS5PXUkUZ3Ew8IaQ641OqZqhg/CbvacD/Pyv2gGCvF5UfRfKVrsNa7rQkGefP1mkQ4Z71bVxe+sokVDZYyInwVD5VuxIDCsmuM6AsbpQo8vGa6LvMlnqNhC5AYuOwWRntqrb6ncNYwuPUw5zT5cG43qr3iIlBP9uOr7+wgg1cAysMs3kd2uyq5g0hKvKY/HqW++BO7qWNLwnBdTcU0ibbr17znXfbgSfhG0shHWrzVE81hkAMpVD5uxWA1O6+VFnXvhicGQyZPR9zD4tyO1cge9KulU3xW2ZSO+vWJ0LahaszngFRaMETl7JtVddYJ8uT0Bsq8YyEaP9yOrXggt+MTp2XxtmTFCFdLs2T2BG7Ujz6+DsxbghYdTYN6lmhyZZSzPKqz/5/gpyo6HbP0byc4LQUM59RsG+sLckh9/FQHBAPwKgplcwiszMik/a2KnAlBrTasoXFWkfqeXrQJnZuDZp+JMs5Z9UMZeaGKrn+si8olBcMYEKOeoGsy2UrbSOMvwlew94C+6gSLfKOKhDswsCuMEj6B4ZAl4L1T3cvRRrVyViilTKbzhs9b2QBNXBBktJ2k=
