@@ -7,24 +7,22 @@
 
 package io.vlingo.actors;
 
-import java.util.UUID;
-
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
+import io.vlingo.lattice.grid.application.QuorumObserver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
+import org.slf4j.LoggerFactory;
 
-public class Grid extends Stage implements GridRuntime {
+import java.util.UUID;
+
+public class Grid extends Stage implements GridRuntime, QuorumObserver {
+
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Grid.class);
 
   private static final String INSTANCE_NAME = UUID.randomUUID().toString();
-
-  private final GridNodeBootstrap gridNodeBootstrap;
-  private final HashRing<Id> hashRing;
-
-  private Id nodeId;
-  private OutboundGridActorControl outbound;
 
   public static Grid instance(World world) {
     return world.resolveDynamic(INSTANCE_NAME, Grid.class);
@@ -52,19 +50,32 @@ public class Grid extends Stage implements GridRuntime {
 
   public static Grid start(final String worldName, final AddressFactory addressFactory, final Configuration worldConfiguration, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     final World world = World.start(worldName, worldConfiguration);
-    final Grid grid = new Grid(world, addressFactory, clusterProperties, gridNodeName);
-    return grid;
+    return new Grid(world, addressFactory, clusterProperties, gridNodeName);
   }
 
   public static Grid start(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     return new Grid(world, addressFactory, clusterProperties, gridNodeName);
   }
 
+
+  private final GridNodeBootstrap gridNodeBootstrap;
+  private final HashRing<Id> hashRing;
+
+  private Id nodeId;
+  private OutboundGridActorControl outbound;
+
+  private volatile boolean hasQuorum;
+  private final long clusterHealthCheckInterval;
+
   public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     extenderStartDirectoryScanner();
     this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
+    this.hasQuorum = false;
+
+    this.clusterHealthCheckInterval = clusterProperties.clusterHealthCheckInterval();
+
     world.registerDynamic(INSTANCE_NAME, this);
   }
 
@@ -77,6 +88,16 @@ public class Grid extends Stage implements GridRuntime {
 
   public void terminate() {
     world().terminate();
+  }
+
+  @Override
+  public void quorumAchieved() {
+    this.hasQuorum = true;
+  }
+
+  @Override
+  public void quorumLost() {
+    this.hasQuorum = false;
   }
 
   //====================================
@@ -137,6 +158,7 @@ public class Grid extends Stage implements GridRuntime {
         .forEach(address -> {
           final GridActor<?> actor = ((GridActor<?>) directory.actorOf(address));
           if (!actor.isSuspendedForRelocation()) {
+            logger.debug("Relocating actor [{}] to [{}]", address, newNode);
             actor.suspendForRelocation();
             outbound.relocate(
                 newNode, nodeId, Definition.SerializationProxy.from(actor.definition()),
@@ -193,6 +215,15 @@ public class Grid extends Stage implements GridRuntime {
   }
 
   private Mailbox maybeRemoteMailbox(final Address address, final Definition definition, final Mailbox maybeMailbox, final Runnable out) {
+    while (!hasQuorum && address.isDistributable()) {
+      logger.debug("Mailbox allocation waiting for cluster quorum...");
+      try {
+        Thread.sleep(clusterHealthCheckInterval);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
     final Id node = hashRing.nodeOf(address.idString());
     final Mailbox __mailbox;
     if (node != null && !node.equals(nodeId)) {

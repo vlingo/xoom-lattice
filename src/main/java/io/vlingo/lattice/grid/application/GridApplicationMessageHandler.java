@@ -7,30 +7,24 @@
 
 package io.vlingo.lattice.grid.application;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.vlingo.actors.Address;
 import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Scheduler;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Decoder;
-import io.vlingo.lattice.grid.application.message.Deliver;
-import io.vlingo.lattice.grid.application.message.Message;
-import io.vlingo.lattice.grid.application.message.Relocate;
-import io.vlingo.lattice.grid.application.message.Start;
-import io.vlingo.lattice.grid.application.message.Visitor;
+import io.vlingo.lattice.grid.application.message.*;
 import io.vlingo.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.lattice.grid.hashring.HashRing;
+import io.vlingo.lattice.util.HardRefHolder;
+import io.vlingo.lattice.util.WeakQueue;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
 
@@ -45,23 +39,29 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
 
   private final Scheduler scheduler = new Scheduler(); // TODO inject?
 
+  private final HardRefHolder holder;
+  private final Queue<Runnable> buffer = new WeakQueue<>();
+
   public GridApplicationMessageHandler(
       final Id localNode, final HashRing<Id> hashRing,
       final GridActorControl.Inbound inbound,
-      final GridActorControl.Outbound outbound) {
-    this(localNode, hashRing, inbound, outbound, new JavaObjectDecoder());
+      final GridActorControl.Outbound outbound,
+      final HardRefHolder holder) {
+    this(localNode, hashRing, inbound, outbound, new JavaObjectDecoder(), holder);
   }
 
   public GridApplicationMessageHandler(
       final Id localNode, final HashRing<Id> hashRing,
       final GridActorControl.Inbound inbound,
       final GridActorControl.Outbound outbound,
-      final Decoder decoder) {
+      final Decoder decoder,
+      final HardRefHolder holder) {
     this.localNode = localNode;
     this.hashRing = hashRing;
     this.inbound = inbound;
     this.outbound = outbound;
     this.decoder = decoder;
+    this.holder = holder;
 
     this.visitor = new ControlMessageVisitor();
   }
@@ -71,16 +71,37 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     try {
       Message message = decoder.decode(raw.asBinaryMessage());
       Id sender = Id.of(raw.header().nodeId());
-      logger.debug("Received message {} from {}", message, sender);
-      message.accept(localNode, sender, visitor);
+      logger.debug("Buffering message {} from {}", message, sender);
+      final Runnable runnable = () -> {
+        logger.debug("Handling message {} from {}", message, sender);
+        message.accept(localNode, sender, visitor);
+      };
+      buffer.offer(runnable);
+      if (Objects.nonNull(holder)) {
+        holder.holdOnTo(runnable);
+      }
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.error(String.format("Failed to process message %s", raw), e);
     }
   }
 
+  @Override
+  public void disburse(Id id) {
+    if (!id.equals(localNode)) return;
+    logger.debug("Disbursing buffered messages");
+    Runnable next;
+    do {
+      next = buffer.poll();
+      if (next != null) {
+        next.run();
+      }
+    } while (next != null);
+  }
+
+
   final class ControlMessageVisitor implements Visitor {
     @Override
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void visit(Id receiver, Id sender, Answer answer) {
       inbound.answer(receiver, sender, answer);
     }
@@ -117,14 +138,14 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
 
     @Override
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void visit(Id receiver, Id sender, Relocate relocate) {
       Id recipient = receiver(receiver, relocate.address);
       if (recipient == receiver) {
         List<LocalMessage> pending = relocate.pending.stream()
             .map(deliver ->
                 new LocalMessage(null, deliver.protocol, deliver.consumer,
-                  returnsAnswer(receiver, sender, deliver), deliver.representation))
+                    returnsAnswer(receiver, sender, deliver), deliver.representation))
             .collect(Collectors.toCollection(ArrayList::new));
         inbound.relocate(receiver, sender, relocate.definition,
             relocate.address, relocate.snapshot, pending);

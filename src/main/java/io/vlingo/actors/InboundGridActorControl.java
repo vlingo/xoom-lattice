@@ -112,4 +112,9 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
     });
     actor.resumeFromRelocation();
   }
+
+  @Override
+  public void disburse(Id id) {
+    throw new UnsupportedOperationException("disburse of buffered messages handled in ApplicationMessageHandler");
+  }
 }

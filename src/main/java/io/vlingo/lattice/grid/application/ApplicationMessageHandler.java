@@ -8,8 +8,11 @@
 package io.vlingo.lattice.grid.application;
 
 import io.vlingo.wire.message.RawMessage;
+import io.vlingo.wire.node.Id;
 
 public interface ApplicationMessageHandler {
 
   void handle(RawMessage message);
+
+  void disburse(Id id);
 }

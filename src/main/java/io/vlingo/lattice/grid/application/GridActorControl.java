@@ -47,6 +47,8 @@ public interface GridActorControl {
                 Object snapshot,
                 List<? extends io.vlingo.actors.Message> pending);
 
+  void disburse(Id id);
+
 
   interface Inbound extends GridActorControl {
   }
