@@ -164,6 +164,10 @@ public class Grid extends Stage implements GridRuntime {
     this.nodeId = nodeId;
   }
 
+  public ClassLoader worldLoader() {
+    return world().classLoader();
+  }
+
   //====================================
   // Internal implementation
   //====================================

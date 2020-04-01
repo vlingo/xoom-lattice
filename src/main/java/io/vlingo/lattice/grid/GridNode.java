@@ -31,7 +31,6 @@ import java.util.UUID;
 
 public class GridNode extends ClusterApplicationAdapter {
 
-  private static final FSTConfiguration CONF = FSTConfiguration.createDefaultConfiguration();
   private static final Map<UUID, Returns<?>> correlation = new HashMap<>();
 
   private AttributesProtocol client;
@@ -45,11 +44,16 @@ public class GridNode extends ClusterApplicationAdapter {
   public GridNode(final Grid grid, final Node localNode) {
     this.grid = grid;
     this.localNode = localNode;
-    this.outbound = new OutboundGridActorControl(localNode.id(), new FSTEncoder(CONF), correlation::put);
+
+    final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
+    // set classloader with available proxy classes
+    conf.setClassLoader(grid.worldLoader());
+
+    this.outbound = new OutboundGridActorControl(localNode.id(), new FSTEncoder(conf), correlation::put);
     this.grid.setOutbound(outbound);
     final InboundGridActorControl inbound = new InboundGridActorControl(logger(), grid, correlation::remove);
     this.applicationMessageHandler = new GridApplicationMessageHandler(
-        localNode.id(), grid.hashRing(), inbound, outbound, new FSTDecoder(CONF));
+        localNode.id(), grid.hashRing(), inbound, outbound, new FSTDecoder(conf));
   }
 
   @Override
