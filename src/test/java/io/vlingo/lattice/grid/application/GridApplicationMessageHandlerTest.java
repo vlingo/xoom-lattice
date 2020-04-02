@@ -35,7 +35,7 @@ public class GridApplicationMessageHandlerTest {
   private CountDownLatch answerLatch = new CountDownLatch(1);
   private CountDownLatch forwardLatch = new CountDownLatch(1);
   private CountDownLatch relocateLatch = new CountDownLatch(1);
-  private CountDownLatch recoverLatch = new CountDownLatch(1);
+  private CountDownLatch standbyLatch = new CountDownLatch(1);
 
   private final GridApplicationMessageHandler handler =
       new GridApplicationMessageHandler(localNodeId, new MurmurSortedMapHashRing<Id>(100), new GridActorControl.Inbound() {
@@ -69,8 +69,8 @@ public class GridApplicationMessageHandlerTest {
         }
 
         @Override
-        public void recover(Id recipient, Id sender, Definition.SerializationProxy definitionProxy, Address address) {
-          recoverLatch.countDown();
+        public <T> void standby(Id recipient, Id sender, Class<T> protocol, Definition.SerializationProxy definitionProxy, Address address) {
+          standbyLatch.countDown();
         }
       }, null);
 
@@ -101,8 +101,8 @@ public class GridApplicationMessageHandlerTest {
   }
 
   @Test
-  public void testRecover() throws IOException, InterruptedException {
-    test(from(new Recover(address, null)), recoverLatch);
+  public void testStandby() throws IOException, InterruptedException {
+    test(from(new Standby<>(null, address, null)), standbyLatch);
   }
 
   

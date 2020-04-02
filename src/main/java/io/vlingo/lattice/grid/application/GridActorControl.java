@@ -47,8 +47,9 @@ public interface GridActorControl {
                 Object snapshot,
                 List<? extends io.vlingo.actors.Message> pending);
 
-  void recover(Id recipient,
+  <T> void standby(Id recipient,
                Id sender,
+               Class<T> protocol,
                Definition.SerializationProxy definitionProxy,
                Address address);
 

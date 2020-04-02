@@ -12,8 +12,7 @@ import io.vlingo.common.pool.ResourceFactory;
 import io.vlingo.common.pool.ResourcePool;
 
 import java.nio.ByteBuffer;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public class MurmurSortedMapHashRing<T> implements HashRing<T> {
 
@@ -70,7 +69,6 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
   }
 
 
-  @Override
   public void dump() {
     System.out.println("NODES: " + ring.size());
     for (final T hashedNodePoint : ring.values()) {
@@ -122,6 +120,22 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
           ring.firstKey() : tailMap.firstKey();
     }
     return ring.get(hash);
+  }
+
+  @Override
+  public List<T> nodesOf(Object id) {
+    final ArrayList<T> nodes =
+        new ArrayList<>(ring.size() / pointsPerNode);
+    return nodesOf(id, nodes, this);
+  }
+
+  private List<T> nodesOf(Object id, List<T> nodes, HashRing<T> that) {
+    T node = that.nodeOf(id);
+    if (node == null) {
+      return nodes;
+    }
+    nodes.add(node);
+    return nodesOf(id, nodes, that.copy().excludeNode(node));
   }
 
   @Override

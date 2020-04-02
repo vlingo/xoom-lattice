@@ -117,7 +117,7 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
   }
 
   @Override
-  public void recover(Id recipient, Id sender, Definition.SerializationProxy definitionProxy, Address address) {
-    send(recipient, new Recover(address, definitionProxy));
+  public <T> void standby(Id recipient, Id sender, Class<T> protocol, Definition.SerializationProxy definitionProxy, Address address) {
+    send(recipient, new Standby<>(protocol, address, definitionProxy));
   }
 }

@@ -7,11 +7,13 @@
 
 package io.vlingo.lattice.grid.hashring;
 
+import java.util.List;
+
 public interface HashRing<T> {
-  void dump();
   HashRing<T> excludeNode(final T nodeIdentifier);
   HashRing<T> includeNode(final T nodeIdentifier);
   T nodeOf(final Object id);
+  List<T> nodesOf(final Object id);
   default HashRing<T> copy() {
     throw new UnsupportedOperationException("override in your implementation to support cloning");
   }

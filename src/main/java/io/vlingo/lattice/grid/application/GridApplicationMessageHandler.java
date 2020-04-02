@@ -146,13 +146,13 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
 
     @Override
-    public void visit(Id receiver, Id sender, Recover recover) {
-      Id recipient = receiver(receiver, recover.address);
+    public <T> void visit(Id receiver, Id sender, Standby<T> standby) {
+      Id recipient = receiver(receiver, standby.address);
       if (recipient == receiver) {
-        inbound.recover(receiver, sender, recover.definition,
-            recover.address);
+        inbound.standby(receiver, sender, standby.protocol, standby.definition,
+            standby.address);
       } else {
-        outbound.forward(recipient, sender, recover);
+        outbound.forward(recipient, sender, standby);
       }
     }
   }

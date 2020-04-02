@@ -7,16 +7,16 @@
 
 package io.vlingo.actors;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.wire.node.Id;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public class InboundGridActorControl implements GridActorControl.Inbound {
 
@@ -112,18 +112,10 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   }
 
   @Override
-  public void recover(Id recipient, Id sender, Definition.SerializationProxy definitionProxy, Address address) {
-    logger.debug("Processing: Received application message: Recover");
-    final GridActor<?> actor = (GridActor<?>) grid.actorLookupOrStart(
-            Definition.from(grid, definitionProxy, grid.world.defaultLogger()),
+  public <T> void standby(Id recipient, Id sender, Class<T> protocol, Definition.SerializationProxy definitionProxy, Address address) {
+    logger.debug("Processing: Received application message: Standby");
+    grid.actorLookupOrStartThunk(
+        Definition.from(grid, definitionProxy, grid.world.defaultLogger()),
         address);
-    if (actor.isSuspendedForRelocation()) {
-      actor.resumeFromRelocation();
-    }
-    if (! (actor instanceof StatelessGridActor)) {
-      logger.warn(
-          "Resuming work of stateful (in-memory state) actor at {} without recovering the lost, in-memory state",
-          address);
-    }
   }
 }

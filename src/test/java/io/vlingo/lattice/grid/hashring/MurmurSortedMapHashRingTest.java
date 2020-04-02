@@ -1,10 +1,9 @@
 package io.vlingo.lattice.grid.hashring;
 
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -41,6 +40,24 @@ public class MurmurSortedMapHashRingTest {
     }
 
     assertEquals(1, results.size());
+  }
+
+  @Test
+  public void testNodesOf() {
+    MurmurSortedMapHashRing<String> ring =
+        new MurmurSortedMapHashRing<>(100);
+
+    String of = "testing";
+
+    List<String> nodes = new ArrayList<>(3);
+    Collections.addAll(nodes, "node2", "node1", "node3");
+
+    nodes.forEach(ring::includeNode);
+
+    List<String> nodesOf = ring.nodesOf(of);
+
+    assertEquals(3, nodesOf.size());
+    assertEquals(nodes, nodesOf);
   }
 
 }

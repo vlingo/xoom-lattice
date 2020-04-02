@@ -7,9 +7,14 @@
 
 package io.vlingo.actors;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import io.vlingo.common.identity.IdentityGeneratorType;
+import io.vlingo.lattice.grid.GridNode;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.lattice.grid.hashring.HashRing;
@@ -132,8 +137,7 @@ public class Grid extends Stage implements GridRuntime {
     this.hashRing.includeNode(newNode);
 
     directory.addresses().stream()
-        .filter(address ->
-            address.isDistributable() && shouldRelocateTo(copy, address, newNode))
+        .filter(shouldRelocateTo(copy, newNode))
         .forEach(address -> {
           final GridActor<?> actor = ((GridActor<?>) directory.actorOf(address));
           if (!actor.isSuspendedForRelocation()) {
@@ -145,8 +149,9 @@ public class Grid extends Stage implements GridRuntime {
         });
   }
 
-  private boolean shouldRelocateTo(HashRing<Id> previous, Address address, Id newNode) {
-    return isAssignedTo(previous, address, nodeId)
+  private Predicate<Address>  shouldRelocateTo(HashRing<Id> previous, Id newNode) {
+    return address -> address.isDistributable()
+        && isAssignedTo(previous, address, nodeId)
         && isAssignedTo(this.hashRing, address, newNode);
   }
 
@@ -165,15 +170,17 @@ public class Grid extends Stage implements GridRuntime {
     this.hashRing.excludeNode(removedNode);
 
     directory.addresses().stream()
-        .filter(address ->
-            address.isDistributable() && isAssignedTo(copy, address, removedNode))
+        .filter(shouldRecoverFrom(copy, removedNode))
         .forEach(address -> {
-          final Actor actor = directory.actorOf(address);
-          outbound.recover(this.hashRing.nodeOf(address.idString()),
-              nodeId,
-              Definition.SerializationProxy.from(actor.definition()),
-              address);
+          final GridActor<?> actor = (GridActor<?>) directory.actorOf(address);
+          actor.resumeFromRelocation();
         });
+  }
+
+  private Predicate<Address> shouldRecoverFrom(HashRing<Id> previous, Id removedNode) {
+    return address -> address.isDistributable()
+        &&isAssignedTo(previous, address, removedNode)
+        && isAssignedTo(hashRing, address, nodeId);
   }
 
   @Override
@@ -200,6 +207,8 @@ public class Grid extends Stage implements GridRuntime {
     final Id node = hashRing.nodeOf(address.idString());
     final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
       outbound.start(node, nodeId, protocol, address, Definition.SerializationProxy.from(definition));
+    }, id -> {
+      outbound.standby(id, nodeId, protocol, Definition.SerializationProxy.from(definition), address);
     });
     return super.actorProtocolFor(protocol, definition, parent, address, mailbox, maybeSupervisor, logger);
   }
@@ -210,15 +219,21 @@ public class Grid extends Stage implements GridRuntime {
     final Id node = hashRing.nodeOf(address.idString());
     final Mailbox mailbox = maybeRemoteMailbox(address, definition, maybeMailbox, () -> {
       outbound.start(node, nodeId, protocols[0], address, Definition.SerializationProxy.from(definition)); // TODO remote start all protocols
+    }, id -> {
+      outbound.standby(id, nodeId, protocols[0], Definition.SerializationProxy.from(definition), address);
     });
     return super.actorProtocolFor(protocols, definition, parent, address, mailbox, maybeSupervisor, logger);
   }
 
-  private Mailbox maybeRemoteMailbox(final Address address, final Definition definition, final Mailbox maybeMailbox, final Runnable out) {
-    final Id node = hashRing.nodeOf(address.idString());
+  private Mailbox maybeRemoteMailbox(final Address address,
+                                     final Definition definition,
+                                     final Mailbox maybeMailbox,
+                                     final Runnable outStart,
+                                     final Consumer<Id> outStandby) {
+    final List<Id> nodes = hashRing.nodesOf(address.idString());
     final Mailbox __mailbox;
-    if (node != null && !node.equals(nodeId)) {
-      out.run();
+    if (!nodes.isEmpty() && !nodes.get(0).equals(nodeId)) {
+      outStart.run();
       __mailbox = allocateMailbox(definition, address, maybeMailbox);
       if (!__mailbox.isSuspendedFor(GridActor.Resume)) {
         __mailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
