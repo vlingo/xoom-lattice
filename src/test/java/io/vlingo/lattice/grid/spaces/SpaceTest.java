@@ -10,10 +10,7 @@ package io.vlingo.lattice.grid.spaces;
 import java.time.Duration;
 import java.util.Optional;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import io.vlingo.actors.Configuration;
 import io.vlingo.actors.Grid;
@@ -83,6 +80,7 @@ public class SpaceTest {
   @Before
   public void setUp() throws Exception {
     grid = Grid.start("test-world", Configuration.define(), ClusterProperties.oneNode(), "node1");
+    grid.quorumAchieved();
   }
 
   @After

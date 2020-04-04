@@ -53,6 +53,7 @@ public class AccessorTest {
   @Before
   public void setUp() throws Exception {
     grid = Grid.start("test-world", Configuration.define(), ClusterProperties.oneNode(), "node1");
+    grid.quorumAchieved();
   }
 
   @After
