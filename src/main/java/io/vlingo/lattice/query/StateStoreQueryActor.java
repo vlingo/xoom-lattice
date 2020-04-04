@@ -13,6 +13,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.actors.CompletesEventually;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
+import io.vlingo.lattice.CompositeIdentitySupport;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State.ObjectState;
 import io.vlingo.symbio.store.Result;
@@ -23,7 +24,7 @@ import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 /**
  * A building-block {@code Actor} that queries asynchronously for state by id.
  */
-public abstract class StateStoreQueryActor extends Actor implements ReadResultInterest {
+public abstract class StateStoreQueryActor extends Actor implements CompositeIdentitySupport, ReadResultInterest {
 
   private final ReadResultInterest readInterest;
   private final StateStore stateStore;

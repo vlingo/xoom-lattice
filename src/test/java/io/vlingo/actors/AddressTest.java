@@ -15,11 +15,8 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Arrays;
 import java.util.UUID;
 
-import io.vlingo.actors.GridAddressFactory;
 import org.junit.Test;
 
-import io.vlingo.actors.Address;
-import io.vlingo.actors.AddressFactory;
 import io.vlingo.common.identity.IdentityGeneratorType;
 
 public class AddressTest {
@@ -28,13 +25,13 @@ public class AddressTest {
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
 
     final Address address = addressFactory.uniqueWith("test-address");
-    
+
     assertNotNull(address);
     assertNotNull(address.idString());
     assertEquals("test-address", address.name());
-    
+
     final Address another = addressFactory.uniqueWith("another-address");
-    
+
     assertNotEquals(another, address);
     assertNotEquals(0, address.compareTo(another));
     assertEquals(address.idTyped().hashCode(), address.hashCode());
@@ -45,17 +42,17 @@ public class AddressTest {
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
 
     final String id1 = UUID.randomUUID().toString();
-    
+
     final Address address = addressFactory.from(id1, "test-address");
-    
+
     assertNotNull(address);
     assertEquals(id1, address.idTyped().toString());
     assertEquals("test-address", address.name());
-    
+
     final String id2 = UUID.randomUUID().toString();
-    
+
     final Address another = addressFactory.from(id2, "test-address");
-    
+
     assertNotEquals(another, address);
     assertNotEquals(0, address.compareTo(another));
     assertEquals(address, addressFactory.from(id1, "test-address"));
@@ -68,15 +65,15 @@ public class AddressTest {
     final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
 
     final long id = 123;
-    
+
     final Address address = addressFactory.from(id, "test-address");
-    
+
     assertNotNull(address);
     assertEquals(123, address.id());
     assertEquals("test-address", address.name());
-    
+
     final Address another = addressFactory.from(456, "test-address");
-    
+
     assertNotEquals(another, address);
     assertNotEquals(0, address.compareTo(another));
     assertEquals(address, addressFactory.from(id, "test-address"));

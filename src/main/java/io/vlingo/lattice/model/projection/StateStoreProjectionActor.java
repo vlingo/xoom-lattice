@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
+import io.vlingo.lattice.CompositeIdentitySupport;
 import io.vlingo.lattice.model.DomainEvent;
 import io.vlingo.lattice.model.projection.ProjectionControl.Confirmer;
 import io.vlingo.symbio.DefaultTextEntryAdapter;
@@ -40,7 +41,7 @@ import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
  * @param <T> the type to be persisted in the StateStore
  */
 public abstract class StateStoreProjectionActor<T> extends Actor
-    implements Projection, ReadResultInterest, WriteResultInterest {
+    implements Projection, CompositeIdentitySupport, ReadResultInterest, WriteResultInterest {
 
   private final EntryAdapter<Source<?>, Entry<?>> entryAdapter;
   private final StateAdapter<Object, State<?>> stateAdapter;

@@ -8,8 +8,6 @@
 package io.vlingo.lattice.exchange;
 
 import io.vlingo.common.serialization.JsonSerialization;
-import io.vlingo.lattice.exchange.ExchangeAdapter;
-import io.vlingo.lattice.exchange.ExchangeMapper;
 
 public class TestExchangeAdapter2 implements ExchangeAdapter<LocalType2,ExternalType2,ExchangeMessage> {
   private ExchangeMapper<LocalType2,ExternalType2> mapper = new TestExchangeMapper2();
