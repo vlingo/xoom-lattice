@@ -7,6 +7,16 @@
 
 package io.vlingo.lattice.model.sourcing;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+
 import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.actors.Stoppable;
 import io.vlingo.actors.testkit.TestContext;
@@ -23,16 +33,6 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 /**
  * Abstract base for all concrete types that support journaling and application of
@@ -82,7 +82,7 @@ public abstract class Sourced<T> extends EntityGridActor implements AppendResult
 
   /**
    * Construct my default state.
-   * @param streamName
+   * @param streamName the String unique identity of this entity
    */
   protected Sourced(String streamName) {
     this.streamName = streamName;

@@ -29,6 +29,7 @@ public abstract class ObjectProcess<T extends StateObject> extends ObjectEntity<
 
   /**
    * Construct my default state.
+   * @param id the String unique identity of this entity
    */
   protected ObjectProcess(final String id) {
     super(id);

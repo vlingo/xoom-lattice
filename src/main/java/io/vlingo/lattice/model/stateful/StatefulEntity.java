@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.stateful;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
@@ -19,10 +23,6 @@ import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Abstract base for all entity types that require the id-clob/blob state storage
@@ -42,6 +42,7 @@ public abstract class StatefulEntity<S> extends EntityGridActor
 
   /**
    * Construct my default state.
+   * @param id the String unique identity of this entity
    */
   protected StatefulEntity(final String id) {
     this.id = id;

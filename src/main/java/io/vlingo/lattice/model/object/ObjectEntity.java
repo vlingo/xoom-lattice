@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.object;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
@@ -15,17 +19,17 @@ import io.vlingo.lattice.model.EntityGridActor;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
-import io.vlingo.symbio.store.*;
+import io.vlingo.symbio.store.ListQueryExpression;
+import io.vlingo.symbio.store.MapQueryExpression;
+import io.vlingo.symbio.store.QueryExpression;
+import io.vlingo.symbio.store.Result;
+import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryMultiResults;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QueryResultInterest;
 import io.vlingo.symbio.store.object.ObjectStoreReader.QuerySingleResult;
 import io.vlingo.symbio.store.object.ObjectStoreWriter.PersistResultInterest;
 import io.vlingo.symbio.store.object.StateObject;
 import io.vlingo.symbio.store.object.StateSources;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Abstract base type used to preserve and restore object state
@@ -46,6 +50,7 @@ public abstract class ObjectEntity<T extends StateObject> extends EntityGridActo
 
   /**
    * Construct my default state.
+   * @param id the String unique identity of this entity
    */
   protected ObjectEntity(final String id) {
     this.id = id;

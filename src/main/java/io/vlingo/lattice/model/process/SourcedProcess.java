@@ -38,6 +38,7 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
 
   /**
    * Construct my default state.
+   * @param streamName the String unique identity of this entity
    */
   protected SourcedProcess(final String streamName) {
     super(streamName);
