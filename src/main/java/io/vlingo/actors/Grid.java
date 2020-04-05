@@ -7,6 +7,10 @@
 
 package io.vlingo.actors;
 
+import java.util.UUID;
+
+import org.slf4j.LoggerFactory;
+
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl;
@@ -14,11 +18,10 @@ import io.vlingo.lattice.grid.application.QuorumObserver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
-import org.slf4j.LoggerFactory;
-
-import java.util.UUID;
 
 public class Grid extends Stage implements GridRuntime, QuorumObserver {
+  private static final int GridStageBuckets = 32;
+  private static final int GridStageInitialCapacity = 16_384;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Grid.class);
 
@@ -68,7 +71,7 @@ public class Grid extends Stage implements GridRuntime, QuorumObserver {
   private final long clusterHealthCheckInterval;
 
   public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
-    super(world, addressFactory, gridNodeName);
+    super(world, addressFactory, gridNodeName, GridStageBuckets, GridStageInitialCapacity);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     extenderStartDirectoryScanner();
     this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
