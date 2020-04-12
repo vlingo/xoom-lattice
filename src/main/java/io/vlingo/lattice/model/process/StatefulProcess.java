@@ -97,6 +97,13 @@ public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Pr
   }
 
   /**
+   * Construct my default state using my {@code address} as my {@code id}.
+   */
+  protected StatefulProcess() {
+    this(null);
+  }
+
+  /**
    * Construct my default state.
    * @param id the String unique identity of this entity
    */

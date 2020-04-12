@@ -37,6 +37,13 @@ public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implemen
   private List<Source<?>> applied;
 
   /**
+   * Construct my default state using my {@code address} as my {@code streamName}.
+   */
+  protected SourcedProcess() {
+    this(null);
+  }
+
+  /**
    * Construct my default state.
    * @param streamName the String unique identity of this entity
    */

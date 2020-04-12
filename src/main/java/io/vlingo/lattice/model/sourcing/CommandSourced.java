@@ -13,6 +13,10 @@ import io.vlingo.lattice.model.Command;
  * A {@code Sourced<T>} for concrete types of {@code Command}.
  */
 public abstract class CommandSourced extends Sourced<Command> {
+  public CommandSourced() {
+    super();
+  }
+
   public CommandSourced(final String streamName) {
     super(streamName);
   }

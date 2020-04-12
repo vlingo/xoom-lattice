@@ -28,6 +28,13 @@ public abstract class ObjectProcess<T extends StateObject> extends ObjectEntity<
   private List<Source<?>> applied;
 
   /**
+   * Construct my default state using my {@code address} as my {@code id}.
+   */
+  protected ObjectProcess() {
+    this(null);
+  }
+
+  /**
    * Construct my default state.
    * @param id the String unique identity of this entity
    */

@@ -81,11 +81,18 @@ public abstract class Sourced<T> extends EntityGridActor implements AppendResult
 
 
   /**
+   * Construct my default state using my {@code address} as my {@code streamName}.
+   */
+  protected Sourced() {
+    this(null);
+  }
+
+  /**
    * Construct my default state.
    * @param streamName the String unique identity of this entity
    */
   protected Sourced(String streamName) {
-    this.streamName = streamName;
+    this.streamName = streamName != null ? streamName : address().idString();;
     this.currentVersion = 0;
     this.journalInfo = info();
     this.interest = selfAs(AppendResultInterest.class);

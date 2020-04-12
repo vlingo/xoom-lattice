@@ -13,6 +13,10 @@ import io.vlingo.lattice.model.DomainEvent;
  * A {@code Sourced<T>} for concrete types of {@code DomainEvent}.
  */
 public abstract class EventSourced extends Sourced<DomainEvent> {
+  public EventSourced() {
+    super();
+  }
+
   public EventSourced(final String streamName) {
     super(streamName);
   }

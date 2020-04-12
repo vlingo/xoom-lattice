@@ -41,11 +41,18 @@ public abstract class StatefulEntity<S> extends EntityGridActor
   private final WriteResultInterest writeInterest;
 
   /**
+   * Construct my default state using my {@code address} as my {@code id}.
+   */
+  protected StatefulEntity() {
+    this(null);
+  }
+
+  /**
    * Construct my default state.
    * @param id the String unique identity of this entity
    */
   protected StatefulEntity(final String id) {
-    this.id = id;
+    this.id = id != null ? id : address().idString();
     this.currentVersion = 0;
     this.info = info();
     this.readInterest = selfAs(ReadResultInterest.class);

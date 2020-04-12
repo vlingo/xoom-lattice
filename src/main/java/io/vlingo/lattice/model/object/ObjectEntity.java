@@ -49,11 +49,18 @@ public abstract class ObjectEntity<T extends StateObject> extends EntityGridActo
   private QueryExpression queryExpression;
 
   /**
+   * Construct my default state using my {@code address} as my {@code id}.
+   */
+  protected ObjectEntity() {
+    this(null);
+  }
+
+  /**
    * Construct my default state.
    * @param id the String unique identity of this entity
    */
   protected ObjectEntity(final String id) {
-    this.id = id;
+    this.id = id != null ? id : address().idString();
     this.info = info();
     this.persistResultInterest = selfAs(PersistResultInterest.class);
     this.queryResultInterest = selfAs(QueryResultInterest.class);
