@@ -9,18 +9,13 @@ package io.vlingo.actors;
 
 import java.util.UUID;
 
-import io.vlingo.common.identity.IdentityGenerator;
 import io.vlingo.common.identity.IdentityGeneratorType;
 
-public final class GridAddressFactory implements AddressFactory {
+public final class GridAddressFactory extends UUIDAddressFactory {
   private static final Address None = new GridAddress(null, "(none)");
 
-  private final IdentityGenerator generator;
-  private final IdentityGeneratorType type;
-
   public GridAddressFactory(final IdentityGeneratorType type) {
-    this.type = type;
-    this.generator = this.type.generator();
+    super(type);
   }
 
   @Override
@@ -49,21 +44,6 @@ public final class GridAddressFactory implements AddressFactory {
   }
 
   @Override
-  public Address unique() {
-    return new GridAddress(generator.generate());
-  }
-
-  @Override
-  public Address uniquePrefixedWith(final String prefixedWith) {
-    return new GridAddress(generator.generate(), prefixedWith, true);
-  }
-
-  @Override
-  public Address uniqueWith(final String name) {
-    return new GridAddress(generator.generate(name), name);
-  }
-
-  @Override
   public Address withHighId() {
     throw new UnsupportedOperationException("Unsupported for GridAddress.");
   }
@@ -76,9 +56,5 @@ public final class GridAddressFactory implements AddressFactory {
   @Override
   public long testNextIdValue() {
     throw new UnsupportedOperationException("Unsupported for GridAddress.");
-  }
-
-  private UUID uuidFrom(final long id) {
-    return new UUID(Long.MAX_VALUE, id);
   }
 }
