@@ -193,6 +193,8 @@ public class EventSourcedTest {
   }
 
   public static abstract class ProductGrandparent extends EventSourced implements Product {
+    private static final long serialVersionUID = 1L;
+
     private String type;
 
     public ProductGrandparent(String streamName) {
@@ -219,6 +221,8 @@ public class EventSourcedTest {
   }
 
   public static abstract class ProductParent extends ProductGrandparent {
+    private static final long serialVersionUID = 1L;
+
     private String category;
 
     public ProductParent(String streamName) {
@@ -245,6 +249,8 @@ public class EventSourcedTest {
   }
 
   public static class ProductEntity extends ProductParent {
+    private static final long serialVersionUID = 1L;
+
     public String name;
     public String description;
     public long price;

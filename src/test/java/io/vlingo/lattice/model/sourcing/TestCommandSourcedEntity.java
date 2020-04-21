@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import io.vlingo.common.Completes;
 
 public class TestCommandSourcedEntity extends CommandSourced implements Entity {
+  private static final long serialVersionUID = 1L;
 
   static {
     final BiConsumer<TestCommandSourcedEntity,DoCommand1> bi1 = TestCommandSourcedEntity::applied1;

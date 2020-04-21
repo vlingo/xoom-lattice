@@ -12,6 +12,8 @@ import java.util.function.BiConsumer;
 import io.vlingo.common.Completes;
 
 public class TestEventSourcedEntity extends EventSourced implements Entity {
+  private static final long serialVersionUID = 1L;
+
   static {
     final BiConsumer<TestEventSourcedEntity,Test1Happened> bi1 = TestEventSourcedEntity::applied1;
     registerConsumer(TestEventSourcedEntity.class, Test1Happened.class, bi1);

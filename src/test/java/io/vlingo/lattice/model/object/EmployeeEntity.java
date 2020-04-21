@@ -10,6 +10,8 @@ package io.vlingo.lattice.model.object;
 import io.vlingo.common.Completes;
 
 public class EmployeeEntity extends ObjectEntity<EmployeeState> implements Employee {
+  private static final long serialVersionUID = 1L;
+
   private EmployeeState employee;
 
   public EmployeeEntity(final String id) {
