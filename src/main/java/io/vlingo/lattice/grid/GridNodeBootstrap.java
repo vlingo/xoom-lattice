@@ -7,7 +7,7 @@
 
 package io.vlingo.lattice.grid;
 
-import io.vlingo.actors.Grid;
+import io.vlingo.actors.GridRuntime;
 import io.vlingo.actors.Logger;
 import io.vlingo.cluster.model.Cluster;
 import io.vlingo.cluster.model.ClusterSnapshotControl;
@@ -19,11 +19,11 @@ public class GridNodeBootstrap {
 
   private final GridShutdownHook shutdownHook;
 
-  public static GridNodeBootstrap boot(final Grid grid, final String nodeName, final boolean embedded) throws Exception {
+  public static GridNodeBootstrap boot(final GridRuntime grid, final String nodeName, final boolean embedded) throws Exception {
     return boot(grid, nodeName, io.vlingo.cluster.model.Properties.instance, embedded);
   }
 
-  public static GridNodeBootstrap boot(final Grid grid, final String nodeName, final io.vlingo.cluster.model.Properties properties, final boolean embedded) throws Exception {
+  public static GridNodeBootstrap boot(final GridRuntime grid, final String nodeName, final io.vlingo.cluster.model.Properties properties, final boolean embedded) throws Exception {
     properties.validateRequired(nodeName);
 
     final Tuple2<ClusterSnapshotControl, Logger> control =
@@ -59,17 +59,17 @@ public class GridNodeBootstrap {
 
     private static final long serialVersionUID = -7096922857258549619L;
 
-    private final Grid grid;
+    private final GridRuntime gridRuntime;
 
-    public GridNodeInstantiator(Grid grid) {
+    public GridNodeInstantiator(final GridRuntime gridRuntime) {
       super(GridNode.class);
-      this.grid = grid;
+      this.gridRuntime = gridRuntime;
     }
 
     @Override
     public GridNode instantiate() {
-      grid.setNodeId(node().id());
-      return new GridNode(grid, node());
+      gridRuntime.setNodeId(node().id());
+      return new GridNode(gridRuntime, node());
     }
   }
 }

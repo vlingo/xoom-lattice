@@ -19,7 +19,7 @@ import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
 import io.vlingo.wire.node.Id;
 
-public class Grid extends Stage implements GridRuntime, QuorumObserver {
+public class Grid extends Stage implements GridRuntime {
   private static final int GridStageBuckets = 32;
   private static final int GridStageInitialCapacity = 16_384;
 
@@ -119,9 +119,14 @@ public class Grid extends Stage implements GridRuntime, QuorumObserver {
   }
 
   @Override
+  public Stage asStage() {
+    return this;
+  }
+
+  @Override
   <T> T actorThunkFor(Class<T> protocol, Definition definition, Address address) {
     final Mailbox actorMailbox = this.allocateMailbox(definition, address, null);
-    actorMailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
+    actorMailbox.suspendExceptFor(GridActorOperations.Resume, Relocatable.class);
     final ActorProtocolActor<T> actor =
         actorProtocolFor(
             protocol,
@@ -159,13 +164,18 @@ public class Grid extends Stage implements GridRuntime, QuorumObserver {
         .filter(address ->
             address.isDistributable() && shouldRelocateTo(copy, address, newNode))
         .forEach(address -> {
-          final GridActor<?> actor = ((GridActor<?>) directory.actorOf(address));
-          if (!actor.isSuspendedForRelocation()) {
+          final Actor actor = directory.actorOf(address);
+          if (!GridActorOperations.isSuspendedForRelocation(actor)) {
             logger.debug("Relocating actor [{}] to [{}]", address, newNode);
-            actor.suspendForRelocation();
+            //actor.suspendForRelocation();
+            GridActorOperations.suspendForRelocation(actor);
             outbound.relocate(
-                newNode, nodeId, Definition.SerializationProxy.from(actor.definition()),
-                address, actor.provideRelocationSnapshot(), actor.pending());
+                newNode,
+                nodeId,
+                Definition.SerializationProxy.from(actor.definition()),
+                address,
+                GridActorOperations.supplyRelocationSnapshot(actor) /*actor.provideRelocationSnapshot()*/,
+                GridActorOperations.pending(actor));
           }
         });
   }
@@ -180,6 +190,11 @@ public class Grid extends Stage implements GridRuntime, QuorumObserver {
   }
 
   @Override
+  public QuorumObserver quorumObserver() {
+    return this;
+  }
+
+  @Override
   public void setOutbound(final OutboundGridActorControl outbound) {
     this.outbound = outbound;
   }
@@ -189,7 +204,8 @@ public class Grid extends Stage implements GridRuntime, QuorumObserver {
     this.nodeId = nodeId;
   }
 
-  public ClassLoader worldLoader() {
+  @Override
+  public ClassLoader worldClassLoader() {
     return world().classLoader();
   }
 
@@ -232,8 +248,8 @@ public class Grid extends Stage implements GridRuntime, QuorumObserver {
     if (node != null && !node.equals(nodeId)) {
       out.run();
       __mailbox = allocateMailbox(definition, address, maybeMailbox);
-      if (!__mailbox.isSuspendedFor(GridActor.Resume)) {
-        __mailbox.suspendExceptFor(GridActor.Resume, RelocationSnapshotConsumer.class);
+      if (!__mailbox.isSuspendedFor(GridActorOperations.Resume)) {
+        __mailbox.suspendExceptFor(GridActorOperations.Resume, Relocatable.class);
       }
     }
     else {

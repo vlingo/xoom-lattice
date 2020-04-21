@@ -21,14 +21,14 @@ import io.vlingo.wire.node.Id;
 public class InboundGridActorControl implements GridActorControl.Inbound {
 
   private final Logger logger;
-  private final Grid grid;
+  private final GridRuntime gridRuntime;
 
   private final Function<UUID, Returns<?>> correlation;
 
 
-  public InboundGridActorControl(Logger logger, Grid grid, Function<UUID, Returns<?>> correlation) {
+  public InboundGridActorControl(final Logger logger, final GridRuntime gridRuntime, final Function<UUID, Returns<?>> correlation) {
     this.logger = logger;
-    this.grid = grid;
+    this.gridRuntime = gridRuntime;
     this.correlation = correlation;
   }
 
@@ -43,7 +43,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
       return;
     }
     if (answer.error == null) {
-      T result = ActorProxyBase.thunk(grid, answer.result);
+      T result = ActorProxyBase.thunk(gridRuntime.asStage(), answer.result);
       if (clientReturns.isCompletes()) {
         clientReturns.asCompletes().with(result);
       } else if (clientReturns.isCompletableFuture()) {
@@ -71,14 +71,20 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   @Override
   public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Definition.SerializationProxy definition) {
     logger.debug("Processing: Received application message: Start");
-    final GridActor<?> actor = (GridActor<?>) grid.rawLookupOrStart(
-        Definition.from(grid, definition, grid.world.defaultLogger()),
-        address);
-    if (actor.isSuspendedForRelocation()) {
+
+    final Stage stage = gridRuntime.asStage();
+
+    final Actor actor =
+            stage.rawLookupOrStart(
+                    Definition.from(stage, definition, stage.world().defaultLogger()),
+                    address);
+
+    if (GridActorOperations.isSuspendedForRelocation(actor)) {
       logger.debug("Resuming thunk found at {} with definition='{}'",
           address,
           actor.definition());
-      actor.resumeFromRelocation();
+
+      GridActorOperations.resumeFromRelocation(actor);
     }
   }
 
@@ -86,23 +92,28 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   public <T> void deliver(
       Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Definition.SerializationProxy definition, SerializableConsumer<T> consumer, String representation) {
     logger.debug("Processing: Received application message: Deliver");
-    final Actor actor = grid.actorLookupOrStartThunk(
-        Definition.from(grid, definition, grid.world.defaultLogger()),
+    final Stage stage = gridRuntime.asStage();
+    final Actor actor = stage.actorLookupOrStartThunk(
+        Definition.from(stage, definition, stage.world().defaultLogger()),
         address);
     Mailbox mailbox = actor.lifeCycle.environment.mailbox;
     mailbox.send(actor, protocol, consumer, returns, representation);
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public void relocate(Id receiver, Id sender, Definition.SerializationProxy definition, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
     logger.debug("Processing: Received application message: Relocate");
-    final GridActor<?> actor = (GridActor<?>) grid.actorLookupOrStartThunk(
-        Definition.from(grid, definition, grid.world.defaultLogger()),
-        address);
-    final RelocationSnapshotConsumer<Object> consumer = grid.actorAs(actor,
-        RelocationSnapshotConsumer.class);
-    consumer.applyRelocationSnapshot(snapshot);
+
+    final Stage stage = gridRuntime.asStage();
+
+    final Actor actor =
+            stage.actorLookupOrStartThunk(
+                    Definition.from(stage, definition, stage.world.defaultLogger()),
+                    address);
+
+    GridActorOperations.applyRelocationSnapshot(stage, actor, snapshot);
+
+    // TODO: Wrong, delivering messages on this thread.
     pending.forEach(m -> {
       final LocalMessage<?> message = (LocalMessage<?>)m;
       message.set(actor,
@@ -110,7 +121,8 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
           message.returns(), message.representation());
       message.deliver();
     });
-    actor.resumeFromRelocation();
+
+    GridActorOperations.resumeFromRelocation(actor);
   }
 
   @Override

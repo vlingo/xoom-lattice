@@ -1,15 +1,16 @@
 package io.vlingo.lattice.util;
 
-import io.vlingo.actors.Actor;
-import io.vlingo.common.Scheduled;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.vlingo.actors.Actor;
+import io.vlingo.common.Scheduled;
 
 /**
  * Holds hard references in a queue and provides means to expunge "expired" references based on timeout duration.
@@ -38,6 +39,7 @@ public class ExpiringHardRefHolder extends Actor implements HardRefHolder, Sched
     this(Instant::now, timeout, initialCapacity);
   }
 
+  @SuppressWarnings("unchecked")
   ExpiringHardRefHolder(final Supplier<Instant> now,
                         final Duration timeout,
                         final int initialCapacity) {

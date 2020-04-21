@@ -7,24 +7,34 @@
 
 package io.vlingo.lattice.grid.application;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.vlingo.actors.Address;
 import io.vlingo.actors.LocalMessage;
 import io.vlingo.actors.Returns;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Scheduler;
-import io.vlingo.lattice.grid.application.message.*;
+import io.vlingo.lattice.grid.application.message.Answer;
+import io.vlingo.lattice.grid.application.message.Decoder;
+import io.vlingo.lattice.grid.application.message.Deliver;
+import io.vlingo.lattice.grid.application.message.Message;
+import io.vlingo.lattice.grid.application.message.Relocate;
+import io.vlingo.lattice.grid.application.message.Start;
+import io.vlingo.lattice.grid.application.message.Visitor;
 import io.vlingo.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.util.HardRefHolder;
 import io.vlingo.lattice.util.WeakQueue;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
 
@@ -36,8 +46,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   private final GridActorControl.Outbound outbound;
   private final Decoder decoder;
   private final Visitor visitor;
-
-  private final Scheduler scheduler = new Scheduler(); // TODO inject?
+  private final Scheduler scheduler;
 
   private final HardRefHolder holder;
   private final Queue<Runnable> buffer = new WeakQueue<>();
@@ -46,8 +55,9 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       final Id localNode, final HashRing<Id> hashRing,
       final GridActorControl.Inbound inbound,
       final GridActorControl.Outbound outbound,
-      final HardRefHolder holder) {
-    this(localNode, hashRing, inbound, outbound, new JavaObjectDecoder(), holder);
+      final HardRefHolder holder,
+      final Scheduler scheduler) {
+    this(localNode, hashRing, inbound, outbound, new JavaObjectDecoder(), holder, scheduler);
   }
 
   public GridApplicationMessageHandler(
@@ -55,13 +65,15 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       final GridActorControl.Inbound inbound,
       final GridActorControl.Outbound outbound,
       final Decoder decoder,
-      final HardRefHolder holder) {
+      final HardRefHolder holder,
+      final Scheduler scheduler) {
     this.localNode = localNode;
     this.hashRing = hashRing;
     this.inbound = inbound;
     this.outbound = outbound;
     this.decoder = decoder;
     this.holder = holder;
+    this.scheduler = scheduler;
 
     this.visitor = new ControlMessageVisitor();
   }

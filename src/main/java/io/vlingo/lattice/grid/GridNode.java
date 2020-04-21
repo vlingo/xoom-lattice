@@ -7,7 +7,20 @@
 
 package io.vlingo.lattice.grid;
 
-import io.vlingo.actors.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.nustaq.serialization.FSTConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.vlingo.actors.Definition;
+import io.vlingo.actors.GridRuntime;
+import io.vlingo.actors.InboundGridActorControl;
+import io.vlingo.actors.Returns;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
@@ -24,11 +37,6 @@ import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
-import org.nustaq.serialization.FSTConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class GridNode extends ClusterApplicationAdapter {
 
@@ -37,7 +45,7 @@ public class GridNode extends ClusterApplicationAdapter {
   private static final Map<UUID, Returns<?>> correlation = new HashMap<>();
 
   private AttributesProtocol client;
-  private final Grid grid;
+  private final GridRuntime gridRuntime;
   private final Node localNode;
 
   private final OutboundGridActorControl outbound;
@@ -46,32 +54,44 @@ public class GridNode extends ClusterApplicationAdapter {
 
   private final Collection<QuorumObserver> quorumObservers;
 
-  public GridNode(final Grid grid, final Node localNode) {
-    this.grid = grid;
+  public GridNode(final GridRuntime gridRuntime, final Node localNode) {
+    this.gridRuntime = gridRuntime;
     this.localNode = localNode;
 
     final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
     // set classloader with available proxy classes
-    conf.setClassLoader(grid.worldLoader());
+    conf.setClassLoader(gridRuntime.worldClassLoader());
 
-    final HardRefHolder holder = grid.world().actorFor(HardRefHolder.class,
+    final HardRefHolder holder = gridRuntime.world().actorFor(HardRefHolder.class,
         Definition.has(ExpiringHardRefHolder.class, ExpiringHardRefHolder::new));
 
-    this.outbound = new OutboundGridActorControl(localNode.id(),
-        new FSTEncoder(conf),
-        correlation::put,
-        new OutBuffers(holder));
+    this.outbound =
+            new OutboundGridActorControl(
+                    localNode.id(),
+                    new FSTEncoder(conf),
+                    correlation::put,
+                    new OutBuffers(holder));
 
-    this.grid.setOutbound(outbound);
+    this.gridRuntime.setOutbound(outbound);
 
-    final InboundGridActorControl inbound = new InboundGridActorControl(logger(),
-        grid,
-        correlation::remove);
-    this.applicationMessageHandler = new GridApplicationMessageHandler(
-        localNode.id(), grid.hashRing(), inbound, outbound, new FSTDecoder(conf), holder);
+    final InboundGridActorControl inbound =
+            new InboundGridActorControl(
+                    logger(),
+                    gridRuntime,
+                    correlation::remove);
+
+    this.applicationMessageHandler =
+            new GridApplicationMessageHandler(
+                    localNode.id(),
+                    gridRuntime.hashRing(),
+                    inbound,
+                    outbound,
+                    new FSTDecoder(conf), holder,
+                    scheduler());
 
     this.quorumObservers = new ArrayList<>(3);
-    registerQuorumObserver(grid);
+
+    registerQuorumObserver(gridRuntime);
   }
 
   public final void registerQuorumObserver(final QuorumObserver observer) {
@@ -81,7 +101,7 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void start() {
     logger.debug("GRID: Started on node: " + localNode);
-    grid.hashRing().includeNode(localNode.id());
+    gridRuntime.hashRing().includeNode(localNode.id());
   }
 
   @Override
@@ -137,13 +157,13 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informNodeJoinedCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger.debug("GRID: Node joined: " + nodeId + " and is healthy: " + isHealthyCluster);
-    grid.nodeJoined(nodeId);
+    gridRuntime.nodeJoined(nodeId);
   }
 
   @Override
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger.debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
-    grid.hashRing().excludeNode(nodeId);
+    gridRuntime.hashRing().excludeNode(nodeId);
   }
 
   @Override
