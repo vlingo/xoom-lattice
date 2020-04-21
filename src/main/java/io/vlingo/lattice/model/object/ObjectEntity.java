@@ -15,7 +15,7 @@ import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple2;
-import io.vlingo.lattice.model.EntityGridActor;
+import io.vlingo.lattice.model.EntityActor;
 import io.vlingo.lattice.model.object.ObjectTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
@@ -38,8 +38,10 @@ import io.vlingo.symbio.store.object.StateSources;
  * whether formally or informally implemented.
  * @param <T> the type of persistent object
  */
-public abstract class ObjectEntity<T extends StateObject> extends EntityGridActor
+public abstract class ObjectEntity<T extends StateObject> extends EntityActor
   implements PersistResultInterest, QueryResultInterest {
+
+  private static final long serialVersionUID = 1L;
 
   protected final String id;
 

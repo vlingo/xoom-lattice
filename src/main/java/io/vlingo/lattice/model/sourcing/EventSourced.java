@@ -13,6 +13,8 @@ import io.vlingo.lattice.model.DomainEvent;
  * A {@code Sourced<T>} for concrete types of {@code DomainEvent}.
  */
 public abstract class EventSourced extends Sourced<DomainEvent> {
+  private static final long serialVersionUID = 1L;
+
   public EventSourced() {
     super();
   }

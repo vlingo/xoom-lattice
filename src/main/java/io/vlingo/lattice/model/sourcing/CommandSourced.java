@@ -13,6 +13,8 @@ import io.vlingo.lattice.model.Command;
  * A {@code Sourced<T>} for concrete types of {@code Command}.
  */
 public abstract class CommandSourced extends Sourced<Command> {
+  private static final long serialVersionUID = 1L;
+
   public CommandSourced() {
     super();
   }

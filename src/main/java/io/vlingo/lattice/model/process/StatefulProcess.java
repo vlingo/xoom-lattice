@@ -22,6 +22,8 @@ import io.vlingo.symbio.Source;
  * @param <T> the type of StatefulEntity
  */
 public abstract class StatefulProcess<T> extends StatefulEntity<T> implements Process<T> {
+  private static final long serialVersionUID = 1L;
+
   private final ProcessTypeRegistry.Info<? extends SourcedProcess<T>> info;
 
   private List<Source<?>> applied;

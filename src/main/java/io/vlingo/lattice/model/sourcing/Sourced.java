@@ -25,7 +25,7 @@ import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.model.ApplyFailedException;
 import io.vlingo.lattice.model.ApplyFailedException.Applicable;
-import io.vlingo.lattice.model.EntityGridActor;
+import io.vlingo.lattice.model.EntityActor;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
@@ -40,7 +40,8 @@ import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
  * transition control for my concrete extender.
  * @param <T> the concrete type that is being sourced
  */
-public abstract class Sourced<T> extends EntityGridActor implements AppendResultInterest {
+public abstract class Sourced<T> extends EntityActor implements AppendResultInterest {
+  private static final long serialVersionUID = 1L;
 
   private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();

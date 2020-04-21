@@ -15,7 +15,7 @@ import io.vlingo.actors.CompletionSupplier;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.common.Tuple3;
-import io.vlingo.lattice.model.EntityGridActor;
+import io.vlingo.lattice.model.EntityActor;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry.Info;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
@@ -30,8 +30,10 @@ import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
  * for both your Command Model and CQRS Query Model, or for your CQRS Query Model
  * only when your Command Model uses the {@code EventSourced} or {@code EventSourced}.
  */
-public abstract class StatefulEntity<S> extends EntityGridActor
+public abstract class StatefulEntity<S> extends EntityActor
     implements ReadResultInterest, WriteResultInterest {
+
+  private static final long serialVersionUID = 1L;
 
   protected final String id;
 

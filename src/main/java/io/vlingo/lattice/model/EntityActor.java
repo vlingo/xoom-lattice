@@ -7,12 +7,15 @@
 
 package io.vlingo.lattice.model;
 
+import java.io.Serializable;
+
 import io.vlingo.actors.Actor;
 
 /**
  * Abstract base of all entity types.
  */
-public abstract class EntityActor extends Actor {
+public abstract class EntityActor extends Actor implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   /**
    * Restore my state.
