@@ -67,6 +67,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       final Decoder decoder,
       final HardRefHolder holder,
       final Scheduler scheduler) {
+
     this.localNode = localNode;
     this.hashRing = hashRing;
     this.inbound = inbound;
@@ -79,10 +80,10 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   }
 
   @Override
-  public void handle(RawMessage raw) {
+  public void handle(final RawMessage raw) {
     try {
-      Message message = decoder.decode(raw.asBinaryMessage());
-      Id sender = Id.of(raw.header().nodeId());
+      final Message message = decoder.decode(raw.asBinaryMessage());
+      final Id sender = Id.of(raw.header().nodeId());
       logger.debug("Buffering message {} from {}", message, sender);
       final Runnable runnable = () -> {
         logger.debug("Handling message {} from {}", message, sender);
@@ -98,7 +99,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   }
 
   @Override
-  public void disburse(Id id) {
+  public void disburse(final Id id) {
     if (!id.equals(localNode)) return;
     logger.debug("Disbursing buffered messages");
     Runnable next;
@@ -114,13 +115,13 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   final class ControlMessageVisitor implements Visitor {
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void visit(Id receiver, Id sender, Answer answer) {
+    public void visit(final Id receiver, final Id sender, final Answer answer) {
       inbound.answer(receiver, sender, answer);
     }
 
     @Override
-    public <T> void visit(Id receiver, Id sender, Deliver<T> deliver) {
-      Id recipient = receiver(receiver, deliver.address);
+    public <T> void visit(final Id receiver, final Id sender, final Deliver<T> deliver) {
+      final Id recipient = receiver(receiver, deliver.address);
       if (recipient == receiver) {
         inbound.deliver(
             receiver, sender,
@@ -132,8 +133,8 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
 
     @Override
-    public <T> void visit(Id receiver, Id sender, Start<T> start) {
-      Id recipient = receiver(receiver, start.address);
+    public <T> void visit(final Id receiver, final Id sender, final Start<T> start) {
+      final Id recipient = receiver(receiver, start.address);
       if (recipient == receiver) {
         inbound.start(receiver, sender, start.protocol, start.address, start.definition);
       } else {
@@ -141,7 +142,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       }
     }
 
-    private Id receiver(Id receiver, Address address) {
+    private Id receiver(final Id receiver, final Address address) {
       final Id recipient = hashRing.nodeOf(address.idString());
       if (recipient == null || recipient.equals(receiver)) {
         return receiver;
@@ -151,10 +152,10 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
 
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void visit(Id receiver, Id sender, Relocate relocate) {
-      Id recipient = receiver(receiver, relocate.address);
+    public void visit(final Id receiver, final Id sender, final Relocate relocate) {
+      final Id recipient = receiver(receiver, relocate.address);
       if (recipient == receiver) {
-        List<LocalMessage> pending = relocate.pending.stream()
+        final List<LocalMessage> pending = relocate.pending.stream()
             .map(deliver ->
                 new LocalMessage(null, deliver.protocol, deliver.consumer,
                     returnsAnswer(receiver, sender, deliver), deliver.representation))
@@ -166,7 +167,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       }
     }
 
-    private Returns<?> returnsAnswer(Id receiver, Id sender, Deliver<?> deliver) {
+    private Returns<?> returnsAnswer(final Id receiver, final Id sender, final Deliver<?> deliver) {
       final Returns<?> returns;
       if (deliver.answerCorrelationId == null) {
         returns = null;

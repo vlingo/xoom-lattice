@@ -15,31 +15,27 @@ import java.util.function.Function;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.wire.node.Id;
 
-public class InboundGridActorControl implements GridActorControl.Inbound {
+public class InboundGridActorControl extends Actor implements GridActorControl.Inbound {
 
-  private final Logger logger;
   private final GridRuntime gridRuntime;
 
   private final Function<UUID, Returns<?>> correlation;
 
 
-  public InboundGridActorControl(final Logger logger, final GridRuntime gridRuntime, final Function<UUID, Returns<?>> correlation) {
-    this.logger = logger;
+  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, Returns<?>> correlation) {
     this.gridRuntime = gridRuntime;
     this.correlation = correlation;
   }
 
-
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public <T> void answer(Id receiver, Id sender, Answer<T> answer) {
-    logger.debug("GRID: Processing application message: Answer");
+  public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
+    logger().debug("GRID: Processing application message: Answer");
     final Returns<Object> clientReturns = (Returns<Object>) correlation.apply(answer.correlationId);
     if (clientReturns == null) {
-      logger.warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
+      logger().warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
       return;
     }
     if (answer.error == null) {
@@ -64,13 +60,19 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
   }
 
   @Override
-  public void forward(Id receiver, Id sender, Message message) {
+  public void forward(final Id receiver, final Id sender, final io.vlingo.lattice.grid.application.message.Message message) {
     throw new UnsupportedOperationException("Should have been handled in Visitor#accept(Id, Id, Forward) by dispatching the visitor to the enclosed Message");
   }
 
   @Override
-  public <T> void start(Id receiver, Id sender, Class<T> protocol, Address address, Definition.SerializationProxy definition) {
-    logger.debug("Processing: Received application message: Start");
+  public <T> void start(
+          final Id receiver,
+          final Id sender,
+          final Class<T> protocol,
+          final Address address,
+          final Definition.SerializationProxy definition) {
+
+    logger().debug("Processing: Received application message: Start");
 
     final Stage stage = gridRuntime.asStage();
 
@@ -80,7 +82,7 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
                     address);
 
     if (GridActorOperations.isSuspendedForRelocation(actor)) {
-      logger.debug("Resuming thunk found at {} with definition='{}'",
+      logger().debug("Resuming thunk found at {} with definition='{}'",
           address,
           actor.definition());
 
@@ -90,19 +92,37 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
 
   @Override
   public <T> void deliver(
-      Id receiver, Id sender, Returns<?> returns, Class<T> protocol, Address address, Definition.SerializationProxy definition, SerializableConsumer<T> consumer, String representation) {
-    logger.debug("Processing: Received application message: Deliver");
+          final Id receiver,
+          final Id sender,
+          final Returns<?> returns,
+          final Class<T> protocol,
+          final Address address,
+          final Definition.SerializationProxy definition,
+          final SerializableConsumer<T> consumer,
+          final String representation) {
+
+    logger().debug("Processing: Received application message: Deliver");
+
     final Stage stage = gridRuntime.asStage();
-    final Actor actor = stage.actorLookupOrStartThunk(
-        Definition.from(stage, definition, stage.world().defaultLogger()),
-        address);
-    Mailbox mailbox = actor.lifeCycle.environment.mailbox;
-    mailbox.send(actor, protocol, consumer, returns, representation);
+
+    final Actor actor =
+            stage.actorLookupOrStartThunk(
+                    Definition.from(stage, definition, stage.world().defaultLogger()),
+                    address);
+
+    actor.lifeCycle.environment.mailbox.send(actor, protocol, consumer, returns, representation);
   }
 
   @Override
-  public void relocate(Id receiver, Id sender, Definition.SerializationProxy definition, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
-    logger.debug("Processing: Received application message: Relocate");
+  public void relocate(
+          final Id receiver,
+          final Id sender,
+          final Definition.SerializationProxy definition,
+          final Address address,
+          final Object snapshot,
+          final List<? extends io.vlingo.actors.Message> pending) {
+
+    logger().debug("Processing: Received application message: Relocate");
 
     final Stage stage = gridRuntime.asStage();
 
@@ -113,20 +133,36 @@ public class InboundGridActorControl implements GridActorControl.Inbound {
 
     GridActorOperations.applyRelocationSnapshot(stage, actor, snapshot);
 
-    // TODO: Wrong, delivering messages on this thread.
-    pending.forEach(m -> {
-      final LocalMessage<?> message = (LocalMessage<?>)m;
-      message.set(actor,
-          message.protocol(), message.consumer(),
-          message.returns(), message.representation());
-      message.deliver();
+    final Mailbox mailbox = actor.lifeCycle.environment.mailbox;
+
+    pending.forEach(pendingMessage -> {
+      final LocalMessage<?> message = (LocalMessage<?>) pendingMessage;
+      message.set(actor, message.protocol(), message.consumer(), message.returns(), message.representation());
+      mailbox.send(message);
     });
 
     GridActorOperations.resumeFromRelocation(actor);
   }
 
   @Override
-  public void disburse(Id id) {
+  public void disburse(final Id id) {
     throw new UnsupportedOperationException("disburse of buffered messages handled in ApplicationMessageHandler");
+  }
+
+  public static class InboundGridActorControlInstantiator implements ActorInstantiator<InboundGridActorControl> {
+    private static final long serialVersionUID = 1494058617174306163L;
+
+    private final GridRuntime gridRuntime;
+    private final Function<UUID, Returns<?>> correlation;
+
+    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, Returns<?>> correlation) {
+      this.gridRuntime = gridRuntime;
+      this.correlation = correlation;
+    }
+
+    @Override
+    public InboundGridActorControl instantiate() {
+      return new InboundGridActorControl(gridRuntime, correlation);
+    }
   }
 }

@@ -8,7 +8,7 @@
 package io.vlingo.actors;
 
 import io.vlingo.lattice.grid.GridNodeBootstrap;
-import io.vlingo.lattice.grid.application.OutboundGridActorControl;
+import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.QuorumObserver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.wire.node.Id;
@@ -21,7 +21,7 @@ public interface GridRuntime extends QuorumObserver {
   void nodeJoined(final Id newNode);
   QuorumObserver quorumObserver();
   void setNodeId(final Id nodeId);
-  void setOutbound(final OutboundGridActorControl outbound);
+  void setOutbound(final GridActorControl.Outbound outbound);
   World world();
   ClassLoader worldClassLoader();
 }

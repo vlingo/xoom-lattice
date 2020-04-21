@@ -12,7 +12,7 @@ import io.vlingo.wire.node.Id;
 
 public interface ApplicationMessageHandler {
 
-  void handle(RawMessage message);
+  void handle(final RawMessage message);
 
-  void disburse(Id id);
+  void disburse(final Id id);
 }

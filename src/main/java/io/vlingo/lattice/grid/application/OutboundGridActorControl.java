@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorInstantiator;
 import io.vlingo.actors.Address;
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.Returns;
@@ -28,12 +30,13 @@ import io.vlingo.lattice.grid.application.message.Forward;
 import io.vlingo.lattice.grid.application.message.Message;
 import io.vlingo.lattice.grid.application.message.Relocate;
 import io.vlingo.lattice.grid.application.message.Start;
+import io.vlingo.lattice.grid.application.message.serialization.FSTEncoder;
 import io.vlingo.lattice.util.OutBuffers;
 import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 
-public class OutboundGridActorControl implements GridActorControl.Outbound {
+public class OutboundGridActorControl extends Actor implements GridActorControl.Outbound {
 
   private static final Logger logger = LoggerFactory.getLogger(OutboundGridActorControl.class);
 
@@ -45,15 +48,22 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
   private final OutBuffers outBuffers;
 
 
-  public OutboundGridActorControl(Id localNodeId, Encoder encoder, BiConsumer<UUID, Returns<?>> correlation, OutBuffers outBuffers) {
+  public OutboundGridActorControl(
+          final Id localNodeId,
+          final Encoder encoder,
+          final BiConsumer<UUID, Returns<?>> correlation,
+          final OutBuffers outBuffers) {
+
     this(localNodeId, null, encoder, correlation, outBuffers);
   }
 
-  public OutboundGridActorControl(Id localNodeId,
-                                  ApplicationOutboundStream stream,
-                                  Encoder encoder,
-                                  BiConsumer<UUID, Returns<?>> correlation,
-                                  OutBuffers outBuffers) {
+  public OutboundGridActorControl(
+          final Id localNodeId,
+          final ApplicationOutboundStream stream,
+          final Encoder encoder,
+          final BiConsumer<UUID, Returns<?>> correlation,
+          final OutBuffers outBuffers) {
+
     this.localNodeId = localNodeId;
     this.stream = stream;
     this.encoder = encoder;
@@ -61,13 +71,9 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
     this.outBuffers = outBuffers;
   }
 
-  public void setStream(ApplicationOutboundStream outbound) {
-    this.stream = outbound;
-  }
-
   @Override
-  public void disburse(Id id) {
-    Queue<Runnable> buffer = outBuffers.queue(id);
+  public void disburse(final Id id) {
+    final Queue<Runnable> buffer = outBuffers.queue(id);
     logger.debug("Disbursing buffered messages");
     Runnable next;
     do {
@@ -78,7 +84,7 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
     } while (next != null);
   }
 
-  private void send(Id recipient, Message message) {
+  private void send(final Id recipient, final Message message) {
     logger.debug("Buffering message {} to {}", message, recipient);
     outBuffers.enqueue(recipient, () -> {
       logger.debug("Sending message {} to {}", message, recipient);
@@ -91,12 +97,27 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
   }
 
   @Override
-  public <T> void start(Id recipient, Id sender, Class<T> protocol, Address address, Definition.SerializationProxy definitionProxy) {
+  public <T> void start(
+          final Id recipient,
+          final Id sender,
+          final Class<T> protocol,
+          final Address address,
+          final Definition.SerializationProxy definitionProxy) {
+
     send(recipient, new Start<>(protocol, address, definitionProxy));
   }
 
   @Override
-  public <T> void deliver(Id recipient, Id sender, Returns<?> returns, Class<T> protocol, Address address, Definition.SerializationProxy definitionProxy, SerializableConsumer<T> consumer, String representation) {
+  public <T> void deliver(
+          final Id recipient,
+          final Id sender,
+          final Returns<?> returns,
+          final Class<T> protocol,
+          final Address address,
+          final Definition.SerializationProxy definitionProxy,
+          final SerializableConsumer<T> consumer,
+          final String representation) {
+
     final Deliver<T> deliver;
     if (returns == null) {
       deliver = new Deliver<>(protocol, address, definitionProxy, consumer, representation);
@@ -109,20 +130,59 @@ public class OutboundGridActorControl implements GridActorControl.Outbound {
   }
 
   @Override
-  public <T> void answer(Id receiver, Id sender, Answer<T> answer) {
+  public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
     send(receiver, answer);
   }
 
   @Override
-  public void forward(Id receiver, Id sender, Message message) {
+  public void forward(final Id receiver, final Id sender, final Message message) {
     send(receiver, new Forward(sender, message));
   }
 
   @Override
-  public void relocate(Id receiver, Id sender, Definition.SerializationProxy definitionProxy, Address address, Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
-    List<Deliver<?>> messages = pending.stream()
-        .map(Deliver.from(correlation))
-        .collect(Collectors.toList());
+  public void relocate(
+          final Id receiver,
+          final Id sender,
+          final Definition.SerializationProxy definitionProxy,
+          final Address address,
+          final Object snapshot, List<? extends io.vlingo.actors.Message> pending) {
+
+    final List<Deliver<?>> messages =
+            pending
+              .stream()
+              .map(Deliver.from(correlation))
+              .collect(Collectors.toList());
+
     send(receiver, new Relocate(address, definitionProxy, snapshot, messages));
+  }
+
+  @Override
+  public void useStream(ApplicationOutboundStream outbound) {
+    this.stream = outbound;
+  }
+
+  public static class OutboundGridActorControlInstantiator implements ActorInstantiator<OutboundGridActorControl> {
+    private static final long serialVersionUID = 8987209018742138417L;
+
+    private final Id id;
+    private final FSTEncoder fstEncoder;
+    private final BiConsumer<UUID, Returns<?>> correlation;
+    private final OutBuffers outBuffers;
+
+    public OutboundGridActorControlInstantiator(
+            final Id id,
+            final FSTEncoder fstEncoder,
+            final BiConsumer<UUID, Returns<?>> correlation,
+            final OutBuffers outBuffers) {
+      this.id = id;
+      this.fstEncoder = fstEncoder;
+      this.correlation = correlation;
+      this.outBuffers = outBuffers;
+    }
+
+    @Override
+    public OutboundGridActorControl instantiate() {
+      return new OutboundGridActorControl(id, fstEncoder, correlation, outBuffers);
+    }
   }
 }

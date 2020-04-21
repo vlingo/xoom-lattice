@@ -15,44 +15,49 @@ import io.vlingo.actors.Returns;
 import io.vlingo.common.SerializableConsumer;
 import io.vlingo.lattice.grid.application.message.Answer;
 import io.vlingo.lattice.grid.application.message.Message;
+import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.node.Id;
 
 public interface GridActorControl {
 
-  <T> void start(Id recipient,
-                 Id sender,
-                 Class<T> protocol,
-                 Address address,
-                 Definition.SerializationProxy definitionProxy);
+  <T> void start(
+          final Id recipient,
+          final Id sender,
+          final Class<T> protocol,
+          final Address address,
+          final Definition.SerializationProxy definitionProxy);
 
-  <T> void deliver(Id recipient,
-                   Id sender,
-                   Returns<?> returns,
-                   Class<T> protocol,
-                   Address address,
-                   Definition.SerializationProxy definitionProxy,
-                   SerializableConsumer<T> consumer,
-                   String representation);
+  <T> void deliver(
+          final Id recipient,
+          final Id sender,
+          final Returns<?> returns,
+          final Class<T> protocol,
+          final Address address,
+          final Definition.SerializationProxy definitionProxy,
+          final SerializableConsumer<T> consumer,
+          final String representation);
 
-  <T> void answer(Id receiver,
-                  Id sender,
-                  Answer<T> answer);
+  <T> void answer(
+          final Id receiver,
+          final Id sender,
+          final Answer<T> answer);
 
-  void forward(Id receiver, Id sender, Message message);
+  void forward(final Id receiver, final Id sender, final Message message);
 
-  void relocate(Id receiver,
-                Id sender,
-                Definition.SerializationProxy definitionProxy,
-                Address address,
-                Object snapshot,
-                List<? extends io.vlingo.actors.Message> pending);
+  void relocate(
+          final Id receiver,
+          final Id sender,
+          final Definition.SerializationProxy definitionProxy,
+          final Address address,
+          final Object snapshot,
+          final List<? extends io.vlingo.actors.Message> pending);
 
-  void disburse(Id id);
-
+  void disburse(final Id id);
 
   interface Inbound extends GridActorControl {
   }
 
   interface Outbound extends GridActorControl {
+    void useStream(final ApplicationOutboundStream outbound);
   }
 }

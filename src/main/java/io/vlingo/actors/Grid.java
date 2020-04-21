@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import io.vlingo.common.identity.IdentityGeneratorType;
 import io.vlingo.lattice.grid.GridNodeBootstrap;
-import io.vlingo.lattice.grid.application.OutboundGridActorControl;
+import io.vlingo.lattice.grid.application.GridActorControl;
 import io.vlingo.lattice.grid.application.QuorumObserver;
 import io.vlingo.lattice.grid.hashring.HashRing;
 import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
@@ -65,7 +65,7 @@ public class Grid extends Stage implements GridRuntime {
   private final HashRing<Id> hashRing;
 
   private Id nodeId;
-  private OutboundGridActorControl outbound;
+  private GridActorControl.Outbound outbound;
 
   private volatile boolean hasQuorum;
   private final long clusterHealthCheckInterval;
@@ -195,7 +195,7 @@ public class Grid extends Stage implements GridRuntime {
   }
 
   @Override
-  public void setOutbound(final OutboundGridActorControl outbound) {
+  public void setOutbound(final GridActorControl.Outbound outbound) {
     this.outbound = outbound;
   }
 
