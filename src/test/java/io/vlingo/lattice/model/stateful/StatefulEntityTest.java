@@ -226,8 +226,6 @@ public class StatefulEntityTest {
   }
 
   public static class Entity1Actor extends StatefulEntity<Entity1State> implements Entity1 {
-    private static final long serialVersionUID = 1L;
-
     private Entity1State state;
 
     public Entity1Actor(final Entity1State state) {
@@ -279,8 +277,6 @@ public class StatefulEntityTest {
   }
 
   public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State> implements Entity1 {
-    private static final long serialVersionUID = 1L;
-
     private Entity1State state;
 
     public Entity1MetadataCallbackActor(final Entity1State state) {

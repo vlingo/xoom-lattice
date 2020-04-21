@@ -23,8 +23,6 @@ import io.vlingo.symbio.store.object.StateObject;
  * @param <T> the type of ObjectEntity
  */
 public abstract class ObjectProcess<T extends StateObject> extends ObjectEntity<T> implements Process<T> {
-  private static final long serialVersionUID = 1L;
-
   private final ProcessTypeRegistry.Info<? extends ObjectProcess<T>> info;
 
   private List<Source<?>> applied;

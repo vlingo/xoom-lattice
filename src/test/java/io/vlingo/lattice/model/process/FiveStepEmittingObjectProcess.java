@@ -12,8 +12,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import io.vlingo.common.Completes;
 
 public class FiveStepEmittingObjectProcess extends ObjectProcess<StepCountObjectState> implements FiveStepProcess {
-  private static final long serialVersionUID = 1L;
-
   private static final AtomicLong IdGenerator = new AtomicLong(0);
 
   private final Chronicle<StepCountObjectState> chronicle;

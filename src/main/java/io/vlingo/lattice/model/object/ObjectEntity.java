@@ -41,8 +41,6 @@ import io.vlingo.symbio.store.object.StateSources;
 public abstract class ObjectEntity<T extends StateObject> extends EntityActor
   implements PersistResultInterest, QueryResultInterest {
 
-  private static final long serialVersionUID = 1L;
-
   protected final String id;
 
   private final Info<T> info;

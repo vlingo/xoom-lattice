@@ -10,8 +10,6 @@ package io.vlingo.lattice.model.process;
 import io.vlingo.common.Completes;
 
 public class FiveStepEmittingSourcedProcess extends SourcedProcess<Object> implements FiveStepProcess {
-  private static final long serialVersionUID = 1L;
-
   static {
     registerConsumer(FiveStepEmittingSourcedProcess.class, ProcessMessage.class, FiveStepEmittingSourcedProcess::applyProcessMessage);
   }

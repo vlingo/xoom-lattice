@@ -41,8 +41,6 @@ import io.vlingo.symbio.store.journal.Journal.AppendResultInterest;
  * @param <T> the concrete type that is being sourced
  */
 public abstract class Sourced<T> extends EntityActor implements AppendResultInterest {
-  private static final long serialVersionUID = 1L;
-
   private static final Map<Class<Sourced<Source<?>>>,Map<Class<Source<?>>, BiConsumer<Sourced<?>, Source<?>>>> registeredConsumers =
           new ConcurrentHashMap<>();
 

@@ -32,8 +32,6 @@ import io.vlingo.symbio.Source;
  * @param <T> the type of the process state and used by the {@code Chronicle<T>}
  */
 public abstract class SourcedProcess<T> extends Sourced<ProcessMessage> implements Process<T> {
-  private static final long serialVersionUID = 1L;
-
   private final ProcessTypeRegistry.Info<? extends SourcedProcess<T>> info;
 
   private List<Source<?>> applied;

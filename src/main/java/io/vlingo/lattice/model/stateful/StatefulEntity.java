@@ -33,8 +33,6 @@ import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 public abstract class StatefulEntity<S> extends EntityActor
     implements ReadResultInterest, WriteResultInterest {
 
-  private static final long serialVersionUID = 1L;
-
   protected final String id;
 
   private int currentVersion;
