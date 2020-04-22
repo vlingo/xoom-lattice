@@ -24,6 +24,7 @@ import io.vlingo.actors.World;
 import io.vlingo.actors.plugin.logging.slf4j.Slf4jLoggerPlugin;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.actors.testkit.TestWorld;
+import io.vlingo.cluster.ClusterProperties;
 
 public class GridActorOfTest {
   private Grid grid;

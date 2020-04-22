@@ -10,12 +10,15 @@ package io.vlingo.lattice.grid.spaces;
 import java.time.Duration;
 import java.util.Optional;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import io.vlingo.actors.Configuration;
 import io.vlingo.actors.Grid;
+import io.vlingo.cluster.ClusterProperties;
 import io.vlingo.common.Completes;
-import io.vlingo.lattice.grid.ClusterProperties;
 
 public class SpaceTest {
   private static final String DefaultItem = "ThisIsAnItem";

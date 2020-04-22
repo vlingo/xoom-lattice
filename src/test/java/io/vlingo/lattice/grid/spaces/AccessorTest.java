@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import io.vlingo.actors.Configuration;
 import io.vlingo.actors.Grid;
-import io.vlingo.lattice.grid.ClusterProperties;
+import io.vlingo.cluster.ClusterProperties;
 
 public class AccessorTest {
   private Grid grid;
