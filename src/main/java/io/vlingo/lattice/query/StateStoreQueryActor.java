@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.query;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 import io.vlingo.actors.Actor;
@@ -14,8 +15,10 @@ import io.vlingo.actors.CompletesEventually;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.CompositeIdentitySupport;
+import io.vlingo.reactivestreams.sink.TerminalOperationConsumerSink;
 import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State.ObjectState;
+import io.vlingo.symbio.StateBundle;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.state.StateStore;
@@ -82,6 +85,10 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
     return (Completes<ObjectState<T>>) queryFor(id, type, QueryResultHandler.ResultType.ObjectState, (T) notFoundState);
   }
 
+  protected <T, R> Completes<Collection<R>> streamAllOf(final Class<T> type, final Collection<R> all) {
+    return queryAllOf(type, all);
+  }
+
   /**
    * Answer a {@code Completes<T>} of the eventual result of querying
    * for the state of the {@code type} and identified by {@code id}.
@@ -115,6 +122,25 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
    */
   protected <T> Completes<T> queryStateFor(final String id, final Class<T> type, final T notFoundState) {
     return queryFor(id, type, QueryResultHandler.ResultType.Unwrapped, notFoundState);
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private <T, R> Completes<Collection<R>> queryAllOf(final Class<T> type, final Collection<R> all) {
+    final Consumer<StateBundle> populator = (StateBundle state) -> {
+      all.add((R) state.object);
+    };
+
+    final CompletesEventually completes = completesEventually();
+    final Consumer<Collection<R>> collector = (Collection<R> collected) -> {
+      completes.with(collected);
+    };
+
+    final TerminalOperationConsumerSink sink =
+            new TerminalOperationConsumerSink(populator, all, collector);
+
+    stateStore.streamAllOf(type).andFinallyConsume(stream -> stream.flowInto(sink));
+
+    return completes();
   }
 
   private <T> Completes<T> queryFor(final String id, final Class<T> type, final QueryResultHandler.ResultType resultType, final T notFoundState) {
