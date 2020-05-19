@@ -93,17 +93,41 @@ public class StateStoreProjectionTest {
 
     final int sum = accessInterest.readFrom("sum");
 
-    Assert.assertEquals(15, sum);
+    Assert.assertEquals(21, sum);
 
     final Warble warble1 = accessInterest.readFrom("warble", "1");
-    Assert.assertEquals(4, warble1.count);
+    Assert.assertEquals(5, warble1.count);
 
     final Warble warble2 = accessInterest.readFrom("warble", "2");
-    Assert.assertEquals(5, warble2.count);
+    Assert.assertEquals(7, warble2.count);
 
     final Warble warble3 = accessInterest.readFrom("warble", "3");
-    Assert.assertEquals(6, warble3.count);
-}
+    Assert.assertEquals(9, warble3.count);
+  }
+
+  @Test
+  public void testThatProjectionsWriteStateBeforeHandlingNextEvent() {
+    final CountingProjectionControl control = new CountingProjectionControl();
+
+    final AccessSafely accessControl = control.afterCompleting(3);
+
+    projection.projectWith(textWarble("1", 1), control);
+    projection.projectWith(textWarble("1", 2), control);
+    projection.projectWith(textWarble("1", 3), control);
+
+    final Map<String,Integer> confirmations = accessControl.readFrom("confirmations");
+
+    Assert.assertEquals(3, confirmations.size());
+
+    final CountingReadResultInterest interest = new CountingReadResultInterest();
+
+    final AccessSafely accessInterest = interest.afterCompleting(1);
+
+    store.read("1", Warble.class, interest);
+
+    final Warble warble = accessInterest.readFrom("warble", "1");
+    Assert.assertEquals(6, warble.count);
+  }
 
   @Before
   public void setUp() {
