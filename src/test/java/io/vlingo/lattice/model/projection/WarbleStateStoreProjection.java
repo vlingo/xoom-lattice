@@ -30,7 +30,10 @@ public class WarbleStateStoreProjection extends StateStoreProjectionActor<Warble
 
   @Override
   protected Warble merge(final Warble previousData, final int previousVersion, final Warble currentData, final int currentVersion) {
-    return currentData;
+    if (previousData == null) {
+      return currentData;
+    }
+    return new Warble(currentData.name, currentData.type, currentData.count + previousData.count);
   }
 
   public static class Warble {

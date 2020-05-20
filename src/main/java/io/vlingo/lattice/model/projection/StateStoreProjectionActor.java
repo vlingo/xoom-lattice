@@ -161,6 +161,8 @@ public abstract class StateStoreProjectionActor<T> extends Actor
       stateStore.write(dataId, data, currentDataVersion, writeInterest, ProjectionControl.confirmerFor(projectable, control));
     };
 
+    stowMessages(ReadResultInterest.class, WriteResultInterest.class);
+
     stateStore.read(dataId, currentData.getClass(), readInterest, upserter);
   }
 
@@ -221,8 +223,10 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   final public <S,C> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final List<Source<C>> sources, final Object object) {
     outcome.andThen(result -> {
       ((Confirmer) object).confirm();
+      disperseStowedMessages();
       return result;
     }).otherwise(cause -> {
+      disperseStowedMessages();
       // log but don't retry, allowing re-delivery of Projectable
       logger().info("Query state not written for update because: " + cause.getMessage(), cause);
       return cause.result;
