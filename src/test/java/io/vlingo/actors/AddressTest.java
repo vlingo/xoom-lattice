@@ -11,6 +11,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -94,5 +95,18 @@ public class AddressTest {
     assertArrayEquals(ordered, reversed);
     Arrays.sort(ordered);
     assertArrayEquals(reversed, ordered);
+  }
+
+  @Test
+  public void testItCreatesDistributableAddresses() {
+    final AddressFactory addressFactory = new GridAddressFactory(IdentityGeneratorType.RANDOM);
+
+    final Address address = addressFactory.unique();
+    final Address namedAddress = addressFactory.uniqueWith("test-address");
+    final Address prefixedAddress = addressFactory.uniquePrefixedWith("test-prefix");
+
+    assertTrue(address.isDistributable());
+    assertTrue(namedAddress.isDistributable());
+    assertTrue(prefixedAddress.isDistributable());
   }
 }
