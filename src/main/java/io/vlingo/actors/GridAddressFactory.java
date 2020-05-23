@@ -39,6 +39,21 @@ public final class GridAddressFactory extends UUIDAddressFactory {
   }
 
   @Override
+  public Address unique() {
+    return this.from(super.unique().idString());
+  }
+
+  @Override
+  public Address uniqueWith(String name) {
+    return this.from(super.uniqueWith(name).idString(), name);
+  }
+
+  @Override
+  public Address uniquePrefixedWith(String prefixedWith) {
+    return new GridAddress(super.uniquePrefixedWith(prefixedWith).idTyped(), prefixedWith, true);
+  }
+
+  @Override
   public Address none() {
     return None;
   }

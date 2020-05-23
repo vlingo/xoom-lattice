@@ -104,6 +104,7 @@ public class GridActorOfTest {
       final io.vlingo.cluster.model.Properties properties = ClusterProperties.oneNode();
 
       grid = Grid.start(world, properties, "node1");
+      grid.quorumAchieved();
   }
 
   @After
