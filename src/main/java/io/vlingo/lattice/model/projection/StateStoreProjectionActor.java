@@ -88,11 +88,38 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   }
 
   /**
+   * Answer whether to always write or to compare the {@code currentData} with
+   * the {@code previousData} and only write if the two are different. The answer
+   * is {@code true} by default, meaning that the write will always happen, even
+   * if the {@code currentData} isn't different from the {@code previousData}.
+   * Override to answer {@code false} to cause a comparison to qualify the write.
+   * @return boolean
+   */
+  protected boolean alwaysWrite() {
+    return true;
+  }
+
+  /**
    * Answer the {@code T} typed current data from the {@code projectable}.
    * @param projectable the Projectable from which the current data is retrieved
    * @return T
    */
   protected abstract T currentDataFor(final Projectable projectable);
+
+  /**
+   * Answer the current data version. By default this method answers in one of two
+   * conditional ways: (1) when my {@code alwaysWrite()} answers {@code true} then
+   * the answer is the {@code projectable.dataVersion()} of the received
+   * {@code Projectable}; or (2) when my {@code alwaysWrite()} answers {@code false}
+   * the {@code previousVersion + 1}. Override for specialized behavior.
+   * @param projectable the Projectable containing state and/or entries to be projected
+   * @param previousData the T typed previous data from storage
+   * @param previousVersion the int previous version from storage
+   * @return int
+   */
+  protected int currentDataVersionFor(final Projectable projectable, final T previousData, final int previousVersion) {
+    return alwaysWrite() ? projectable.dataVersion() : (previousVersion == -1 ? 1 : (previousVersion + 1));
+  }
 
   /**
    * Answer the id to be associated with the data being projected.
@@ -144,21 +171,27 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   }
 
   /**
-   * Upsert the {@code projectable} into the {@code StateStore}, which may be a
+   * Upsert the {@code projectable} into the {@code StateStore}, which may be an insert of
+   * new data or an update of new data merged with previous data.
    * @param projectable the Projectable to upsert
    * @param control the ProjectionControl with Confirmer use to confirm projection is completed
    */
   protected void upsertFor(final Projectable projectable, final ProjectionControl control) {
     final T currentData = currentDataFor(projectable);
-    final int currentDataVersion = projectable.dataVersion();
 
     prepareForMergeWith(projectable);
 
     final String dataId = dataIdFor(projectable);
 
     final BiConsumer<T,Integer> upserter = (previousData, previousVersion) -> {
+      final int currentDataVersion = currentDataVersionFor(projectable, previousData, previousVersion);
       final T data = merge(previousData, previousVersion, currentData, currentDataVersion);
-      stateStore.write(dataId, data, currentDataVersion, writeInterest, ProjectionControl.confirmerFor(projectable, control));
+      final Confirmer confirmer = ProjectionControl.confirmerFor(projectable, control);
+      if (alwaysWrite() || !data.equals(previousData)) {
+        stateStore.write(dataId, data, currentDataVersion, writeInterest, confirmer);
+      } else {
+        confirmProjection(confirmer);
+      }
     };
 
     stowMessages(ReadResultInterest.class, WriteResultInterest.class);
@@ -222,8 +255,7 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   @Override
   final public <S,C> void writeResultedIn(final Outcome<StorageException, Result> outcome, final String id, final S state, final int stateVersion, final List<Source<C>> sources, final Object object) {
     outcome.andThen(result -> {
-      ((Confirmer) object).confirm();
-      disperseStowedMessages();
+      confirmProjection((Confirmer) object);
       return result;
     }).otherwise(cause -> {
       disperseStowedMessages();
@@ -245,5 +277,10 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   @SuppressWarnings("unchecked")
   private static <S, ST extends State<?>> StateAdapter<S, ST> defaultTextStateAdapter() {
     return (StateAdapter<S, ST>) new DefaultTextStateAdapter();
+  }
+
+  private void confirmProjection(final Confirmer confirmer) {
+    confirmer.confirm();
+    disperseStowedMessages();
   }
 }
