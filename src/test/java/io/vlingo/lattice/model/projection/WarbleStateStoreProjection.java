@@ -13,14 +13,26 @@ import io.vlingo.lattice.model.projection.WarbleStateStoreProjection.Warble;
 import io.vlingo.symbio.store.state.StateStore;
 
 public class WarbleStateStoreProjection extends StateStoreProjectionActor<Warble> {
+  private final boolean alwaysWrite;
 
   public WarbleStateStoreProjection(final StateStore stateStore) {
+    this(stateStore, true);
+  }
+
+  public WarbleStateStoreProjection(final StateStore stateStore, final boolean alwaysWrite) {
     super(stateStore);
+
+    this.alwaysWrite = alwaysWrite;
   }
 
   @Override
   public void projectWith(final Projectable projectable, final ProjectionControl control) {
     upsertFor(projectable, control);
+  }
+
+  @Override
+  protected boolean alwaysWrite() {
+    return alwaysWrite;
   }
 
   @Override
@@ -33,6 +45,20 @@ public class WarbleStateStoreProjection extends StateStoreProjectionActor<Warble
     if (previousData == null) {
       return currentData;
     }
+
+    // special case for test:
+    // when !alwaysWrite answer one of two values:
+    // 1. if currentData.count == 1_000 && previousData.count == 1_000
+    //      answer previousData to force equals comparison
+    // 2. if currentData.count != previousData.count
+    //      answer currentData to force !equals comparison
+    //
+    if (!alwaysWrite) {
+      if (currentData.count == 1_000 && previousData.count == 1_000) {
+        return previousData;
+      }
+    }
+
     return new Warble(currentData.name, currentData.type, currentData.count + previousData.count);
   }
 

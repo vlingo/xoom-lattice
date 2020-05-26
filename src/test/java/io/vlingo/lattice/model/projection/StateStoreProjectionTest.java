@@ -9,7 +9,9 @@ package io.vlingo.lattice.model.projection;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,6 +38,7 @@ import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
 public class StateStoreProjectionTest {
   private Projection projection;
   private StateStore store;
+  private Map<String,String> valueToProjectionId;
   private World world;
 
   @Test
@@ -52,9 +55,9 @@ public class StateStoreProjectionTest {
 
     Assert.assertEquals(3, confirmations.size());
 
-    Assert.assertEquals(1, (int) confirmations.get("1"));
-    Assert.assertEquals(1, (int) confirmations.get("2"));
-    Assert.assertEquals(1, (int) confirmations.get("3"));
+    Assert.assertEquals(1, valueOfProjectionIdFor("1", confirmations));
+    Assert.assertEquals(1, valueOfProjectionIdFor("2", confirmations));
+    Assert.assertEquals(1, valueOfProjectionIdFor("3", confirmations));
 
     Assert.assertEquals(3, (int) access.readFrom("sum"));
   }
@@ -77,9 +80,9 @@ public class StateStoreProjectionTest {
 
     Assert.assertEquals(6, confirmations.size());
 
-    Assert.assertEquals(1, (int) confirmations.get("1"));
-    Assert.assertEquals(1, (int) confirmations.get("2"));
-    Assert.assertEquals(1, (int) confirmations.get("3"));
+    Assert.assertEquals(1, valueOfProjectionIdFor("1", confirmations));
+    Assert.assertEquals(1, valueOfProjectionIdFor("2", confirmations));
+    Assert.assertEquals(1, valueOfProjectionIdFor("3", confirmations));
 
     Assert.assertEquals(6, (int) accessControl.readFrom("sum"));
 
@@ -129,6 +132,57 @@ public class StateStoreProjectionTest {
     Assert.assertEquals(6, warble.count);
   }
 
+  @Test
+  public void testThatProjectionDoesNotRequireDiff() {
+    final Projection projection = world.actorFor(Projection.class, WarbleStateStoreProjection.class, store, true);
+
+    final CountingProjectionControl control = new CountingProjectionControl();
+
+    final AccessSafely accessControl = control.afterCompleting(2);
+
+    projection.projectWith(textWarble("1", 1), control);
+    projection.projectWith(textWarble("1", 0), control);
+
+    final Map<String,Integer> confirmations = accessControl.readFrom("confirmations");
+
+    Assert.assertEquals(2, confirmations.size());
+
+    final CountingReadResultInterest interest = new CountingReadResultInterest();
+
+    final AccessSafely accessInterest = interest.afterCompleting(1);
+
+    store.read("1", Warble.class, interest);
+
+    final Warble warble = accessInterest.readFrom("warble", "1");
+    Assert.assertEquals(1, warble.count);
+  }
+
+  @Test
+  public void testThatProjectionDoesRequireDiff() {
+    final Projection projection = world.actorFor(Projection.class, WarbleStateStoreProjection.class, store, false);
+
+    final CountingProjectionControl control = new CountingProjectionControl();
+
+    final AccessSafely accessControl = control.afterCompleting(3);
+
+    projection.projectWith(textWarble("1", 1_000), control);
+    projection.projectWith(textWarble("1", 1_000), control); // forces previousData answer to not write
+    projection.projectWith(textWarble("1", 3_000), control);
+
+    final Map<String,Integer> confirmations = accessControl.readFrom("confirmations");
+
+    Assert.assertEquals(3, confirmations.size());
+
+    final CountingReadResultInterest interest = new CountingReadResultInterest();
+
+    final AccessSafely accessInterest = interest.afterCompleting(1);
+
+    store.read("1", Warble.class, interest);
+
+    final Warble warble = accessInterest.readFrom("warble", "1");
+    Assert.assertEquals(4_000, warble.count); // 4_000 not 5_000
+  }
+
   @Before
   public void setUp() {
     world = World.startWithDefaults("test-state-store-projection");
@@ -138,6 +192,8 @@ public class StateStoreProjectionTest {
     projection = world.actorFor(Projection.class, WarbleStateStoreProjection.class, store);
 
     StatefulTypeRegistry.registerAll(world, store, Warble.class);
+
+    valueToProjectionId = new HashMap<>();
   }
 
   @After
@@ -146,12 +202,20 @@ public class StateStoreProjectionTest {
   }
 
   private Projectable textWarble(final String id, final int value) {
-    final String valueText = Integer.toString(value);
     final Warble warble = new Warble(id, "W" + value, value);
 
     final TextState state = new TextState(id, Warble.class, 1, JsonSerialization.serialized(warble), warble.version, Metadata.withObject(warble));
 
-    return new TextProjectable(state, Collections.emptyList(), valueText);
+    final String valueText = Integer.toString(value);
+    final String projectionId = UUID.randomUUID().toString();
+
+    valueToProjectionId.put(valueText, projectionId);
+
+    return new TextProjectable(state, Collections.emptyList(), projectionId);
+  }
+
+  private int valueOfProjectionIdFor(final String valueText, final Map<String,Integer> confirmations) {
+    return confirmations.get(valueToProjectionId.get(valueText));
   }
 
   private static class CountingProjectionControl implements ProjectionControl {
