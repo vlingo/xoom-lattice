@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.model.projection;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -14,6 +15,7 @@ import io.vlingo.actors.Actor;
 import io.vlingo.common.Outcome;
 import io.vlingo.lattice.CompositeIdentitySupport;
 import io.vlingo.lattice.model.DomainEvent;
+import io.vlingo.lattice.model.IdentifiedDomainEvent;
 import io.vlingo.lattice.model.projection.ProjectionControl.Confirmer;
 import io.vlingo.symbio.DefaultTextEntryAdapter;
 import io.vlingo.symbio.DefaultTextStateAdapter;
@@ -43,6 +45,7 @@ import io.vlingo.symbio.store.state.StateStore.WriteResultInterest;
 public abstract class StateStoreProjectionActor<T> extends Actor
     implements Projection, CompositeIdentitySupport, ReadResultInterest, WriteResultInterest {
 
+  private final List<Source<?>> adaptedSources;
   private final EntryAdapter<Source<?>, Entry<?>> entryAdapter;
   private final StateAdapter<Object, State<?>> stateAdapter;
   private final ReadResultInterest readInterest;
@@ -77,6 +80,8 @@ public abstract class StateStoreProjectionActor<T> extends Actor
     this.entryAdapter = entryAdapter;
     this.readInterest = selfAs(ReadResultInterest.class);
     this.writeInterest = selfAs(WriteResultInterest.class);
+
+    this.adaptedSources = new ArrayList<>(2);
   }
 
   /**
@@ -100,11 +105,15 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   }
 
   /**
-   * Answer the {@code T} typed current data from the {@code projectable}.
+   * Answer the {@code T} typed current data from the {@code projectable}, which
+   * is {@code projectable.object()} by default. Override this if determining the
+   * {@code currentData} is more complex.
    * @param projectable the Projectable from which the current data is retrieved
    * @return T
    */
-  protected abstract T currentDataFor(final Projectable projectable);
+  protected T currentDataFor(final Projectable projectable) {
+    return projectable.object();
+  }
 
   /**
    * Answer the current data version. By default this method answers in one of two
@@ -127,7 +136,17 @@ public abstract class StateStoreProjectionActor<T> extends Actor
    * @return String
    */
   protected String dataIdFor(final Projectable projectable) {
-    return projectable.dataId();
+    String dataId = projectable.dataId();
+
+    if (dataId.isEmpty()) {
+      try {
+        dataId = typedToIdentifiedDomainEvent(sources().get(0)).identity();
+      } catch (Exception e) {
+        // ignore; fall through
+      }
+    }
+
+    return dataId;
   }
 
   /**
@@ -155,10 +174,25 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   protected abstract T merge(final T previousData, final int previousVersion, final T currentData, final int currentVersion);
 
   /**
-   * Prepare for the merge.
+   * Prepare for the merge. Override this behavior for specialized implemenation.
    * @param projectable the Projectable used for merge preparation
    */
-  protected void prepareForMergeWith(final Projectable projectable) { }
+  protected void prepareForMergeWith(final Projectable projectable) {
+    adaptedSources.clear();
+
+    for (Entry <?> entry : projectable.entries()) {
+      adaptedSources.add(entryAdapter().anyTypeFromEntry(entry));
+    }
+  }
+
+  /**
+   * Answer the {@code List<Source<?>>} that are adapted from the
+   * current {@code Projectable#entries()}.
+   * @return {@code List<Source<?>>}
+   */
+  protected List<Source<?>> sources() {
+    return adaptedSources;
+  }
 
   /**
    * Answer the {@code StateAdapter<?,ST>} previously registered by construction.
@@ -219,6 +253,26 @@ public abstract class StateStoreProjectionActor<T> extends Actor
   @SuppressWarnings("unchecked")
   protected <E> E typed(final DomainEvent event) {
     return (E) event;
+  }
+
+  /**
+   * Answer the E typed {@code Source<?>} from the abstract {@code source}.
+   * @param source the {@code Source<?>} to cast to type E
+   * @param <E> the concrete type of the event
+   * @return E
+   */
+  @SuppressWarnings("unchecked")
+  protected <E> E typed(final Source<?> source) {
+    return (E) source;
+  }
+
+  /**
+   * Answer the {@code IdentifiedDomainEvent} typed from the abstract {@code source}.
+   * @param source the {@code Source<?>} to cast to type E
+   * @return IdentifiedDomainEvent
+   */
+  protected IdentifiedDomainEvent typedToIdentifiedDomainEvent(final Source<?> source) {
+    return (IdentifiedDomainEvent) source;
   }
 
   //==================================
