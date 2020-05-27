@@ -162,16 +162,35 @@ public abstract class StateStoreProjectionActor<T> extends Actor
 
   /**
    * Answer the {@code T} result of merging the {@code T}-typed {@code previousData} and {@code currentData},
-   * which will be written into the {@code StateStore}. This method will not be invoked if the previous data
-   * of the projection is not found in the {@code StateStore}. The receiver may simple answer the
-   * {@code currentData} when no merging is required, resulting in {@code currentData} being written.
+   * which will be written into the {@code StateStore}. By default the {@code currentData} is returned.
+   * Override for specialize behavior. The receiver may simply answer the {@code currentData} when no merging
+   * is required, resulting in {@code currentData} being written. If projecting from full state, this is the
+   * better override.
    * @param previousData the T data read from the StateStore
    * @param previousVersion the int version of the previousData
    * @param currentData the T data being projected
    * @param currentVersion the int version of the currentData
    * @return T
    */
-  protected abstract T merge(final T previousData, final int previousVersion, final T currentData, final int currentVersion);
+  protected T merge(final T previousData, final int previousVersion, final T currentData, final int currentVersion) {
+    return currentData;
+  }
+
+  /**
+   * Answer the {@code T} result of merging the {@code T}-typed {@code previousData}, {@code currentData},
+   * and/or {@code sources}, which will be written into the {@code StateStore}. By default this method delegates
+   * to the lesser {@code StateStoreProjectionActor#merge(Object, int, Object, int)}. Override for specialize
+   * behavior. If projecting from Event Sourcing, this is the better override.
+   * @param previousData the T data read from the StateStore
+   * @param previousVersion the int version of the previousData
+   * @param currentData the T data being projected
+   * @param currentVersion the int version of the currentData
+   * @param sources the {@code List<Source<?>>} adapted from the Projectable entries
+   * @return T
+   */
+  protected T merge(final T previousData, final int previousVersion, final T currentData, final int currentVersion, final List<Source<?>> sources) {
+    return merge(previousData, previousVersion, currentData, currentVersion);
+  }
 
   /**
    * Prepare for the merge. Override this behavior for specialized implemenation.
@@ -181,7 +200,7 @@ public abstract class StateStoreProjectionActor<T> extends Actor
     adaptedSources.clear();
 
     for (Entry <?> entry : projectable.entries()) {
-      adaptedSources.add(entryAdapter().anyTypeFromEntry(entry));
+      adaptedSources.add(entryAdapter.anyTypeFromEntry(entry));
     }
   }
 
@@ -219,7 +238,7 @@ public abstract class StateStoreProjectionActor<T> extends Actor
 
     final BiConsumer<T,Integer> upserter = (previousData, previousVersion) -> {
       final int currentDataVersion = currentDataVersionFor(projectable, previousData, previousVersion);
-      final T data = merge(previousData, previousVersion, currentData, currentDataVersion);
+      final T data = merge(previousData, previousVersion, currentData, currentDataVersion, sources());
       final Confirmer confirmer = ProjectionControl.confirmerFor(projectable, control);
       if (alwaysWrite() || !data.equals(previousData)) {
         stateStore.write(dataId, data, currentDataVersion, writeInterest, confirmer);
