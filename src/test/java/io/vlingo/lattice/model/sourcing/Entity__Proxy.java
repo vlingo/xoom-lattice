@@ -7,8 +7,12 @@
 
 package io.vlingo.lattice.model.sourcing;
 
-import io.vlingo.actors.*;
-import io.vlingo.common.BasicCompletes;
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.DeadLetter;
+import io.vlingo.actors.LocalMessage;
+import io.vlingo.actors.Mailbox;
+import io.vlingo.actors.Returns;
+import io.vlingo.common.Completes;
 import io.vlingo.common.SerializableConsumer;
 
 public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
@@ -49,7 +53,7 @@ public class Entity__Proxy implements io.vlingo.lattice.model.sourcing.Entity {
   public io.vlingo.common.Completes<java.lang.String> doTest3() {
     if (!actor.isStopped()) {
       final SerializableConsumer<Entity> consumer = (actor) -> actor.doTest3();
-      final io.vlingo.common.Completes<java.lang.String> completes = new BasicCompletes<>(actor.scheduler());
+      final io.vlingo.common.Completes<java.lang.String> completes = Completes.using(actor.completesId(), actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, Entity.class, consumer, Returns.value(completes), doTest3Representation3); }
       else { mailbox.send(new LocalMessage<Entity>(actor, Entity.class, consumer, Returns.value(completes), doTest3Representation3)); }
       return completes;
