@@ -96,9 +96,11 @@ public abstract class ObjectEntity<T extends StateObject> extends EntityActor
    * @return {@code Completes<RT>}
    */
   protected <C,RT> Completes<RT> apply(final T state, final List<Source<C>> sources, final Metadata metadata, final Supplier<RT> andThen) {
+    final CompletionSupplier<RT> completionSupplier = CompletionSupplier.supplierOrNull(andThen, completesEventually());
+    final Completes<RT> completes = andThen == null ? null : completes();
     stowMessages(PersistResultInterest.class);
-    info.store.persist(StateSources.of(state,sources), metadata, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    info.store.persist(StateSources.of(state,sources), metadata, persistResultInterest, completionSupplier);
+    return completes;
   }
 
   /**
@@ -131,9 +133,11 @@ public abstract class ObjectEntity<T extends StateObject> extends EntityActor
    * @return {@code Completes<RT>}
    */
   protected <C,RT> Completes<RT> apply(final T state, final Source<C> source, final Metadata metadata, final Supplier<RT> andThen) {
+    final CompletionSupplier<RT> completionSupplier = CompletionSupplier.supplierOrNull(andThen, completesEventually());
+    final Completes<RT> completes = andThen == null ? null : completes();
     stowMessages(PersistResultInterest.class);
-    info.store.persist(StateSources.of(state, source), metadata, persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    info.store.persist(StateSources.of(state, source), metadata, persistResultInterest, completionSupplier);
+    return completes;
   }
 
   /**
@@ -163,9 +167,11 @@ public abstract class ObjectEntity<T extends StateObject> extends EntityActor
    * @return {@code Completes<RT>}
    */
   protected <RT> Completes<RT> apply(final T state, final Supplier<RT> andThen) {
+    final CompletionSupplier<RT> completionSupplier = CompletionSupplier.supplierOrNull(andThen, completesEventually());
+    final Completes<RT> completes = andThen == null ? null : completes();
     stowMessages(PersistResultInterest.class);
-    info.store.persist(StateSources.of(state), persistResultInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    info.store.persist(StateSources.of(state), persistResultInterest, completionSupplier);
+    return completes;
   }
 
   /**

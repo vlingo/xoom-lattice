@@ -130,9 +130,11 @@ public abstract class StatefulEntity<S> extends EntityActor
    */
   protected <C,RT> Completes<RT> apply(final S state, final List<Source<C>> sources, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
+    final CompletionSupplier<RT> completionSupplier = CompletionSupplier.supplierOrNull(andThen, completesEventually());
+    final Completes<RT> completes = andThen == null ? null : completes();
     stowMessages(WriteResultInterest.class);
-    info.store.write(id, state, nextVersion(), sources, metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    info.store.write(id, state, nextVersion(), sources, metadata, writeInterest, completionSupplier);
+    return completes;
   }
 
   /**
@@ -149,9 +151,11 @@ public abstract class StatefulEntity<S> extends EntityActor
    */
   protected <RT> Completes<RT> apply(final S state, final String metadataValue, final String operation, final Supplier<RT> andThen) {
     final Metadata metadata = Metadata.with(state, metadataValue == null ? "" : metadataValue, operation == null ? "" : operation);
+    final CompletionSupplier<RT> completionSupplier = CompletionSupplier.supplierOrNull(andThen, completesEventually());
+    final Completes<RT> completes = andThen == null ? null : completes();
     stowMessages(WriteResultInterest.class);
-    info.store.write(id, state, nextVersion(), metadata, writeInterest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    info.store.write(id, state, nextVersion(), metadata, writeInterest, completionSupplier);
+    return completes;
   }
 
   /**

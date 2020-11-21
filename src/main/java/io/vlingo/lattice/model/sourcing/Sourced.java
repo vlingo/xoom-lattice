@@ -164,9 +164,11 @@ public abstract class Sourced<T> extends EntityActor implements AppendResultInte
   final protected <R> Completes<R> apply(final List<Source<T>> sources, final Metadata metadata, final Supplier<R> andThen) {
     beforeApply(sources);
     final Journal<?> journal = journalInfo.journal();
+    final CompletionSupplier<R> completionSupplier = CompletionSupplier.supplierOrNull(andThen, completesEventually());
+    final Completes<R> completes = andThen == null ? null : completes();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(this.streamName, nextVersion(), sources, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    journal.appendAllWith(this.streamName, nextVersion(), sources, metadata, snapshot(), interest, completionSupplier);
+    return completes;
   }
 
   /**
@@ -205,9 +207,11 @@ public abstract class Sourced<T> extends EntityActor implements AppendResultInte
     final List<Source<T>> toApply = wrap(source);
     beforeApply(toApply);
     final Journal<?> journal = journalInfo.journal();
+    final CompletionSupplier<R> completionSupplier = CompletionSupplier.supplierOrNull(andThen, completesEventually());
+    final Completes<R> completes = andThen == null ? null : completes();
     stowMessages(AppendResultInterest.class);
-    journal.appendAllWith(this.streamName, nextVersion(), toApply, metadata, snapshot(), interest, CompletionSupplier.supplierOrNull(andThen, completesEventually()));
-    return andThen == null ? null : completes();
+    journal.appendAllWith(this.streamName, nextVersion(), toApply, metadata, snapshot(), interest, completionSupplier);
+    return completes;
   }
 
   /**
