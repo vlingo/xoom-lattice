@@ -46,28 +46,20 @@ public class StatefulEntityTest {
     final Entity1State state = new Entity1State(entityId, "Sally", 23);
     final AccessSafely access = dispatcher.afterCompleting(3);
 
-    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1Actor.class, state);
-
+    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1Actor.class, entityId);
+    assertEquals(state, entity1.defineWith(state.name, state.age).await());
     assertEquals(state, entity1.current().await());
 
     entity1.changeName("Sally Jane");
-
     Entity1State newState = entity1.current().await();
-
     assertEquals("Sally Jane", newState.name);
 
     entity1.increaseAge();
-
     newState = entity1.current().await();
-
     assertEquals(24, newState.age);
 
-    final Entity1State identityState = new Entity1State(entityId);
-
-    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1Actor.class, identityState);
-
+    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1Actor.class, entityId);
     final Entity1State restoredEntity1State = restoredEntity1.current().await();
-
     assertNotNull(restoredEntity1State);
 
     assertEquals(1, (int) access.readFrom("dispatchedStateCount"));
@@ -75,7 +67,6 @@ public class StatefulEntityTest {
     assertEquals(1, ids.size());
 
     final TextState flatState = access.readFrom("dispatchedState", ids.iterator().next());
-
     assertEquals(new Entity1State(entityId, "Sally Jane", 24), stateAdapterProvider.fromRaw(flatState));
 
     restoredEntity1.current().andThenConsume(current -> {
@@ -89,30 +80,20 @@ public class StatefulEntityTest {
     final Entity1State state = new Entity1State(entityId, "Sally", 23);
     final AccessSafely access = dispatcher.afterCompleting(3);
 
-    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, state);
-
-    final Entity1State current1 = entity1.current().await();
-
-    assertEquals(state, current1);
+    final Entity1 entity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, entityId);
+    assertEquals(state, entity1.defineWith(state.name, state.age).await());
+    assertEquals(state, entity1.current().await());
 
     entity1.changeName("Sally Jane");
-
     Entity1State newState = entity1.current().await();
-
     assertEquals("Sally Jane", newState.name);
 
     entity1.increaseAge();
-
     newState = entity1.current().await();
-
     assertEquals(24, newState.age);
 
-    final Entity1State identityState = new Entity1State(entityId);
-
-    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, identityState);
-
+    final Entity1 restoredEntity1 = world.actorFor(Entity1.class, Entity1MetadataCallbackActor.class, entityId);
     final Entity1State restoredEntity1State = restoredEntity1.current().await();
-
     assertNotNull(restoredEntity1State);
 
     assertEquals(1, (int) access.readFrom("dispatchedStateCount"));
@@ -120,7 +101,6 @@ public class StatefulEntityTest {
     assertEquals(1, ids.size());
 
     final TextState flatState = access.readFrom("dispatchedState", ids.iterator().next());
-
     assertEquals(new Entity1State(entityId, "Sally Jane", 24), stateAdapterProvider.fromRaw(flatState));
 
     restoredEntity1.current().andThenConsume(current -> {
@@ -174,6 +154,7 @@ public class StatefulEntityTest {
   }
 
   public interface Entity1 {
+    Completes<Entity1State> defineWith(String name, int age);
     Completes<Entity1State> current();
     void changeName(final String name);
     void increaseAge();
@@ -228,23 +209,23 @@ public class StatefulEntityTest {
   public static class Entity1Actor extends StatefulEntity<Entity1State> implements Entity1 {
     private Entity1State state;
 
-    public Entity1Actor(final Entity1State state) {
-      super(state.id);
-      this.state = state;
-    }
-
-    @Override
-    public void start() {
-      if (state.hasState()) {
-        apply(state);
-      } else {
-        restore();
-      }
+    public Entity1Actor(final String id) {
+      super(id);
     }
 
     //===================================
     // Entity1
     //===================================
+
+
+    @Override
+    public Completes<Entity1State> defineWith(String name, int age) {
+      if (state == null) {
+        return apply(new Entity1State(id, name, age), "new", () -> state);
+      } else {
+        return completes().with(state.copy());
+      }
+    }
 
     @Override
     public Completes<Entity1State> current() {
@@ -279,23 +260,22 @@ public class StatefulEntityTest {
   public static class Entity1MetadataCallbackActor extends StatefulEntity<Entity1State> implements Entity1 {
     private Entity1State state;
 
-    public Entity1MetadataCallbackActor(final Entity1State state) {
-      super(state.id);
-      this.state = state;
-    }
-
-    @Override
-    public void start() {
-      if (state.hasState()) {
-        apply(state, "METADATA", "new");
-      } else {
-        restore();
-      }
+    public Entity1MetadataCallbackActor(final String id) {
+      super(id);
     }
 
     //===================================
     // Entity1
     //===================================
+
+    @Override
+    public Completes<Entity1State> defineWith(String name, int age) {
+      if (state == null) {
+        return apply(new Entity1State(id, name, age), "METADATA", "new", () -> state);
+      } else {
+        return completes().with(state.copy());
+      }
+    }
 
     @Override
     public Completes<Entity1State> current() {
