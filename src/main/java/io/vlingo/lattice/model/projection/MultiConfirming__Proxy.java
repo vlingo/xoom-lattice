@@ -55,7 +55,7 @@ public class MultiConfirming__Proxy extends ActorProxyBase<io.vlingo.lattice.mod
   public Completes<List<Projectable>> managedConfirmations() {
     if (!actor.isStopped()) {
       final SerializableConsumer<MultiConfirming> consumer = (actor) -> actor.managedConfirmations();
-      final Completes<List<Projectable>> returnValue = Completes.using(actor.completesId(), actor.scheduler());
+      final Completes<List<Projectable>> returnValue = Completes.using(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, MultiConfirming.class, consumer, Returns.value(returnValue), managedConfirmationsRepresentation2); }
       else { mailbox.send(new LocalMessage<MultiConfirming>(actor, MultiConfirming.class, consumer, Returns.value(returnValue), managedConfirmationsRepresentation2)); }
       return returnValue;

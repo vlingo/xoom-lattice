@@ -44,7 +44,7 @@ public class Space__Proxy extends ActorProxyBase<io.vlingo.lattice.grid.spaces.S
     if (!actor.isStopped()) {
       ActorProxyBase<Space> self = this;
       final SerializableConsumer<Space> consumer = (actor) -> actor.get(ActorProxyBase.thunk(self, (Actor)actor, arg0), ActorProxyBase.thunk(self, (Actor)actor, arg1));
-      final io.vlingo.common.Completes<java.util.Optional<io.vlingo.lattice.grid.spaces.KeyItem<T>>> returnValue = Completes.using(actor.completesId(), actor.scheduler());
+      final io.vlingo.common.Completes<java.util.Optional<io.vlingo.lattice.grid.spaces.KeyItem<T>>> returnValue = Completes.using(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, Space.class, consumer, Returns.value(returnValue), getRepresentation1); }
       else { mailbox.send(new LocalMessage<Space>(actor, Space.class, consumer, Returns.value(returnValue), getRepresentation1)); }
       return returnValue;
@@ -58,7 +58,7 @@ public class Space__Proxy extends ActorProxyBase<io.vlingo.lattice.grid.spaces.S
     if (!actor.isStopped()) {
       ActorProxyBase<Space> self = this;
       final SerializableConsumer<Space> consumer = (actor) -> actor.put(ActorProxyBase.thunk(self, (Actor)actor, arg0), ActorProxyBase.thunk(self, (Actor)actor, arg1));
-      final io.vlingo.common.Completes<io.vlingo.lattice.grid.spaces.KeyItem<T>> returnValue = Completes.using(actor.completesId(), actor.scheduler());
+      final io.vlingo.common.Completes<io.vlingo.lattice.grid.spaces.KeyItem<T>> returnValue = Completes.using(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, Space.class, consumer, Returns.value(returnValue), putRepresentation2); }
       else { mailbox.send(new LocalMessage<Space>(actor, Space.class, consumer, Returns.value(returnValue), putRepresentation2)); }
       return returnValue;
@@ -72,7 +72,7 @@ public class Space__Proxy extends ActorProxyBase<io.vlingo.lattice.grid.spaces.S
     if (!actor.isStopped()) {
       ActorProxyBase<Space> self = this;
       final SerializableConsumer<Space> consumer = (actor) -> actor.take(ActorProxyBase.thunk(self, (Actor)actor, arg0), ActorProxyBase.thunk(self, (Actor)actor, arg1));
-      final io.vlingo.common.Completes<java.util.Optional<io.vlingo.lattice.grid.spaces.KeyItem<T>>> returnValue = Completes.using(actor.completesId(), actor.scheduler());
+      final io.vlingo.common.Completes<java.util.Optional<io.vlingo.lattice.grid.spaces.KeyItem<T>>> returnValue = Completes.using(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, Space.class, consumer, Returns.value(returnValue), takeRepresentation3); }
       else { mailbox.send(new LocalMessage<Space>(actor, Space.class, consumer, Returns.value(returnValue), takeRepresentation3)); }
       return returnValue;
@@ -86,7 +86,7 @@ public class Space__Proxy extends ActorProxyBase<io.vlingo.lattice.grid.spaces.S
     if (!actor.isStopped()) {
       ActorProxyBase<Space> self = this;
       final SerializableConsumer<Space> consumer = (actor) -> actor.itemFor(ActorProxyBase.thunk(self, (Actor)actor, arg0), ActorProxyBase.thunk(self, (Actor)actor, arg1), ActorProxyBase.thunk(self, (Actor)actor, arg2));
-      final io.vlingo.common.Completes<T> returnValue = Completes.using(actor.completesId(), actor.scheduler());
+      final io.vlingo.common.Completes<T> returnValue = Completes.using(actor.scheduler());
       if (mailbox.isPreallocated()) { mailbox.send(actor, Space.class, consumer, Returns.value(returnValue), itemForRepresentation4); }
       else { mailbox.send(new LocalMessage<Space>(actor, Space.class, consumer, Returns.value(returnValue), itemForRepresentation4)); }
       return returnValue;
