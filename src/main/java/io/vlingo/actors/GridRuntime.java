@@ -15,6 +15,7 @@ import io.vlingo.wire.node.Id;
 
 public interface GridRuntime extends QuorumObserver {
   Actor actorAt(Address address);
+  void relocateActors();
   Stage asStage();
   GridNodeBootstrap gridNodeBootstrap();
   HashRing<Id> hashRing();

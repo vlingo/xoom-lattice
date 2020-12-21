@@ -214,4 +214,13 @@ public class GridNode extends ClusterApplicationAdapter {
     final Attribute<String> attr = client.attribute(attributeSetName, attributeName);
     logger().debug("GRID: Attribute Set " + attributeSetName + " Attribute Replaced: " + attributeName + " Value: " + attr.value);
   }
+
+  @Override
+  public void stop() {
+    if (!isStopped()) {
+      logger().debug("GRID: Stopping...");
+      gridRuntime.relocateActors();
+      super.stop();
+    }
+  }
 }

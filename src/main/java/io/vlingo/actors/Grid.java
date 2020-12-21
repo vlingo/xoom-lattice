@@ -118,6 +118,25 @@ public class Grid extends Stage implements GridRuntime {
     return directory.actorOf(address);
   }
 
+  /**
+   * Relocate local actors. This operation is typically called when node is stopped.
+   */
+  @Override
+  public void relocateActors() {
+    final HashRing<Id> copy = this.hashRing.copy();
+    this.hashRing.excludeNode(nodeId);
+
+    directory.addresses().stream()
+            .filter(address -> address.isDistributable() && isAssignedTo(copy, address, nodeId))
+            .forEach(address -> {
+              final Actor actor = directory.actorOf(address);
+              final Id toNode = hashRing.nodeOf(address.idString());
+              if (toNode != null) { // last node in the cluster?
+                relocateActorTo(actor, address, toNode);
+              }
+            });
+  }
+
   @Override
   public Stage asStage() {
     return this;
@@ -165,19 +184,24 @@ public class Grid extends Stage implements GridRuntime {
             address.isDistributable() && shouldRelocateTo(copy, address, newNode))
         .forEach(address -> {
           final Actor actor = directory.actorOf(address);
-          if (!GridActorOperations.isSuspendedForRelocation(actor)) {
-            logger.debug("Relocating actor [{}] to [{}]", address, newNode);
-            //actor.suspendForRelocation();
-            GridActorOperations.suspendForRelocation(actor);
-            outbound.relocate(
-                newNode,
-                nodeId,
-                Definition.SerializationProxy.from(actor.definition()),
-                address,
-                GridActorOperations.supplyRelocationSnapshot(actor) /*actor.provideRelocationSnapshot()*/,
-                GridActorOperations.pending(actor));
-          }
+          relocateActorTo(actor, address, newNode);
         });
+  }
+
+  private void relocateActorTo(Actor actor, Address address, Id toNode) {
+    if (!GridActorOperations.isSuspendedForRelocation(actor)) {
+      logger.debug("Relocating actor [{}] to [{}]", address, toNode);
+      //actor.suspendForRelocation();
+      GridActorOperations.suspendForRelocation(actor);
+      outbound.relocate(
+              toNode,
+              nodeId,
+              Definition.SerializationProxy.from(actor.definition()),
+              address,
+              GridActorOperations.supplyRelocationSnapshot(actor) /*actor.provideRelocationSnapshot()*/,
+              GridActorOperations.pending(actor));
+      outbound.disburse(toNode);
+    }
   }
 
   private boolean shouldRelocateTo(HashRing<Id> previous, Address address, Id newNode) {
