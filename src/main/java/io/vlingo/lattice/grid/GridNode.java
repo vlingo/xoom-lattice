@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import io.vlingo.lattice.grid.application.message.UnAckMessage;
 import org.nustaq.serialization.FSTConfiguration;
 
 import io.vlingo.actors.Definition;
@@ -40,7 +41,7 @@ import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
 
 public class GridNode extends ClusterApplicationAdapter {
-  private static final Map<UUID, Returns<?>> correlation = new HashMap<>();
+  private static final Map<UUID, UnAckMessage> correlation = new HashMap<>();
 
   private AttributesProtocol client;
   private final GridRuntime gridRuntime;

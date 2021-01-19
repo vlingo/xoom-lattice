@@ -1,3 +1,10 @@
+// Copyright © 2012-2020 VLINGO LABS. All rights reserved.
+//
+// This Source Code Form is subject to the terms of the
+// Mozilla Public License, v. 2.0. If a copy of the MPL
+// was not distributed with this file, You can obtain
+// one at https://mozilla.org/MPL/2.0/.
+
 package io.vlingo.lattice.grid.application.message;
 
 import java.io.Serializable;
@@ -17,24 +24,28 @@ public class Deliver<T> implements Serializable, Message {
   private static final long serialVersionUID = 591702431591762704L;
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public static Function<io.vlingo.actors.Message, Deliver<?>> from(BiConsumer<UUID, Returns<?>> correlation) {
+  public static Function<io.vlingo.actors.Message, Deliver<?>> from(BiConsumer<UUID, UnAckMessage> correlation, Id receiver) {
     return (message) -> {
       final LocalMessage<?> __message = (LocalMessage<?>) message;
       final Optional<Returns<?>> returns = Optional.ofNullable(__message.returns());
 
-      final UUID answerCorrelationId = returns.map(_return -> {
-        final UUID correlationId = UUID.randomUUID();
-        correlation.accept(correlationId, _return);
-        return correlationId;
-      }).orElse(null);
+      final UUID answerCorrelationId = returns
+              .map(_return -> UUID.randomUUID())
+              .orElse(null);
 
-      return new Deliver(
+      Deliver deliver = new Deliver(
           __message.protocol(),
           __message.actor().address(),
           Definition.SerializationProxy.from(__message.actor().definition()),
           __message.consumer(),
           answerCorrelationId,
           __message.representation());
+
+      if (answerCorrelationId != null) {
+        correlation.accept(answerCorrelationId, new UnAckMessage(receiver, returns.get(), deliver));
+      }
+
+      return deliver;
     };
   }
 
