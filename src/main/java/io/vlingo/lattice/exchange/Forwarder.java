@@ -9,6 +9,8 @@ package io.vlingo.lattice.exchange;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Forwarder of all local and exchange messages. Registers Covey instances
@@ -26,9 +28,19 @@ public class Forwarder {
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public <L,EX> void forwardToReceiver(final EX exchangeMessage) {
-    final Covey covey = ofExchangeMessage(exchangeMessage);
-    final Object localObject = covey.adapter.fromExchange(covey.exchangeClass.cast(exchangeMessage));
-    covey.receiver.receive(covey.localClass.cast(localObject));
+    forwardToAllReceivers(exchangeMessage, Stream.of(ofExchangeMessage(exchangeMessage).get(0)));
+  }
+
+  public <L,EX> void forwardToAllReceivers(final EX exchangeMessage) {
+    forwardToAllReceivers(exchangeMessage, ofExchangeMessage(exchangeMessage).stream());
+  }
+
+  private <L,EX> void forwardToAllReceivers(final EX exchangeMessage, final Stream<Covey> coveys) {
+    coveys.forEach(covey -> {
+      final Object casted = covey.exchangeClass.cast(exchangeMessage);
+      final Object localObject = covey.adapter.fromExchange(casted);
+      covey.receiver.receive(covey.localClass.cast(localObject));
+    });
   }
 
   /**
@@ -49,17 +61,19 @@ public class Forwarder {
   }
 
   /**
-   * Answer the {@code Covey<?,?,?>} of the {@code exchangeMessage}.
+   * Answer a {@code Covey} collection of the {@code exchangeMessage}.
    * @param exchangeMessage the Object to match
-   * @return {@code Covey<?,?,?>}
+   * @return {@code List<Covey>}
    */
-  private Covey<?,?,?> ofExchangeMessage(final Object exchangeMessage) {
-    for (final Covey<?,?,?> covey : coveys) {
-      if (covey.adapter.supports(exchangeMessage)) {
-        return covey;
-      }
+  private List<Covey> ofExchangeMessage(final Object exchangeMessage) {
+    final List<Covey> matched =
+            coveys.stream().filter(covey -> covey.adapter.supports(exchangeMessage)).collect(Collectors.toList());
+
+    if(matched.isEmpty()) {
+      throw new IllegalArgumentException("Not a supported message type: " + exchangeMessage.getClass().getName());
     }
-    throw new IllegalArgumentException("Not a supported message type: " + exchangeMessage.getClass().getName());
+
+    return matched;
   }
 
   /**
