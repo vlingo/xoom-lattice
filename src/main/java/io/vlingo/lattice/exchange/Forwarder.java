@@ -83,7 +83,8 @@ public class Forwarder {
    */
   private Covey<?,?,?> ofObjectType(final Class<?> objectType) {
     for (final Covey<?,?,?> covey : coveys) {
-      if (covey.externalClass == objectType || covey.localClass == objectType) {
+      if (covey.externalClass == objectType || covey.externalClass.isAssignableFrom(objectType)
+              || covey.localClass == objectType || covey.localClass.isAssignableFrom(objectType)) {
         return covey;
       }
     }
