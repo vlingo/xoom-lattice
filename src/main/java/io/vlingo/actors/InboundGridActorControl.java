@@ -112,6 +112,15 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
                     address);
 
     actor.lifeCycle.environment.mailbox.send(actor, protocol, consumer, returns, representation);
+
+    if (GridActorOperations.isSuspendedForRelocation(actor)) {
+      // this case is happening when a message is retried on a different node and above actor is created 'on demand'
+      logger().debug("Resuming thunk found at {} with definition='{}'",
+              address,
+              actor.definition());
+
+      GridActorOperations.resumeFromRelocation(actor);
+    }
   }
 
   @Override

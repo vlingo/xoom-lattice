@@ -47,6 +47,8 @@ public class GridNode extends ClusterApplicationAdapter {
 
   private final GridActorControl.Outbound outbound;
 
+  private final GridActorControl.Inbound inbound;
+
   private final ApplicationMessageHandler applicationMessageHandler;
 
   private final Collection<QuorumObserver> quorumObservers;
@@ -74,7 +76,7 @@ public class GridNode extends ClusterApplicationAdapter {
 
     this.gridRuntime.setOutbound(outbound);
 
-    final GridActorControl.Inbound inbound =
+    this.inbound =
             stage().actorFor(
                     GridActorControl.Inbound.class,
                     InboundGridActorControl.class,
@@ -242,14 +244,25 @@ public class GridNode extends ClusterApplicationAdapter {
       Deliver<?> deliver = retryMessage.getMessage();
       final Id newRecipient = gridRuntime.hashRing().nodeOf(deliver.address.idString());
 
-      outbound.deliver(newRecipient,
-              localNode.id(),
-              retryMessage.getReturns(),
-              (Class<Object>) deliver.protocol,
-              deliver.address,
-              deliver.definition,
-              (SerializableConsumer<Object>) deliver.consumer,
-              deliver.representation);
+      if (newRecipient.equals(localNode)) {
+        inbound.deliver(newRecipient,
+                newRecipient,
+                retryMessage.getReturns(),
+                (Class<Object>) deliver.protocol,
+                deliver.address,
+                deliver.definition,
+                (SerializableConsumer<Object>) deliver.consumer,
+                deliver.representation);
+      } else {
+        outbound.deliver(newRecipient,
+                localNode.id(),
+                retryMessage.getReturns(),
+                (Class<Object>) deliver.protocol,
+                deliver.address,
+                deliver.definition,
+                (SerializableConsumer<Object>) deliver.consumer,
+                deliver.representation);
+      }
     }
   }
 }
