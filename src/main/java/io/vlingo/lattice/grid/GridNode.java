@@ -7,28 +7,18 @@
 
 package io.vlingo.lattice.grid;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import org.nustaq.serialization.FSTConfiguration;
-
 import io.vlingo.actors.Definition;
 import io.vlingo.actors.GridRuntime;
 import io.vlingo.actors.InboundGridActorControl;
 import io.vlingo.actors.InboundGridActorControl.InboundGridActorControlInstantiator;
-import io.vlingo.actors.Returns;
 import io.vlingo.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.cluster.model.attribute.Attribute;
 import io.vlingo.cluster.model.attribute.AttributesProtocol;
-import io.vlingo.lattice.grid.application.ApplicationMessageHandler;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.GridApplicationMessageHandler;
-import io.vlingo.lattice.grid.application.OutboundGridActorControl;
+import io.vlingo.common.SerializableConsumer;
+import io.vlingo.lattice.grid.application.*;
 import io.vlingo.lattice.grid.application.OutboundGridActorControl.OutboundGridActorControlInstantiator;
-import io.vlingo.lattice.grid.application.QuorumObserver;
+import io.vlingo.lattice.grid.application.message.Deliver;
+import io.vlingo.lattice.grid.application.message.UnAckMessage;
 import io.vlingo.lattice.grid.application.message.serialization.FSTDecoder;
 import io.vlingo.lattice.grid.application.message.serialization.FSTEncoder;
 import io.vlingo.lattice.util.ExpiringHardRefHolder;
@@ -38,15 +28,26 @@ import io.vlingo.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.wire.message.RawMessage;
 import io.vlingo.wire.node.Id;
 import io.vlingo.wire.node.Node;
+import org.nustaq.serialization.FSTConfiguration;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class GridNode extends ClusterApplicationAdapter {
-  private static final Map<UUID, Returns<?>> correlation = new HashMap<>();
+  // Sent messages waiting for continuation (answer) onto current node
+  private static final Map<UUID, UnAckMessage> correlationMessages = new ConcurrentHashMap<>();
 
   private AttributesProtocol client;
   private final GridRuntime gridRuntime;
   private final Node localNode;
 
   private final GridActorControl.Outbound outbound;
+
+  private final GridActorControl.Inbound inbound;
 
   private final ApplicationMessageHandler applicationMessageHandler;
 
@@ -70,18 +71,18 @@ public class GridNode extends ClusterApplicationAdapter {
                     new OutboundGridActorControlInstantiator(
                                     localNode.id(),
                                     new FSTEncoder(conf),
-                                    correlation::put,
+                                    correlationMessages::put,
                                     new OutBuffers(holder)));
 
     this.gridRuntime.setOutbound(outbound);
 
-    final GridActorControl.Inbound inbound =
+    this.inbound =
             stage().actorFor(
                     GridActorControl.Inbound.class,
                     InboundGridActorControl.class,
                     new InboundGridActorControlInstantiator(
                             gridRuntime,
-                            correlation::remove));
+                            correlationMessages::remove));
 
     this.applicationMessageHandler =
             new GridApplicationMessageHandler(
@@ -167,6 +168,7 @@ public class GridNode extends ClusterApplicationAdapter {
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
     gridRuntime.hashRing().excludeNode(nodeId);
+    retryUnAckMessagesOn(nodeId);
   }
 
   @Override
@@ -221,6 +223,46 @@ public class GridNode extends ClusterApplicationAdapter {
       logger().debug("GRID: Stopping...");
       gridRuntime.relocateActors();
       super.stop();
+    }
+  }
+
+  /**
+   * Retry unacknowledged messages onto a new node (recipient).
+   *
+   * @param leftNode The node that left the cluster
+   */
+  @SuppressWarnings("unchecked")
+  private void retryUnAckMessagesOn(final Id leftNode) {
+    final Map<UUID, UnAckMessage> retryMessages = correlationMessages.entrySet().stream()
+            .filter(entry -> leftNode.equals(entry.getValue().getReceiver()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    retryMessages.keySet().stream()
+            .forEach(correlationMessages::remove);
+
+    for (UnAckMessage retryMessage : retryMessages.values()) {
+      Deliver<?> deliver = retryMessage.getMessage();
+      final Id newRecipient = gridRuntime.hashRing().nodeOf(deliver.address.idString());
+
+      if (newRecipient.equals(localNode)) {
+        inbound.deliver(newRecipient,
+                newRecipient,
+                retryMessage.getReturns(),
+                (Class<Object>) deliver.protocol,
+                deliver.address,
+                deliver.definition,
+                (SerializableConsumer<Object>) deliver.consumer,
+                deliver.representation);
+      } else {
+        outbound.deliver(newRecipient,
+                localNode.id(),
+                retryMessage.getReturns(),
+                (Class<Object>) deliver.protocol,
+                deliver.address,
+                deliver.definition,
+                (SerializableConsumer<Object>) deliver.consumer,
+                deliver.representation);
+      }
     }
   }
 }
