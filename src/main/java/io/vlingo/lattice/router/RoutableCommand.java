@@ -8,6 +8,7 @@
 package io.vlingo.lattice.router;
 
 import java.time.Duration;
+import java.util.List;
 
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Address;
@@ -29,6 +30,7 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
   private String name = "";
   private Completes<A> answer;
   private C command;
+  private List<Object> creationParameters;
   private CommandDispatcher<P,C,Completes<A>> handler;
   private Class<P> protocol;
   private long timeout = -1L;
@@ -76,6 +78,17 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
   public RoutableCommand<P,C,A> at(final String address) {
     assert(address != null);
     this.address = address;
+    return this;
+  }
+
+  /**
+   * Answer myself after assigning my {@code creationParameters}.
+   * @param creationParameters the {@code List<Object>} address
+   * @return {@code RoutableCommand<P,C,A>}
+   */
+  public RoutableCommand<P,C,A> createsWith(final List<Object> creationParameters) {
+    assert(creationParameters != null);
+    this.creationParameters = creationParameters;
     return this;
   }
 
@@ -133,7 +146,7 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
    * @return RoutableCommand
    */
   public RoutableCommand copy() {
-    return new RoutableCommand(protocol, actorType, address, command, answer, handler);
+    return new RoutableCommand(protocol, actorType, address, command, answer, handler, creationParameters);
   }
 
   /**
@@ -195,7 +208,7 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
            handler.accept(actor, command, answer);
           })
          .otherwise(noActor -> {
-           final P actor = stage.actorFor(protocol, Definition.has(actorType, Definition.NoParameters, name), actorAddress);
+           final P actor = stage.actorFor(protocol, Definition.has(actorType, creationParameters, name), actorAddress);
            handler.accept(actor, command, answer);
            return actor;
          });
@@ -203,6 +216,7 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
 
   protected RoutableCommand(final Class<P> protocol) {
     this.protocol = protocol;
+    this.creationParameters = Definition.NoParameters;
   }
 
   protected RoutableCommand(
@@ -211,13 +225,15 @@ public class RoutableCommand<P,C extends Command,A> extends Command {
           final String address,
           final C command,
           final Completes<A> answer,
-          final CommandDispatcher handler) {
+          final CommandDispatcher handler,
+          final List<Object> creationParameters) {
     this.protocol = protocol;
     this.actorType = actorType;
     this.address = address;
     this.command = command;
     this.answer = answer;
     this.handler = handler;
+    this.creationParameters = creationParameters;
   }
 
   private void check() {
