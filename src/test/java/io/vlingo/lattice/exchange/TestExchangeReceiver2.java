@@ -10,7 +10,6 @@ package io.vlingo.lattice.exchange;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import io.vlingo.actors.testkit.AccessSafely;
-import io.vlingo.lattice.exchange.ExchangeReceiver;
 
 public class TestExchangeReceiver2 implements ExchangeReceiver<LocalType2> {
   private AccessSafely access = AccessSafely.afterCompleting(0);

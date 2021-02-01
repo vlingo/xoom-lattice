@@ -7,8 +7,6 @@
 
 package io.vlingo.lattice.exchange;
 
-import io.vlingo.lattice.exchange.ExchangeMapper;
-
 public class TestExchangeMapper1 implements ExchangeMapper<LocalType1,ExternalType1> {
 
   @Override
