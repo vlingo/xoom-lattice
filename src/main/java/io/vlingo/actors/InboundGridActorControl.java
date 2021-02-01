@@ -7,24 +7,25 @@
 
 package io.vlingo.actors;
 
+import io.vlingo.common.SerializableConsumer;
+import io.vlingo.lattice.grid.application.GridActorControl;
+import io.vlingo.lattice.grid.application.message.Answer;
+import io.vlingo.lattice.grid.application.message.UnAckMessage;
+import io.vlingo.wire.node.Id;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.wire.node.Id;
-
 public class InboundGridActorControl extends Actor implements GridActorControl.Inbound {
 
   private final GridRuntime gridRuntime;
 
-  private final Function<UUID, Returns<?>> correlation;
+  private final Function<UUID, UnAckMessage> correlation;
 
 
-  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, Returns<?>> correlation) {
+  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation) {
     this.gridRuntime = gridRuntime;
     this.correlation = correlation;
   }
@@ -33,7 +34,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
     logger().debug("GRID: Processing application message: Answer");
-    final Returns<Object> clientReturns = (Returns<Object>) correlation.apply(answer.correlationId);
+    final Returns<Object> clientReturns = correlation.apply(answer.correlationId).getReturns();
     if (clientReturns == null) {
       logger().warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
       return;
@@ -111,6 +112,15 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
                     address);
 
     actor.lifeCycle.environment.mailbox.send(actor, protocol, consumer, returns, representation);
+
+    if (GridActorOperations.isSuspendedForRelocation(actor)) {
+      // this case is happening when a message is retried on a different node and above actor is created 'on demand'
+      logger().debug("Resuming thunk found at {} with definition='{}'",
+              address,
+              actor.definition());
+
+      GridActorOperations.resumeFromRelocation(actor);
+    }
   }
 
   @Override
@@ -153,9 +163,9 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
     private static final long serialVersionUID = 1494058617174306163L;
 
     private final GridRuntime gridRuntime;
-    private final Function<UUID, Returns<?>> correlation;
+    private final Function<UUID, UnAckMessage> correlation;
 
-    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, Returns<?>> correlation) {
+    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation) {
       this.gridRuntime = gridRuntime;
       this.correlation = correlation;
     }
