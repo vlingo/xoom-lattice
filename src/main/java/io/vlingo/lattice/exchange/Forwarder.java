@@ -26,7 +26,6 @@ public class Forwarder {
     this.coveys = new ArrayList<>();
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
   public <L,EX> void forwardToReceiver(final EX exchangeMessage) {
     forwardToAllReceivers(exchangeMessage, Stream.of(ofExchangeMessage(exchangeMessage).get(0)));
   }
@@ -35,6 +34,7 @@ public class Forwarder {
     forwardToAllReceivers(exchangeMessage, ofExchangeMessage(exchangeMessage).stream());
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private <L,EX> void forwardToAllReceivers(final EX exchangeMessage, final Stream<Covey> coveys) {
     coveys.forEach(covey -> {
       final Object casted = covey.exchangeClass.cast(exchangeMessage);
@@ -65,6 +65,7 @@ public class Forwarder {
    * @param exchangeMessage the Object to match
    * @return {@code List<Covey>}
    */
+  @SuppressWarnings("rawtypes" )
   private List<Covey> ofExchangeMessage(final Object exchangeMessage) {
     final List<Covey> matched =
             coveys.stream().filter(covey -> covey.adapter.supports(exchangeMessage)).collect(Collectors.toList());
