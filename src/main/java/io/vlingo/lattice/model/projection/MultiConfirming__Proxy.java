@@ -7,11 +7,17 @@
 
 package io.vlingo.lattice.model.projection;
 
-import io.vlingo.actors.*;
+import java.util.List;
+
+import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorProxyBase;
+import io.vlingo.actors.DeadLetter;
+import io.vlingo.actors.Definition;
+import io.vlingo.actors.LocalMessage;
+import io.vlingo.actors.Mailbox;
+import io.vlingo.actors.Returns;
 import io.vlingo.common.Completes;
 import io.vlingo.common.SerializableConsumer;
-
-import java.util.List;
 
 public class MultiConfirming__Proxy extends ActorProxyBase<io.vlingo.lattice.model.projection.MultiConfirming> implements io.vlingo.lattice.model.projection.MultiConfirming {
 
