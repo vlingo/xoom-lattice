@@ -12,6 +12,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -171,7 +172,7 @@ public class FeedTest {
 
     dispatcher = new MockJournalDispatcher();
 
-    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, dispatcher);
+    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, Arrays.asList(dispatcher));
 
     entryReader = journal.journalReader("feed-test-reader").await();
 

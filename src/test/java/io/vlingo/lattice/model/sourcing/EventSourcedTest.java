@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -162,7 +163,7 @@ public class EventSourcedTest {
     entryAdapterProvider.registerAdapter(Test2Happened.class, new Test2HappenedAdapter());
     entryAdapterProvider.registerAdapter(Test3Happened.class, new Test3HappenedAdapter());
 
-    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, dispatcher);
+    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, Arrays.asList(dispatcher));
 
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestEventSourcedEntity.class, TestEventSourcedEntity.class.getSimpleName()));

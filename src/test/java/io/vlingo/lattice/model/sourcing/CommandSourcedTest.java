@@ -7,6 +7,7 @@
 
 package io.vlingo.lattice.model.sourcing;
 
+import java.util.Arrays;
 import io.vlingo.actors.World;
 import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry.Info;
@@ -72,7 +73,7 @@ public class CommandSourcedTest {
 
     dispatcher = new MockJournalDispatcher();
 
-    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, dispatcher);
+    journal = world.actorFor(Journal.class, InMemoryJournalActor.class, Arrays.asList(dispatcher));
 
     registry = new SourcedTypeRegistry(world);
     registry.register(new Info(journal, TestCommandSourcedEntity.class, TestCommandSourcedEntity.class.getSimpleName()));

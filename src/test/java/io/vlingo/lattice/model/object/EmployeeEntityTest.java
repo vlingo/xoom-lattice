@@ -20,6 +20,8 @@ import io.vlingo.symbio.store.object.ObjectStore;
 import io.vlingo.symbio.store.object.StateObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
 
+import java.util.Arrays;
+
 public class EmployeeEntityTest {
   private ObjectTypeRegistry registry;
   private ObjectStore objectStore;
@@ -52,7 +54,7 @@ public class EmployeeEntityTest {
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public void setUp() {
     world = World.startWithDefaults("test-object-entity");
-    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class, new MockDispatcher());
+    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class, Arrays.asList(new MockDispatcher()));
 
     registry = new ObjectTypeRegistry(world);
 

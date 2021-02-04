@@ -36,6 +36,8 @@ import io.vlingo.symbio.store.object.ObjectStore;
 import io.vlingo.symbio.store.object.StateObjectMapper;
 import io.vlingo.symbio.store.object.inmemory.InMemoryObjectStoreActor;
 
+import java.util.Arrays;
+
 public class ObjectProcessTest {
   private Exchange exchange;
   private ExchangeReceivers exchangeReceivers;
@@ -73,7 +75,7 @@ public class ObjectProcessTest {
     EntryAdapterProvider.instance(world).registerAdapter(ProcessMessage.class, adapter);
 
     dispatcher = new MockTextDispatcher();
-    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class, dispatcher);
+    objectStore = world.actorFor(ObjectStore.class, InMemoryObjectStoreActor.class, Arrays.asList(dispatcher));
 
     objectTypeRegistry = new ObjectTypeRegistry(world);
 

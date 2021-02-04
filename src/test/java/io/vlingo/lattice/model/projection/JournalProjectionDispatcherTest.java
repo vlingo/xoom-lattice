@@ -119,7 +119,7 @@ public class JournalProjectionDispatcherTest {
 
     this.dispatcher = dispatchers._1;
 
-    journal = Journal.using(world.stage(), InMemoryJournalActor.class, this.dispatcher);
+    journal = Journal.using(world.stage(), InMemoryJournalActor.class, Arrays.asList(this.dispatcher));
 
     EntryAdapterProvider.instance(world).registerAdapter(OneHappened.class, new OneHappenedAdapter());
     EntryAdapterProvider.instance(world).registerAdapter(TwoHappened.class, new TwoHappenedAdapter());
