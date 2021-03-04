@@ -19,7 +19,7 @@ The VLINGO/PLATFORM tooling for reactive Domain-Driven Design models that are hi
     <dependency>
       <groupId>io.vlingo</groupId>
       <artifactId>vlingo-lattice</artifactId>
-      <version>1.3.0</version>
+      <version>1.5.0</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
@@ -27,7 +27,7 @@ The VLINGO/PLATFORM tooling for reactive Domain-Driven Design models that are hi
 
 ```gradle
 dependencies {
-    compile 'io.vlingo:vlingo-lattice:1.3.0'
+    compile 'io.vlingo:vlingo-lattice:1.5.0'
 }
 
 repositories {
