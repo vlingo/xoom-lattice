@@ -42,7 +42,7 @@ MINOR=$(echo $VERSION | cut -f 2 -d '.')
 PATCH=$(echo $VERSION | cut -f 3 -d '.')
 NEW_VERSION=$MAJOR.$MINOR.$(($PATCH + 1))-SNAPSHOT
 
-for dependency in "vlingo-lattice-exchange-camel" "vlingo-lattice-exchange-rabbitmq" "vlingo-scooter" "vlingo-xoom";
+for dependency in "vlingo-lattice-exchange-camel" "vlingo-lattice-exchange-rabbitmq" "vlingo-xoom";
 do
     trigger_dependency $dependency $VERSION $NEW_VERSION
 done
