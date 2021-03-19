@@ -24,7 +24,7 @@ public class GridClusterProperties {
   }
 
   public static io.vlingo.cluster.model.Properties allNodes(final int startPort, final int totalNodes) {
-    return ClusterProperties.allNodes(new AtomicInteger(startPort - 1), GridNode.class.getName());
+    return ClusterProperties.allNodes(new AtomicInteger(startPort - 1), totalNodes, GridNode.class.getName());
   }
 
   public static io.vlingo.cluster.model.Properties oneNode() {
