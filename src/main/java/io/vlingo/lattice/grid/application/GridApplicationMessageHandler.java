@@ -172,15 +172,16 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       if (deliver.answerCorrelationId == null) {
         returns = null;
       } else {
-        returns = Returns.value(
-            Completes.using(scheduler)
-                .andThen(result -> new Answer<>(deliver.answerCorrelationId, result))
+        final Completes<Object> completes = Completes.using(scheduler);
+        completes.andThen(result -> new Answer<>(deliver.answerCorrelationId, result))
                 .recoverFrom(error -> new Answer<>(deliver.answerCorrelationId, error))
                 .otherwise(ignored -> new Answer<>(deliver.answerCorrelationId, new TimeoutException()))
                 .andThenConsume(4000,
-                    answer -> outbound.answer(sender, receiver, answer))
-                .andFinally()
-        );
+                        answer -> outbound.answer(sender, receiver, answer))
+                .andFinally();
+
+        // 'root' Completes here! Completes#with(Object) will trigger the execution of whole Completes chain/pipeline built above
+        returns = Returns.value(completes);
       }
       return returns;
     }
