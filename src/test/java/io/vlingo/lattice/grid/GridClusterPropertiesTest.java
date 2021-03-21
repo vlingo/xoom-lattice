@@ -39,14 +39,20 @@ public class GridClusterPropertiesTest {
     assertEquals("1", properties.getString("node.node1.id", ""));
     assertEquals("node1", properties.getString("node.node1.name", ""));
     assertEquals("localhost", properties.getString("node.node1.host", ""));
+    assertEquals("37371", properties.getString("node.node1.op.port", ""));
+    assertEquals("37372", properties.getString("node.node1.app.port", ""));
 
     assertEquals("2", properties.getString("node.node2.id", ""));
     assertEquals("node2", properties.getString("node.node2.name", ""));
     assertEquals("localhost", properties.getString("node.node2.host", ""));
+    assertEquals("37373", properties.getString("node.node2.op.port", ""));
+    assertEquals("37374", properties.getString("node.node2.app.port", ""));
 
     assertEquals("3", properties.getString("node.node3.id", ""));
     assertEquals("node3", properties.getString("node.node3.name", ""));
     assertEquals("localhost", properties.getString("node.node3.host", ""));
+    assertEquals("37375", properties.getString("node.node3.op.port", ""));
+    assertEquals("37376", properties.getString("node.node3.app.port", ""));
 
     assertEquals("", properties.getString("node.node4.id", ""));
     assertEquals("", properties.getString("node.node4.name", ""));
@@ -70,6 +76,8 @@ public class GridClusterPropertiesTest {
     assertEquals("1", properties.getString("node.node1.id", ""));
     assertEquals("node1", properties.getString("node.node1.name", ""));
     assertEquals("localhost", properties.getString("node.node1.host", ""));
+    assertEquals("37371", properties.getString("node.node1.op.port", ""));
+    assertEquals("37372", properties.getString("node.node1.app.port", ""));
 
     assertEquals("", properties.getString("node.node2.id", ""));
     assertEquals("", properties.getString("node.node2.name", ""));
