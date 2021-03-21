@@ -2,9 +2,12 @@
 
 [![Javadocs](http://javadoc.io/badge/io.vlingo/vlingo-lattice.svg?color=brightgreen)](http://javadoc.io/doc/io.vlingo/vlingo-lattice) [![Build](https://github.com/vlingo/vlingo-lattice/workflows/Build/badge.svg)](https://github.com/vlingo/vlingo-lattice/actions?query=workflow%3ABuild) [ ![Download](https://api.bintray.com/packages/vlingo/vlingo-platform-java/vlingo-lattice/images/download.svg) ](https://bintray.com/vlingo/vlingo-platform-java/vlingo-lattice/_latestVersion) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/vlingo-platform-java/lattice)
 
+The VLINGO/PLATFORM tooling for reactive Domain-Driven Design models that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, message exchanges, CQRS, and Event Sourcing support.
+
 Docs: https://docs.vlingo.io/vlingo-lattice
 
-The VLINGO/PLATFORM tooling for reactive Domain-Driven Design models that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, message exchanges, CQRS, and Event Sourcing support.
+### Important
+If using snapshot builds [follow these instructions](https://github.com/vlingo/vlingo-platform#snapshots-repository) or you will experience failures.
 
 ### Bintray
 
