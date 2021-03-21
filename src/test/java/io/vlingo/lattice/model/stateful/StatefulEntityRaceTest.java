@@ -7,16 +7,8 @@
 
 package io.vlingo.lattice.model.stateful;
 
-import io.vlingo.actors.World;
-import io.vlingo.actors.testkit.AccessSafely;
-import io.vlingo.common.Completes;
-import io.vlingo.common.serialization.JsonSerialization;
-import io.vlingo.symbio.*;
-import io.vlingo.symbio.store.state.StateStore;
-import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,8 +17,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import io.vlingo.actors.World;
+import io.vlingo.common.Completes;
+import io.vlingo.common.serialization.JsonSerialization;
+import io.vlingo.symbio.EntryAdapterProvider;
+import io.vlingo.symbio.Metadata;
+import io.vlingo.symbio.Source;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.StateAdapter;
+import io.vlingo.symbio.StateAdapterProvider;
+import io.vlingo.symbio.store.state.StateStore;
+import io.vlingo.symbio.store.state.inmemory.InMemoryStateStoreActor;
 
 public class StatefulEntityRaceTest {
     private static final AtomicInteger raceConditions = new AtomicInteger(0);
@@ -40,7 +45,7 @@ public class StatefulEntityRaceTest {
 
         final String entityId = "" + idGenerator.nextInt(10_000);
         final Entity1State state = new Entity1State(entityId, "Sally", 23);
-        final AccessSafely access = dispatcher.afterCompleting(3);
+        //final AccessSafely access = dispatcher.afterCompleting(3);
 
         final Entity1 entity1 = world.actorFor(Entity1.class, Entity1Actor.class, entityId);
         assertEquals(state, entity1.defineWith(state.name, state.age).await());
