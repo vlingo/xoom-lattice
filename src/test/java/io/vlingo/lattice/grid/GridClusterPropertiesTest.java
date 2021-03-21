@@ -11,7 +11,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import io.vlingo.cluster.ClusterProperties;
 import io.vlingo.cluster.model.Properties;
 
 /**
@@ -26,6 +25,8 @@ public class GridClusterPropertiesTest {
     final Properties properties = GridClusterProperties.allNodes();
 
     // common (other common properties are tested in vlingo-cluster
+
+    assertEquals(GridNode.class.getName(), properties.getString("cluster.app.class", ""));
 
     final String[] seedNodes = properties.getString("cluster.seedNodes", "").split(",");
 
@@ -54,9 +55,11 @@ public class GridClusterPropertiesTest {
 
   @Test
   public void shouldConfigureSingleNodeGrid() {
-    final Properties properties = ClusterProperties.oneNode();
+    final Properties properties = GridClusterProperties.oneNode();
 
     // common (other common properties are tested in vlingo-cluster
+
+    assertEquals(GridNode.class.getName(), properties.getString("cluster.app.class", ""));
 
     final String[] seedNodes = properties.getString("cluster.seedNodes", "").split(",");
 
