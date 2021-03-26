@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import io.vlingo.actors.World;
+import io.vlingo.symbio.StateAdapterProvider;
 import io.vlingo.symbio.store.state.StateStore;
 import io.vlingo.symbio.store.state.StateTypeStateStoreMap;
 
@@ -32,23 +33,28 @@ public final class StatefulTypeRegistry {
    * @param types the {@code Class<?>}[] native type of states to be stored
    * @return StatefulTypeRegistry
    */
-  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static StatefulTypeRegistry registerAll(final World world, final StateStore stateStore, final Class<?>... types) {
-    final StatefulTypeRegistry registry = new StatefulTypeRegistry(world);
+    final StatefulTypeRegistry registry = statefulTypeRegistry(world);
 
-    for (final Class<?> type : types) {
-      registry.register(new Info(stateStore, type, type.getSimpleName()));
-    }
+    registry.registerAll(stateStore, types);
 
     return registry;
   }
+
   /**
    * Answer the {@code StatefulTypeRegistry} held by the {@code world}.
+   * If the registry doesn't exist, a one is instantiated and registered.
    * @param world the World where the StatefulTypeRegistry is held
    * @return StatefulTypeRegistry
    */
   public static StatefulTypeRegistry statefulTypeRegistry(final World world) {
-    return world.resolveDynamic(INTERNAL_NAME, StatefulTypeRegistry.class);
+    final StatefulTypeRegistry registry = world.resolveDynamic(INTERNAL_NAME, StatefulTypeRegistry.class);
+
+    if (registry != null) {
+      return registry;
+    }
+
+    return new StatefulTypeRegistry(world);
   }
 
   /**
@@ -57,6 +63,19 @@ public final class StatefulTypeRegistry {
    */
   public StatefulTypeRegistry(final World world) {
     world.registerDynamic(INTERNAL_NAME, this);
+
+    StateAdapterProvider.instance(world);
+  }
+
+  /**
+   * Construct my default state and register it with the {@code world}.
+   * @param world the World to which I am registered
+   * @param types the {@code Class<?>}[] native type of states to be stored
+   */
+  public StatefulTypeRegistry(final World world, final StateStore stateStore, final Class<?>... types) {
+    this(world);
+
+    registerAll(stateStore, types);
   }
 
   /**
@@ -79,6 +98,13 @@ public final class StatefulTypeRegistry {
     StateTypeStateStoreMap.stateTypeToStoreName(info.storeType, info.storeName);
     stores.put(info.storeType, info);
     return this;
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void registerAll(final StateStore stateStore, final Class<?>[] types) {
+    for (final Class<?> type : types) {
+      register(new Info(stateStore, type, type.getSimpleName()));
+    }
   }
 
   /**

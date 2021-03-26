@@ -349,7 +349,7 @@ public abstract class ObjectEntity<T extends StateObject> extends EntityActor
 
   private Info<T> info() {
     try {
-      final ObjectTypeRegistry registry = stage().world().resolveDynamic(ObjectTypeRegistry.INTERNAL_NAME, ObjectTypeRegistry.class);
+      final ObjectTypeRegistry registry = ObjectTypeRegistry.objectTypeRegistry(stage().world());
       final Info<T> info = registry.info(stateObjectType());
       return info;
     } catch (Exception e) {

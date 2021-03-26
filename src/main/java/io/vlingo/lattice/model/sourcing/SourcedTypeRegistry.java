@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.sourcing;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.World;
 import io.vlingo.symbio.Entry;
@@ -20,18 +24,14 @@ import io.vlingo.symbio.store.dispatch.Dispatchable;
 import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.journal.Journal;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
-
 /**
  * Registry for {@code Sourced} types that holds the {@code Journal} type,
  * {@code EntryAdapterProvider}, and {@code StateAdapterProvider}.
  */
 public final class SourcedTypeRegistry {
-  static final String INTERNAL_NAME = UUID.randomUUID().toString();
+  static final String INTERNAL_NAME = SourcedTypeRegistry.class.getName();
 
+  private final Map<Class<? extends Actor>, Journal<?>> journals = new ConcurrentHashMap<>();
   private final Map<Class<?>,Info<?>> stores = new ConcurrentHashMap<>();
 
   /**
@@ -46,12 +46,60 @@ public final class SourcedTypeRegistry {
    * @return SourcedTypeRegistry
    */
   @SuppressWarnings({ "unchecked" })
+  public static <A extends Actor, S extends Sourced<?>> SourcedTypeRegistry registerAll(
+          final World world,
+          final Class<A> journalType,
+          final Dispatcher<Dispatchable<Entry<?>,State<?>>> dispatcher,
+          final Class<S> ... sourcedTypes) {
+
+    final SourcedTypeRegistry registry = sourcedTypeRegistry(world);
+
+    final Journal<?> journal = registry.journalOf(journalType, world, dispatcher);
+
+    registry.registerAll(journal, sourcedTypes);
+
+    return registry;
+  }
+
+  /**
+   * Answer a new {@code SourcedTypeRegistry} with registered {@code sourcedTypes}, creating
+   * the {@code Journal} of type {@code journalType}, registering me with the {@code world}.
+   *
+   * <p>
+   * NOTE: register() is an alias for registerAll().
+   * </p>
+   *
+   * @param world the World to which I am registered
+   * @param journalType the concrete {@code Actor} type of the Journal to create
+   * @param dispatcher the {@code Dispatcher<Dispatchable<Entry<?>,State<?>>>} of the journalType
+   * @param sourcedTypes all {@code Class<Sourced<?>>} types of to register
+   * @param <A> the type of Actor used for the Journal implementation
+   * @param <S> the {@code Sourced<?>} types to register
+   * @return SourcedTypeRegistry
+   */
+  @SuppressWarnings({ "unchecked" })
   public static <A extends Actor, S extends Sourced<?>> SourcedTypeRegistry register(
           final World world,
           final Class<A> journalType,
           final Dispatcher<Dispatchable<Entry<?>,State<?>>> dispatcher,
           final Class<S> ... sourcedTypes) {
-    return new SourcedTypeRegistry(world, journalType, dispatcher, sourcedTypes);
+
+    return registerAll(world, journalType, dispatcher, sourcedTypes);
+  }
+
+  /**
+   * Answer the {@code SourcedTypeRegistry} held by the {@code world}.
+   * @param world the World where the SourcedTypeRegistry is held
+   * @return SourcedTypeRegistry
+   */
+  public static SourcedTypeRegistry sourcedTypeRegistry(final World world) {
+    final SourcedTypeRegistry registry = world.resolveDynamic(INTERNAL_NAME, SourcedTypeRegistry.class);
+
+    if (registry != null) {
+      return registry;
+    }
+
+    return new SourcedTypeRegistry(world);
   }
 
   /**
@@ -60,6 +108,8 @@ public final class SourcedTypeRegistry {
    */
   public SourcedTypeRegistry(final World world) {
     world.registerDynamic(INTERNAL_NAME, this);
+
+    EntryAdapterProvider.instance(world);
   }
 
   /**
@@ -72,7 +122,7 @@ public final class SourcedTypeRegistry {
    * @param <A> the type of Actor used for the Journal implementation
    * @param <S> the {@code Sourced<?>} types to register
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings("unchecked")
   public <A extends Actor, S extends Sourced<?>> SourcedTypeRegistry(
           final World world,
           final Class<A> journalType,
@@ -81,13 +131,9 @@ public final class SourcedTypeRegistry {
 
     this(world);
 
-    final Journal<?> journal = world.actorFor(Journal.class, journalType, dispatcher);
+    final Journal<?> journal = journalOf(journalType, world, dispatcher);
 
-    EntryAdapterProvider.instance(world);
-
-    for (Class<S> sourcedType : sourcedTypes) {
-      this.register(new Info(journal, sourcedType, sourcedType.getSimpleName()));
-    }
+    registerAll(journal, sourcedTypes);
   }
 
   /**
@@ -100,6 +146,32 @@ public final class SourcedTypeRegistry {
   }
 
   /**
+   * Answer the {@code Journal<?>} of the registered {@code journalType}
+   * or a new {@code Journal<?>} if non-existing.
+   * @param journalType the concrete {@code Actor} type of the Journal to create
+   * @param world the World to which I am registered
+   * @param dispatcher the {@code Dispatcher<Dispatchable<Entry<?>,State<?>>>} of the journalType
+   * @return {@code Journal<?>}
+   */
+  public <A extends Actor> Journal<?> journalOf(
+          final Class<A> journalType,
+          final World world,
+          final Dispatcher<Dispatchable<Entry<?>,State<?>>> dispatcher) {
+
+    for (final Class<?> actorType : journals.keySet()) {
+      if (actorType == journalType) {
+        return journals.get(actorType);
+      }
+    }
+
+    final Journal<?> journal = world.actorFor(Journal.class, journalType, dispatcher);
+
+    journals.put(journalType, journal);
+
+    return journal;
+  }
+
+  /**
    * Answer myself after registering the {@code info}.
    * @param info the {@code Info<T>} to register
    * @param <T> the typed of Info being registered
@@ -108,6 +180,13 @@ public final class SourcedTypeRegistry {
   public <T> SourcedTypeRegistry register(final Info<T> info) {
     stores.put(info.sourcedType, info);
     return this;
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void registerAll(final Journal<?> journal, final Class<?>[] sourcedTypes) {
+    for (Class<?> sourcedType : sourcedTypes) {
+      this.register(new Info(journal, sourcedType, sourcedType.getSimpleName()));
+    }
   }
 
   /**

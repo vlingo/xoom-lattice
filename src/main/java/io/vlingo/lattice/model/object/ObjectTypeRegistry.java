@@ -27,6 +27,15 @@ public final class ObjectTypeRegistry {
   private final Map<Class<?>,Info<?>> stores = new HashMap<>();
 
   /**
+   * Answer the {@code ObjectTypeRegistry} held by the {@code world}.
+   * @param world the World where the ObjectTypeRegistry is held
+   * @return ObjectTypeRegistry
+   */
+  public static ObjectTypeRegistry objectTypeRegistry(final World world) {
+    return world.resolveDynamic(INTERNAL_NAME, ObjectTypeRegistry.class);
+  }
+
+  /**
    * Construct my default state and register me with the {@code world}.
    * @param world the World to which I am registered
    */

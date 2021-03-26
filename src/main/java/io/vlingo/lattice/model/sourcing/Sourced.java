@@ -472,7 +472,7 @@ public abstract class Sourced<T> extends EntityActor implements AppendResultInte
 
   private SourcedTypeRegistry.Info<?> info() {
     try {
-      return stage().world().resolveDynamic(SourcedTypeRegistry.INTERNAL_NAME, SourcedTypeRegistry.class).info(getClass());
+      return SourcedTypeRegistry.sourcedTypeRegistry(stage().world()).info(getClass());
     } catch (Exception e) {
       final String message = getClass().getSimpleName() + ": Info not registered with SourcedTypeRegistry.";
       logger().error(message);

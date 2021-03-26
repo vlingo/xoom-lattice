@@ -7,6 +7,10 @@
 
 package io.vlingo.lattice.model.process;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import io.vlingo.actors.World;
 import io.vlingo.lattice.exchange.Exchange;
 import io.vlingo.lattice.exchange.NullExchange;
@@ -15,10 +19,6 @@ import io.vlingo.lattice.model.sourcing.SourcedTypeRegistry;
 import io.vlingo.lattice.model.stateful.StatefulTypeRegistry;
 import io.vlingo.symbio.store.object.StateObject;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 /**
  * Registry for {@code Process} types.
  */
@@ -26,6 +26,22 @@ public final class ProcessTypeRegistry {
   static final String INTERNAL_NAME = UUID.randomUUID().toString();
 
   private final Map<Class<?>,Info<?>> stores = new HashMap<>();
+
+  /**
+   * Answer the {@code ProcessTypeRegistry} held by the {@code world}.
+   * If the registry doesn't exist, a one is instantiated and registered.
+   * @param world the World where the ProcessTypeRegistry is held
+   * @return ProcessTypeRegistry
+   */
+  public static ProcessTypeRegistry processTypeRegistry(final World world) {
+    final ProcessTypeRegistry registry = world.resolveDynamic(INTERNAL_NAME, ProcessTypeRegistry.class);
+
+    if (registry != null) {
+      return registry;
+    }
+
+    return new ProcessTypeRegistry(world);
+  }
 
   /**
    * Construct my default state and register me with the {@code world}.

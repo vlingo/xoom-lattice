@@ -408,7 +408,7 @@ public abstract class StatefulEntity<S> extends EntityActor
    */
   private Info<S> info() {
     try {
-      return stage().world().resolveDynamic(StatefulTypeRegistry.INTERNAL_NAME, StatefulTypeRegistry.class).info(stateType());
+      return StatefulTypeRegistry.statefulTypeRegistry(stage().world()).info(stateType());
     } catch (Exception e) {
       final String message = getClass().getSimpleName() + ": Info not registered with StatefulTypeRegistry.";
       logger().error(message);
