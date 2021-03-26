@@ -1,6 +1,6 @@
 # vlingo-lattice
 
-[![Javadocs](http://javadoc.io/badge/io.vlingo/vlingo-lattice.svg?color=brightgreen)](http://javadoc.io/doc/io.vlingo/vlingo-lattice) [![Build](https://github.com/vlingo/vlingo-lattice/workflows/Build/badge.svg)](https://github.com/vlingo/vlingo-lattice/actions?query=workflow%3ABuild) [ ![Download](https://api.bintray.com/packages/vlingo/vlingo-platform-java/vlingo-lattice/images/download.svg) ](https://bintray.com/vlingo/vlingo-platform-java/vlingo-lattice/_latestVersion) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/vlingo-platform-java/lattice)
+[![Javadocs](http://javadoc.io/badge/io.vlingo/vlingo-lattice.svg?color=brightgreen)](http://javadoc.io/doc/io.vlingo/vlingo-lattice) [![Build](https://github.com/vlingo/vlingo-lattice/workflows/Build/badge.svg)](https://github.com/vlingo/vlingo-lattice/actions?query=workflow%3ABuild) [![Download](https://img.shields.io/maven-central/v/io.vlingo/vlingo-lattice?label=maven)](https://search.maven.org/artifact/io.vlingo/vlingo-lattice) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/vlingo-platform-java/lattice)
 
 The VLINGO XOOM platform SDK Reactive Domain-Driven Design models that are highly scalable and concurrent. Includes compute grid, actor caching, spaces, cross-node grid cluster messaging, message exchanges, CQRS, and Event Sourcing support.
 
