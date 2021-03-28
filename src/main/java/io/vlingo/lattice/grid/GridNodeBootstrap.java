@@ -20,7 +20,7 @@ public class GridNodeBootstrap {
   private final GridShutdownHook shutdownHook;
 
   public static GridNodeBootstrap boot(final GridRuntime grid, final String nodeName, final boolean embedded) throws Exception {
-    return boot(grid, nodeName, io.vlingo.cluster.model.Properties.instance, embedded);
+    return boot(grid, nodeName, io.vlingo.cluster.model.Properties.instance(), embedded);
   }
 
   public static GridNodeBootstrap boot(final GridRuntime grid, final String nodeName, final io.vlingo.cluster.model.Properties properties, final boolean embedded) throws Exception {
