@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.actors;
+package io.vlingo.xoom.actors;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,10 +16,10 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.hashring.HashRing;
-import io.vlingo.wire.node.Id;
+import io.vlingo.xoom.common.SerializableConsumer;
+import io.vlingo.xoom.lattice.grid.application.GridActorControl;
+import io.vlingo.xoom.lattice.grid.hashring.HashRing;
+import io.vlingo.xoom.wire.node.Id;
 
 public class GridMailbox implements Mailbox {
 

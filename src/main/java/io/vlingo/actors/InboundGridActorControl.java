@@ -5,13 +5,13 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.actors;
+package io.vlingo.xoom.actors;
 
-import io.vlingo.common.SerializableConsumer;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.message.Answer;
-import io.vlingo.lattice.grid.application.message.UnAckMessage;
-import io.vlingo.wire.node.Id;
+import io.vlingo.xoom.common.SerializableConsumer;
+import io.vlingo.xoom.lattice.grid.application.GridActorControl;
+import io.vlingo.xoom.lattice.grid.application.message.Answer;
+import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
+import io.vlingo.xoom.wire.node.Id;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +61,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   }
 
   @Override
-  public void forward(final Id receiver, final Id sender, final io.vlingo.lattice.grid.application.message.Message message) {
+  public void forward(final Id receiver, final Id sender, final io.vlingo.xoom.lattice.grid.application.message.Message message) {
     throw new UnsupportedOperationException("Should have been handled in Visitor#accept(Id, Id, Forward) by dispatching the visitor to the enclosed Message");
   }
 
@@ -130,7 +130,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
           final Definition.SerializationProxy definition,
           final Address address,
           final Object snapshot,
-          final List<? extends io.vlingo.actors.Message> pending) {
+          final List<? extends io.vlingo.xoom.actors.Message> pending) {
 
     logger().debug("Processing: Received application message: Relocate");
 

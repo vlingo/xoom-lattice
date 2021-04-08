@@ -5,13 +5,13 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.actors;
+package io.vlingo.xoom.actors;
 
-import io.vlingo.lattice.grid.GridNodeBootstrap;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.QuorumObserver;
-import io.vlingo.lattice.grid.hashring.HashRing;
-import io.vlingo.wire.node.Id;
+import io.vlingo.xoom.lattice.grid.GridNodeBootstrap;
+import io.vlingo.xoom.lattice.grid.application.GridActorControl;
+import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
+import io.vlingo.xoom.lattice.grid.hashring.HashRing;
+import io.vlingo.xoom.wire.node.Id;
 
 public interface GridRuntime extends QuorumObserver {
   Actor actorAt(Address address);

@@ -5,19 +5,19 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.actors;
+package io.vlingo.xoom.actors;
 
 import java.util.UUID;
 
 import org.slf4j.LoggerFactory;
 
-import io.vlingo.common.identity.IdentityGeneratorType;
-import io.vlingo.lattice.grid.GridNodeBootstrap;
-import io.vlingo.lattice.grid.application.GridActorControl;
-import io.vlingo.lattice.grid.application.QuorumObserver;
-import io.vlingo.lattice.grid.hashring.HashRing;
-import io.vlingo.lattice.grid.hashring.MurmurSortedMapHashRing;
-import io.vlingo.wire.node.Id;
+import io.vlingo.xoom.common.identity.IdentityGeneratorType;
+import io.vlingo.xoom.lattice.grid.GridNodeBootstrap;
+import io.vlingo.xoom.lattice.grid.application.GridActorControl;
+import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
+import io.vlingo.xoom.lattice.grid.hashring.HashRing;
+import io.vlingo.xoom.lattice.grid.hashring.MurmurSortedMapHashRing;
+import io.vlingo.xoom.wire.node.Id;
 
 public class Grid extends Stage implements GridRuntime {
   private static final int GridStageBuckets = 32;
@@ -32,31 +32,31 @@ public class Grid extends Stage implements GridRuntime {
   }
 
   public static Grid start(final String worldName, final String gridNodeName) throws Exception {
-    return start(worldName, Configuration.define(), io.vlingo.cluster.model.Properties.open(), gridNodeName);
+    return start(worldName, Configuration.define(), io.vlingo.xoom.cluster.model.Properties.open(), gridNodeName);
   }
 
   public static Grid start(final World world, final String gridNodeName) throws Exception {
-    return start(world, new GridAddressFactory(IdentityGeneratorType.RANDOM), io.vlingo.cluster.model.Properties.open(), gridNodeName);
+    return start(world, new GridAddressFactory(IdentityGeneratorType.RANDOM), io.vlingo.xoom.cluster.model.Properties.open(), gridNodeName);
   }
 
   public static Grid start(final String worldName, final Configuration worldConfiguration, final String gridNodeName) throws Exception {
-    return start(worldName, worldConfiguration, io.vlingo.cluster.model.Properties.open(), gridNodeName);
+    return start(worldName, worldConfiguration, io.vlingo.xoom.cluster.model.Properties.open(), gridNodeName);
   }
 
-  public static Grid start(final String worldName, final Configuration worldConfiguration, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+  public static Grid start(final String worldName, final Configuration worldConfiguration, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     return start(worldName, new GridAddressFactory(IdentityGeneratorType.RANDOM), worldConfiguration, clusterProperties, gridNodeName);
   }
 
-  public static Grid start(final World world, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+  public static Grid start(final World world, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     return start(world, new GridAddressFactory(IdentityGeneratorType.RANDOM), clusterProperties, gridNodeName);
   }
 
-  public static Grid start(final String worldName, final AddressFactory addressFactory, final Configuration worldConfiguration, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+  public static Grid start(final String worldName, final AddressFactory addressFactory, final Configuration worldConfiguration, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     final World world = World.start(worldName, worldConfiguration);
     return new Grid(world, addressFactory, clusterProperties, gridNodeName);
   }
 
-  public static Grid start(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+  public static Grid start(final World world, final AddressFactory addressFactory, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     return new Grid(world, addressFactory, clusterProperties, gridNodeName);
   }
 
@@ -70,7 +70,7 @@ public class Grid extends Stage implements GridRuntime {
   private volatile boolean hasQuorum;
   private final long clusterHealthCheckInterval;
 
-  public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
+  public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName, GridStageBuckets, GridStageInitialCapacity);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     extenderStartDirectoryScanner();

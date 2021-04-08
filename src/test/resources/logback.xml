@@ -7,12 +7,12 @@
     <logger name="io.netty" level="info"/>
     <logger name="io.rsocket" level="info"/>
     <logger name="reactor" level="info"/>
-    <logger name="io.vlingo" level="debug"/>
-    <logger name="io.vlingo.actors.GridMailbox" level="debug"/>
-    <logger name="io.vlingo.lattice.grid.GridNode" level="debug"/>
-    <logger name="io.vlingo.lattice.grid.application.GridApplicationMessageHandler" level="debug"/>
-    <logger name="io.vlingo.lattice.grid.application.OutboundGridActorControl" level="debug"/>
-    <logger name="io.vlingo.actors.GridMailbox" level="debug"/>
+    <logger name="io.vlingo.xoom" level="debug"/>
+    <logger name="io.vlingo.xoom.actors.GridMailbox" level="debug"/>
+    <logger name="io.vlingo.xoom.lattice.grid.GridNode" level="debug"/>
+    <logger name="io.vlingo.xoom.lattice.grid.application.GridApplicationMessageHandler" level="debug"/>
+    <logger name="io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl" level="debug"/>
+    <logger name="io.vlingo.xoom.actors.GridMailbox" level="debug"/>
 
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>

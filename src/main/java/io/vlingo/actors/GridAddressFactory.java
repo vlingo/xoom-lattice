@@ -5,11 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.actors;
+package io.vlingo.xoom.actors;
 
 import java.util.UUID;
 
-import io.vlingo.common.identity.IdentityGeneratorType;
+import io.vlingo.xoom.common.identity.IdentityGeneratorType;
 
 public final class GridAddressFactory extends UUIDAddressFactory {
   private static final Address None = new GridAddress(null, "(none)");
