@@ -96,7 +96,7 @@ public class GridActorOfTest {
                       .Slf4jLoggerPluginConfiguration
                       .define()
                       .defaultLogger()
-                      .name("vlingo/actors"));
+                      .name("xoom-actors"));
 
       testWorld = TestWorld.start("test", configuration);
       world = testWorld.world();
