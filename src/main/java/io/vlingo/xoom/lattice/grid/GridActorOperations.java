@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.xoom.actors;
+package io.vlingo.xoom.lattice.grid;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,6 +15,13 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import io.vlingo.xoom.actors.Actor;
+import io.vlingo.xoom.actors.Mailbox;
+import io.vlingo.xoom.actors.Message;
+import io.vlingo.xoom.actors.Relocatable;
+import io.vlingo.xoom.actors.Stage;
+import io.vlingo.xoom.actors.__InternalOnlyAccessor;
 
 public final class GridActorOperations {
   static final String Resume = "GridActor.Resume";
@@ -30,7 +37,7 @@ public final class GridActorOperations {
   }
 
   public static final List<Message> pending(final Actor actor) {
-    final Mailbox mailbox = actor.lifeCycle.environment.mailbox;
+    final Mailbox mailbox = __InternalOnlyAccessor.actorMailbox(actor);
     return StreamSupport.stream(
         Spliterators.spliterator(new PendingMessageIterator(mailbox), mailbox.pendingMessages(), Spliterator.ORDERED),
         false)
@@ -38,15 +45,15 @@ public final class GridActorOperations {
   }
 
   public static final void resumeFromRelocation(final Actor actor) {
-    actor.lifeCycle.environment.mailbox.resume(Resume);
+    __InternalOnlyAccessor.actorMailbox(actor).resume(Resume);
   }
 
   public static final boolean isSuspendedForRelocation(final Actor actor) {
-    return actor.lifeCycle.environment.mailbox.isSuspendedFor(Resume);
+    return __InternalOnlyAccessor.actorMailbox(actor).isSuspendedFor(Resume);
   }
 
   public static final void suspendForRelocation(final Actor actor) {
-    actor.lifeCycle.environment.mailbox.suspendExceptFor(Resume, Relocatable.class);
+    __InternalOnlyAccessor.actorMailbox(actor).suspendExceptFor(Resume, Relocatable.class);
   }
 
   private static class PendingMessageIterator implements Iterator<Message> {

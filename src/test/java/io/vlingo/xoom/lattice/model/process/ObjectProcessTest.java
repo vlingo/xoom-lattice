@@ -9,6 +9,8 @@ package io.vlingo.xoom.lattice.model.process;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,8 +37,6 @@ import io.vlingo.xoom.symbio.store.MapQueryExpression;
 import io.vlingo.xoom.symbio.store.object.ObjectStore;
 import io.vlingo.xoom.symbio.store.object.StateObjectMapper;
 import io.vlingo.xoom.symbio.store.object.inmemory.InMemoryObjectStoreActor;
-
-import java.util.Arrays;
 
 public class ObjectProcessTest {
   private Exchange exchange;

@@ -13,7 +13,7 @@ import java.util.Optional;
 import io.vlingo.xoom.actors.Actor;
 import io.vlingo.xoom.actors.Definition;
 import io.vlingo.xoom.common.Completes;
-import io.vlingo.xoom.actors.Grid;
+import io.vlingo.xoom.lattice.grid.Grid;
 
 class SpaceItemFactoryRelay implements Space {
   private final Grid grid;

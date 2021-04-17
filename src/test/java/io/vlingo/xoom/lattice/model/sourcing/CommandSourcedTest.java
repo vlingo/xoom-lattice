@@ -7,19 +7,21 @@
 
 package io.vlingo.xoom.lattice.model.sourcing;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import io.vlingo.xoom.actors.World;
 import io.vlingo.xoom.actors.testkit.AccessSafely;
 import io.vlingo.xoom.lattice.model.sourcing.SourcedTypeRegistry.Info;
 import io.vlingo.xoom.symbio.store.journal.Journal;
 import io.vlingo.xoom.symbio.store.journal.inmemory.InMemoryJournalActor;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class CommandSourcedTest {
   private Entity entity;

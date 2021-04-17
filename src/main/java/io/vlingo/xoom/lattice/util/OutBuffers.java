@@ -1,13 +1,13 @@
 package io.vlingo.xoom.lattice.util;
 
-import io.vlingo.xoom.wire.node.Id;
-
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+
+import io.vlingo.xoom.wire.node.Id;
 
 public final class OutBuffers {
 

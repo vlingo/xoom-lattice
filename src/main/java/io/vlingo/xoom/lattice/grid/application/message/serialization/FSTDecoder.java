@@ -1,8 +1,9 @@
 package io.vlingo.xoom.lattice.grid.application.message.serialization;
 
+import org.nustaq.serialization.FSTConfiguration;
+
 import io.vlingo.xoom.lattice.grid.application.message.Decoder;
 import io.vlingo.xoom.lattice.grid.application.message.Message;
-import org.nustaq.serialization.FSTConfiguration;
 
 public class FSTDecoder implements Decoder {
 

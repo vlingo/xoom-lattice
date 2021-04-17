@@ -7,13 +7,13 @@
 
 package io.vlingo.xoom.lattice.grid.hashring;
 
-import io.vlingo.xoom.common.pool.ElasticResourcePool;
-import io.vlingo.xoom.common.pool.ResourceFactory;
-import io.vlingo.xoom.common.pool.ResourcePool;
-
 import java.nio.ByteBuffer;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+import io.vlingo.xoom.common.pool.ElasticResourcePool;
+import io.vlingo.xoom.common.pool.ResourceFactory;
+import io.vlingo.xoom.common.pool.ResourcePool;
 
 public class MurmurSortedMapHashRing<T> implements HashRing<T> {
 

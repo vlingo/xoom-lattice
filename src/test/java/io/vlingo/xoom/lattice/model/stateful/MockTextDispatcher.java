@@ -7,18 +7,18 @@
 
 package io.vlingo.xoom.lattice.model.stateful;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import io.vlingo.xoom.actors.testkit.AccessSafely;
 import io.vlingo.xoom.symbio.Entry;
 import io.vlingo.xoom.symbio.State;
 import io.vlingo.xoom.symbio.store.dispatch.Dispatchable;
 import io.vlingo.xoom.symbio.store.dispatch.Dispatcher;
 import io.vlingo.xoom.symbio.store.dispatch.DispatcherControl;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MockTextDispatcher implements Dispatcher<Dispatchable<Entry<?>,State<?>>> {
   private AccessSafely access = AccessSafely.afterCompleting(0);

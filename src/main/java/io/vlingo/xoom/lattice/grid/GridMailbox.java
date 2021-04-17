@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.xoom.actors;
+package io.vlingo.xoom.lattice.grid;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,6 +16,14 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vlingo.xoom.actors.Actor;
+import io.vlingo.xoom.actors.Address;
+import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.LocalMessage;
+import io.vlingo.xoom.actors.Mailbox;
+import io.vlingo.xoom.actors.Message;
+import io.vlingo.xoom.actors.Returns;
+import io.vlingo.xoom.actors.Stoppable;
 import io.vlingo.xoom.common.SerializableConsumer;
 import io.vlingo.xoom.lattice.grid.application.GridActorControl;
 import io.vlingo.xoom.lattice.grid.hashring.HashRing;

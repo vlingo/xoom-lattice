@@ -10,6 +10,8 @@ package io.vlingo.xoom.lattice.model.object;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,8 +21,6 @@ import io.vlingo.xoom.symbio.store.MapQueryExpression;
 import io.vlingo.xoom.symbio.store.object.ObjectStore;
 import io.vlingo.xoom.symbio.store.object.StateObjectMapper;
 import io.vlingo.xoom.symbio.store.object.inmemory.InMemoryObjectStoreActor;
-
-import java.util.Arrays;
 
 public class EmployeeEntityTest {
   private ObjectTypeRegistry registry;

@@ -7,16 +7,27 @@
 
 package io.vlingo.xoom.lattice.grid;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import org.nustaq.serialization.FSTConfiguration;
+
 import io.vlingo.xoom.actors.Definition;
-import io.vlingo.xoom.actors.GridRuntime;
-import io.vlingo.xoom.actors.InboundGridActorControl;
-import io.vlingo.xoom.actors.InboundGridActorControl.InboundGridActorControlInstantiator;
 import io.vlingo.xoom.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.xoom.cluster.model.attribute.Attribute;
 import io.vlingo.xoom.cluster.model.attribute.AttributesProtocol;
 import io.vlingo.xoom.common.SerializableConsumer;
-import io.vlingo.xoom.lattice.grid.application.*;
+import io.vlingo.xoom.lattice.grid.InboundGridActorControl.InboundGridActorControlInstantiator;
+import io.vlingo.xoom.lattice.grid.application.ApplicationMessageHandler;
+import io.vlingo.xoom.lattice.grid.application.GridActorControl;
+import io.vlingo.xoom.lattice.grid.application.GridApplicationMessageHandler;
+import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl.OutboundGridActorControlInstantiator;
+import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
 import io.vlingo.xoom.lattice.grid.application.message.Deliver;
 import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.FSTDecoder;
@@ -28,14 +39,6 @@ import io.vlingo.xoom.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.xoom.wire.message.RawMessage;
 import io.vlingo.xoom.wire.node.Id;
 import io.vlingo.xoom.wire.node.Node;
-import org.nustaq.serialization.FSTConfiguration;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class GridNode extends ClusterApplicationAdapter {
   // Sent messages waiting for continuation (answer) onto current node

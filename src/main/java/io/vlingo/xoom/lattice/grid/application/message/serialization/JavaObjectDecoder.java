@@ -1,11 +1,11 @@
 package io.vlingo.xoom.lattice.grid.application.message.serialization;
 
-import io.vlingo.xoom.lattice.grid.application.message.Decoder;
-import io.vlingo.xoom.lattice.grid.application.message.Message;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+
+import io.vlingo.xoom.lattice.grid.application.message.Decoder;
+import io.vlingo.xoom.lattice.grid.application.message.Message;
 
 public final class JavaObjectDecoder implements Decoder {
 

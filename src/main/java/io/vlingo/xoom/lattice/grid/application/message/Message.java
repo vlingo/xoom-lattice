@@ -7,9 +7,9 @@
 
 package io.vlingo.xoom.lattice.grid.application.message;
 
-import io.vlingo.xoom.wire.node.Id;
-
 import java.io.Serializable;
+
+import io.vlingo.xoom.wire.node.Id;
 
 public interface Message extends Serializable {
   void accept(Id receiver, Id sender, Visitor visitor);

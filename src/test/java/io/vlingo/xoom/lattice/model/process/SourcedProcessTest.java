@@ -7,6 +7,11 @@
 
 package io.vlingo.xoom.lattice.model.process;
 
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import io.vlingo.xoom.actors.World;
 import io.vlingo.xoom.actors.testkit.AccessSafely;
 import io.vlingo.xoom.common.message.AsyncMessageQueue;
@@ -35,10 +40,6 @@ import io.vlingo.xoom.lattice.model.sourcing.SourcedTypeRegistry.Info;
 import io.vlingo.xoom.symbio.EntryAdapterProvider;
 import io.vlingo.xoom.symbio.store.journal.Journal;
 import io.vlingo.xoom.symbio.store.journal.inmemory.InMemoryJournal;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class SourcedProcessTest {
   private Exchange exchange;

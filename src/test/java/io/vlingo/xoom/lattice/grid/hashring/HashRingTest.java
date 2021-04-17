@@ -7,13 +7,13 @@
 
 package io.vlingo.xoom.lattice.grid.hashring;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.UUID;
+import java.util.function.BiFunction;
+
 import org.junit.Ignore;
 import org.junit.Test;
-
-import java.util.function.BiFunction;
-import java.util.UUID;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * And the consistent winner is MurmurArrayHashRing.

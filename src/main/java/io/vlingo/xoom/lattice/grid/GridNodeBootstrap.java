@@ -7,7 +7,6 @@
 
 package io.vlingo.xoom.lattice.grid;
 
-import io.vlingo.xoom.actors.GridRuntime;
 import io.vlingo.xoom.actors.Logger;
 import io.vlingo.xoom.cluster.model.Cluster;
 import io.vlingo.xoom.cluster.model.ClusterSnapshotControl;

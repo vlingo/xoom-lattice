@@ -7,10 +7,10 @@
 
 package io.vlingo.xoom.lattice.grid.application.message;
 
-import io.vlingo.xoom.wire.node.Id;
-
 import java.io.Serializable;
 import java.util.UUID;
+
+import io.vlingo.xoom.wire.node.Id;
 
 public class Answer<T> implements Serializable, Message {
   private static final long serialVersionUID = -2796142731077588067L;

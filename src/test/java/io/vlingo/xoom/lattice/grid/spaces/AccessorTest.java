@@ -15,8 +15,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.vlingo.xoom.actors.Configuration;
-import io.vlingo.xoom.actors.Grid;
 import io.vlingo.xoom.cluster.ClusterProperties;
+import io.vlingo.xoom.lattice.grid.Grid;
 
 public class AccessorTest {
   private Grid grid;

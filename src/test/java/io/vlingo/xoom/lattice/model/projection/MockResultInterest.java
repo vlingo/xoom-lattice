@@ -7,6 +7,11 @@
 
 package io.vlingo.xoom.lattice.model.projection;
 
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.vlingo.xoom.actors.testkit.TestUntil;
 import io.vlingo.xoom.common.Outcome;
 import io.vlingo.xoom.symbio.Metadata;
@@ -16,11 +21,6 @@ import io.vlingo.xoom.symbio.store.StorageException;
 import io.vlingo.xoom.symbio.store.dispatch.ConfirmDispatchedResultInterest;
 import io.vlingo.xoom.symbio.store.state.StateStore.ReadResultInterest;
 import io.vlingo.xoom.symbio.store.state.StateStore.WriteResultInterest;
-
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class MockResultInterest
     implements ReadResultInterest,

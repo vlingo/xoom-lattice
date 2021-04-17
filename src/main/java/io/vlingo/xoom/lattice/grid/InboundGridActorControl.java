@@ -5,18 +5,28 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.xoom.actors;
-
-import io.vlingo.xoom.common.SerializableConsumer;
-import io.vlingo.xoom.lattice.grid.application.GridActorControl;
-import io.vlingo.xoom.lattice.grid.application.message.Answer;
-import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
-import io.vlingo.xoom.wire.node.Id;
+package io.vlingo.xoom.lattice.grid;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+
+import io.vlingo.xoom.actors.Actor;
+import io.vlingo.xoom.actors.ActorInstantiator;
+import io.vlingo.xoom.actors.ActorProxyBase;
+import io.vlingo.xoom.actors.Address;
+import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.LocalMessage;
+import io.vlingo.xoom.actors.Mailbox;
+import io.vlingo.xoom.actors.Returns;
+import io.vlingo.xoom.actors.Stage;
+import io.vlingo.xoom.actors.__InternalOnlyAccessor;
+import io.vlingo.xoom.common.SerializableConsumer;
+import io.vlingo.xoom.lattice.grid.application.GridActorControl;
+import io.vlingo.xoom.lattice.grid.application.message.Answer;
+import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
+import io.vlingo.xoom.wire.node.Id;
 
 public class InboundGridActorControl extends Actor implements GridActorControl.Inbound {
 
@@ -78,7 +88,8 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
     final Stage stage = gridRuntime.asStage();
 
     final Actor actor =
-            stage.rawLookupOrStart(
+            __InternalOnlyAccessor.rawLookupOrStart(
+                    stage,
                     Definition.from(stage, definition, stage.world().defaultLogger()),
                     address);
 
@@ -107,11 +118,12 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
     final Stage stage = gridRuntime.asStage();
 
     final Actor actor =
-            stage.actorLookupOrStartThunk(
+            __InternalOnlyAccessor.actorLookupOrStartThunk(
+                    stage,
                     Definition.from(stage, definition, stage.world().defaultLogger()),
                     address);
 
-    actor.lifeCycle.environment.mailbox.send(actor, protocol, consumer, returns, representation);
+    __InternalOnlyAccessor.actorMailbox(actor).send(actor, protocol, consumer, returns, representation);
 
     if (GridActorOperations.isSuspendedForRelocation(actor)) {
       // this case is happening when a message is retried on a different node and above actor is created 'on demand'
@@ -137,13 +149,14 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
     final Stage stage = gridRuntime.asStage();
 
     final Actor actor =
-            stage.actorLookupOrStartThunk(
-                    Definition.from(stage, definition, stage.world.defaultLogger()),
+            __InternalOnlyAccessor.actorLookupOrStartThunk(
+                    stage,
+                    Definition.from(stage, definition, stage.world().defaultLogger()),
                     address);
 
     GridActorOperations.applyRelocationSnapshot(stage, actor, snapshot);
 
-    final Mailbox mailbox = actor.lifeCycle.environment.mailbox;
+    final Mailbox mailbox = __InternalOnlyAccessor.actorMailbox(actor);
 
     pending.forEach(pendingMessage -> {
       final LocalMessage<?> message = (LocalMessage<?>) pendingMessage;

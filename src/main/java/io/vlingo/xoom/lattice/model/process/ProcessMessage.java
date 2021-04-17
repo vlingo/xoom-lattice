@@ -7,12 +7,12 @@
 
 package io.vlingo.xoom.lattice.model.process;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.vlingo.xoom.lattice.model.Command;
 import io.vlingo.xoom.lattice.model.DomainEvent;
 import io.vlingo.xoom.symbio.Source;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A {@code Source} for both {@code Command} and {@code DomainEvent} types,

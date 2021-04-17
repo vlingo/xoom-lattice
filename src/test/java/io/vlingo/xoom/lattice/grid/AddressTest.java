@@ -19,6 +19,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 import io.vlingo.xoom.common.identity.IdentityGeneratorType;
+import io.vlingo.xoom.lattice.grid.GridAddressFactory;
 
 public class AddressTest {
   @Test

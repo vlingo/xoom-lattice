@@ -5,14 +5,26 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.xoom.actors;
+package io.vlingo.xoom.lattice.grid;
 
 import java.util.UUID;
 
 import org.slf4j.LoggerFactory;
 
+import io.vlingo.xoom.actors.Actor;
+import io.vlingo.xoom.actors.ActorFactory;
+import io.vlingo.xoom.actors.Address;
+import io.vlingo.xoom.actors.AddressFactory;
+import io.vlingo.xoom.actors.Configuration;
+import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.Logger;
+import io.vlingo.xoom.actors.Mailbox;
+import io.vlingo.xoom.actors.Relocatable;
+import io.vlingo.xoom.actors.Stage;
+import io.vlingo.xoom.actors.Supervisor;
+import io.vlingo.xoom.actors.World;
+import io.vlingo.xoom.actors.__InternalOnlyAccessor;
 import io.vlingo.xoom.common.identity.IdentityGeneratorType;
-import io.vlingo.xoom.lattice.grid.GridNodeBootstrap;
 import io.vlingo.xoom.lattice.grid.application.GridActorControl;
 import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
 import io.vlingo.xoom.lattice.grid.hashring.HashRing;
@@ -115,7 +127,7 @@ public class Grid extends Stage implements GridRuntime {
    */
   @Override
   public Actor actorAt(Address address) {
-    return directory.actorOf(address);
+    return __InternalOnlyAccessor.actorOf(this, address);
   }
 
   /**
@@ -126,10 +138,10 @@ public class Grid extends Stage implements GridRuntime {
     final HashRing<Id> copy = this.hashRing.copy();
     this.hashRing.excludeNode(nodeId);
 
-    directory.addresses().stream()
+    __InternalOnlyAccessor.allActorAddresses(this).stream()
             .filter(address -> address.isDistributable() && isAssignedTo(copy, address, nodeId))
             .forEach(address -> {
-              final Actor actor = directory.actorOf(address);
+              final Actor actor = __InternalOnlyAccessor.actorOf(this, address);
               final Id toNode = hashRing.nodeOf(address.idString());
               if (toNode != null) { // last node in the cluster?
                 relocateActorTo(actor, address, toNode);
@@ -143,7 +155,7 @@ public class Grid extends Stage implements GridRuntime {
   }
 
   @Override
-  <T> T actorThunkFor(Class<T> protocol, Definition definition, Address address) {
+  protected <T> T actorThunkFor(Class<T> protocol, Definition definition, Address address) {
     final Mailbox actorMailbox = this.allocateMailbox(definition, address, null);
     actorMailbox.suspendExceptFor(GridActorOperations.Resume, Relocatable.class);
     final ActorProtocolActor<T> actor =
@@ -179,11 +191,11 @@ public class Grid extends Stage implements GridRuntime {
     final HashRing<Id> copy = this.hashRing.copy();
     this.hashRing.includeNode(newNode);
 
-    directory.addresses().stream()
+    __InternalOnlyAccessor.allActorAddresses(this).stream()
         .filter(address ->
             address.isDistributable() && shouldRelocateTo(copy, address, newNode))
         .forEach(address -> {
-          final Actor actor = directory.actorOf(address);
+          final Actor actor = __InternalOnlyAccessor.actorOf(this, address);
           relocateActorTo(actor, address, newNode);
         });
   }
@@ -230,7 +242,7 @@ public class Grid extends Stage implements GridRuntime {
 
   @Override
   public ClassLoader worldClassLoader() {
-    return world().classLoader();
+    return __InternalOnlyAccessor.classLoader(this);
   }
 
   //====================================

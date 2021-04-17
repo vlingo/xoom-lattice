@@ -18,7 +18,6 @@ import org.junit.Test;
 import io.vlingo.xoom.actors.Actor;
 import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.Configuration;
-import io.vlingo.xoom.actors.Grid;
 import io.vlingo.xoom.actors.NoProtocol;
 import io.vlingo.xoom.actors.World;
 import io.vlingo.xoom.actors.plugin.logging.slf4j.Slf4jLoggerPlugin;

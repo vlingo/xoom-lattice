@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.vlingo.xoom.actors.Definition;
-import io.vlingo.xoom.actors.Grid;
+import io.vlingo.xoom.lattice.grid.Grid;
 import io.vlingo.xoom.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
 
 public class Accessor {

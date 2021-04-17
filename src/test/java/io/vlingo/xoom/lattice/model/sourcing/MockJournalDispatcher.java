@@ -7,15 +7,15 @@
 
 package io.vlingo.xoom.lattice.model.sourcing;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import io.vlingo.xoom.actors.testkit.AccessSafely;
 import io.vlingo.xoom.symbio.Entry;
 import io.vlingo.xoom.symbio.State;
 import io.vlingo.xoom.symbio.store.dispatch.Dispatchable;
 import io.vlingo.xoom.symbio.store.dispatch.Dispatcher;
 import io.vlingo.xoom.symbio.store.dispatch.DispatcherControl;
-
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class MockJournalDispatcher implements Dispatcher<Dispatchable<Entry<String>, State<?>>> {
   

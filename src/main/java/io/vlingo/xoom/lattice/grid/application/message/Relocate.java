@@ -7,11 +7,11 @@
 // one at https://mozilla.org/MPL/2.0/.
 package io.vlingo.xoom.lattice.grid.application.message;
 
+import java.util.List;
+
 import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.Definition;
 import io.vlingo.xoom.wire.node.Id;
-
-import java.util.List;
 
 public class Relocate implements Message {
   private static final long serialVersionUID = 8992847890818617297L;

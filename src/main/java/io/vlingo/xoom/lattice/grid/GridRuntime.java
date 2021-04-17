@@ -5,9 +5,12 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.xoom.actors;
+package io.vlingo.xoom.lattice.grid;
 
-import io.vlingo.xoom.lattice.grid.GridNodeBootstrap;
+import io.vlingo.xoom.actors.Actor;
+import io.vlingo.xoom.actors.Address;
+import io.vlingo.xoom.actors.Stage;
+import io.vlingo.xoom.actors.World;
 import io.vlingo.xoom.lattice.grid.application.GridActorControl;
 import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
 import io.vlingo.xoom.lattice.grid.hashring.HashRing;

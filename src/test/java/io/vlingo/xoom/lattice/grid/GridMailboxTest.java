@@ -1,4 +1,4 @@
-package io.vlingo.xoom.actors;
+package io.vlingo.xoom.lattice.grid;
 
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -6,6 +6,9 @@ import java.util.function.Consumer;
 
 import org.junit.Test;
 
+import io.vlingo.xoom.actors.Address;
+import io.vlingo.xoom.actors.Mailbox;
+import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.actors.plugin.mailbox.testkit.TestMailbox;
 import io.vlingo.xoom.lattice.grid.cache.Cache;
 import io.vlingo.xoom.lattice.grid.cache.CacheNodePoint;
