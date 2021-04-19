@@ -49,7 +49,6 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   private final Scheduler scheduler;
 
   private final HardRefHolder holder;
-  private final Queue<Runnable> buffer = new WeakQueue<>();
 
   public GridApplicationMessageHandler(
       final Id localNode, final HashRing<Id> hashRing,
@@ -84,15 +83,17 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     try {
       final Message message = decoder.decode(raw.asBinaryMessage());
       final Id sender = Id.of(raw.header().nodeId());
-      logger.debug("Buffering message {} from {}", message, sender);
       final Runnable runnable = () -> {
         logger.debug("Handling message {} from {}", message, sender);
         message.accept(localNode, sender, visitor);
       };
-      buffer.offer(runnable);
+
       if (Objects.nonNull(holder)) {
         holder.holdOnTo(runnable);
       }
+
+      // incoming messages are dispatched immediately
+      runnable.run();
     } catch (Exception e) {
       logger.error(String.format("Failed to process message %s", raw), e);
     }
@@ -100,15 +101,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
 
   @Override
   public void disburse(final Id id) {
-    if (!id.equals(localNode)) return;
-    logger.debug("Disbursing buffered messages");
-    Runnable next;
-    do {
-      next = buffer.poll();
-      if (next != null) {
-        next.run();
-      }
-    } while (next != null);
+    // there are no buffered messages to be disbursed since incoming messages are dispatched immediately
   }
 
 
