@@ -52,7 +52,7 @@ public interface GridActorControl {
           final Object snapshot,
           final List<? extends io.vlingo.xoom.actors.Message> pending);
 
-  void disburse(final Id id);
+  void informNodeIsHealthy(final Id id, boolean isHealthy);
 
   interface Inbound extends GridActorControl {
   }

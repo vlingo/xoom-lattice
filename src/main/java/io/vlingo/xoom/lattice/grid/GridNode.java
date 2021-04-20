@@ -155,10 +155,7 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informNodeIsHealthy(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node reported healthy: " + nodeId + " and is healthy: " + isHealthyCluster);
-    if (isHealthyCluster) {
-      outbound.disburse(nodeId);
-      applicationMessageHandler.disburse(nodeId);
-    }
+    outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
   }
 
   @Override

@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,8 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   private final Encoder encoder;
   private final BiConsumer<UUID, UnAckMessage> correlation;
 
-  private final OutBuffers outBuffers;
+  private final OutBuffers outBuffers; // buffer messages for unhealthy nodes
+  private final ConcurrentHashMap<Id, Boolean> nodesHealth;
 
 
   public OutboundGridActorControl(
@@ -70,31 +72,33 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
     this.encoder = encoder;
     this.correlation = correlation;
     this.outBuffers = outBuffers;
+    this.nodesHealth = new ConcurrentHashMap<>();
   }
 
   @Override
-  public void disburse(final Id id) {
-    final Queue<Runnable> buffer = outBuffers.queue(id);
-    logger.debug("Disbursing buffered messages");
-    Runnable next;
-    do {
-      next = buffer.poll();
-      if (next != null) {
-        next.run();
-      }
-    } while (next != null);
+  public void informNodeIsHealthy(final Id id, final boolean isHealthy) {
+    nodesHealth.merge(id, isHealthy, (oldVal, newVal) -> isHealthy);
+    if (isHealthy) {
+      disburse(id);
+    }
   }
 
   private void send(final Id recipient, final Message message) {
     logger.debug("Buffering message {} to {}", message, recipient);
-    outBuffers.enqueue(recipient, () -> {
+    final Runnable sendFunction = () -> {
       logger.debug("Sending message {} to {}", message, recipient);
       byte[] payload = encoder.encode(message);
       RawMessage raw = RawMessage.from(
-          localNodeId.value(), -1, payload.length);
+              localNodeId.value(), -1, payload.length);
       raw.putRemaining(ByteBuffer.wrap(payload));
       stream.sendTo(raw, recipient);
-    });
+    };
+
+    if (nodesHealth.get(recipient) != null && nodesHealth.get(recipient)) {
+      sendFunction.run(); // send the message immediately, node is healthy
+    } else {
+      outBuffers.enqueue(recipient, sendFunction); // enqueue the message, node is unhealthy
+    }
   }
 
   @Override
@@ -160,6 +164,22 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   @Override
   public void useStream(ApplicationOutboundStream outbound) {
     this.stream = outbound;
+  }
+
+  private void disburse(final Id id) {
+    final Queue<Runnable> buffer = outBuffers.queue(id);
+    if (buffer.size() == 0) {
+      return;
+    }
+
+    logger.debug("Disbursing {} buffered messages to node {}", buffer.size(), id);
+    Runnable next;
+    do {
+      next = buffer.poll();
+      if (next != null) {
+        next.run();
+      }
+    } while (next != null);
   }
 
   public static class OutboundGridActorControlInstantiator implements ActorInstantiator<OutboundGridActorControl> {

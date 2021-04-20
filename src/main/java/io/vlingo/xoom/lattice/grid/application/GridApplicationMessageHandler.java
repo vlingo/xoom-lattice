@@ -7,34 +7,25 @@
 
 package io.vlingo.xoom.lattice.grid.application;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.LocalMessage;
 import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.common.Completes;
 import io.vlingo.xoom.common.Scheduler;
-import io.vlingo.xoom.lattice.grid.application.message.Answer;
-import io.vlingo.xoom.lattice.grid.application.message.Decoder;
-import io.vlingo.xoom.lattice.grid.application.message.Deliver;
-import io.vlingo.xoom.lattice.grid.application.message.Message;
-import io.vlingo.xoom.lattice.grid.application.message.Relocate;
-import io.vlingo.xoom.lattice.grid.application.message.Start;
-import io.vlingo.xoom.lattice.grid.application.message.Visitor;
+import io.vlingo.xoom.lattice.grid.application.message.*;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.xoom.lattice.grid.hashring.HashRing;
 import io.vlingo.xoom.lattice.util.HardRefHolder;
-import io.vlingo.xoom.lattice.util.WeakQueue;
 import io.vlingo.xoom.wire.message.RawMessage;
 import io.vlingo.xoom.wire.node.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
 
@@ -92,18 +83,11 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
         holder.holdOnTo(runnable);
       }
 
-      // incoming messages are dispatched immediately
-      runnable.run();
+      runnable.run(); // incoming messages are dispatched immediately
     } catch (Exception e) {
       logger.error(String.format("Failed to process message %s", raw), e);
     }
   }
-
-  @Override
-  public void disburse(final Id id) {
-    // there are no buffered messages to be disbursed since incoming messages are dispatched immediately
-  }
-
 
   final class ControlMessageVisitor implements Visitor {
     @Override
