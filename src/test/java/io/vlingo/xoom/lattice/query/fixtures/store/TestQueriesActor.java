@@ -2,7 +2,6 @@ package io.vlingo.xoom.lattice.query.fixtures.store;
 
 import io.vlingo.xoom.common.Completes;
 import io.vlingo.xoom.lattice.query.StateStoreQueryActor;
-import io.vlingo.xoom.symbio.State;
 import io.vlingo.xoom.symbio.State.ObjectState;
 import io.vlingo.xoom.symbio.store.state.StateStore;
 
@@ -19,6 +18,14 @@ public class TestQueriesActor extends StateStoreQueryActor implements TestQuerie
 
   public Completes<TestState> testStateById(final String id, final TestState notFoundState) {
     return queryStateFor(id, TestState.class, notFoundState);
+  }
+
+  public Completes<TestState> testStateById(final String id, final int retryInterval, final int retryCount) {
+    return queryStateWithRetriesFor(id, TestState.class, retryInterval, retryCount);
+  }
+
+  public Completes<TestState> testStateById(final String id, final TestState notFoundState, final int retryInterval, final int retryCount) {
+    return queryStateWithRetriesFor(id, TestState.class, notFoundState, retryInterval, retryCount);
   }
 
   @Override

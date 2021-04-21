@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 
 public class StateStoreQueryActorTest {
   private World world;
-  private StateStore stateStore;
+  private FailingStateStore stateStore;
   private TestQueries queries;
 
   @Test
@@ -127,11 +127,41 @@ public class StateStoreQueryActorTest {
     assertEquals(0, testStates.size());
   }
 
+  @Test
+  public void itFindsStateByIdAndTypeAfterRetries() {
+    givenTestState("1", "Foo");
+    givenStateReadFailures(3);
+
+    TestState testState = queries.testStateById("1", 100, 3).await(500);
+
+    assertEquals("Foo", testState.name);
+  }
+
+  @Test
+  public void itFindsStateByIdAndTypeWithNotFoundStateAfterRetries() {
+    givenTestState("1", "Foo");
+    givenStateReadFailures(3);
+
+    TestState testState = queries.testStateById("1", TestState.missing(), 100, 3).await(500);
+
+    assertEquals("Foo", testState.name);
+  }
+
+  @Test
+  public void itReturnsNotFoundStateIfStateIsNotFoundByIdAndTypeAfterRetries() {
+    givenTestState("1", "Foo");
+    givenStateReadFailures(3);
+
+    TestState testState = queries.testStateById("1", TestState.missing(), 100, 2).await(500);
+
+    assertEquals(TestState.MISSING, testState.name);
+  }
+
   @Before
   public void init() {
     TestWorld.startWithDefaults("test-state-store-query");
     world = World.startWithDefaults("test-state-store-query");
-    stateStore = world.actorFor(StateStore.class, InMemoryStateStoreActor.class, Arrays.asList(new NoOpDispatcher()));
+    stateStore = new FailingStateStore(world.actorFor(StateStore.class, InMemoryStateStoreActor.class, Arrays.asList(new NoOpDispatcher())));
     StatefulTypeRegistry.registerAll(world, stateStore, TestState.class);
     queries = world.actorFor(TestQueries.class, TestQueriesActor.class, stateStore);
   }
@@ -141,6 +171,10 @@ public class StateStoreQueryActorTest {
     if (world != null) {
       world.terminate();
     }
+  }
+
+  private void givenStateReadFailures(int failures) {
+    stateStore.expectReadFailures(failures);
   }
 
   private void givenTestState(String id, String name) {
