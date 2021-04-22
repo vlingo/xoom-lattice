@@ -33,12 +33,12 @@ public class TestQueriesActor extends StateStoreQueryActor implements TestQuerie
   }
 
   @Override
-  public Completes<ObjectState<TestState>> testObjectStateById(String id) {
+  public Completes<ObjectState<TestState>> testObjectStateById(final String id) {
     return queryObjectStateFor(id, TestState.class);
   }
 
   @Override
-  public Completes<ObjectState<TestState>> testObjectStateById(String id, ObjectState<TestState> notFoundState) {
+  public Completes<ObjectState<TestState>> testObjectStateById(final String id, final ObjectState<TestState> notFoundState) {
     return queryObjectStateFor(id, TestState.class, notFoundState);
   }
 

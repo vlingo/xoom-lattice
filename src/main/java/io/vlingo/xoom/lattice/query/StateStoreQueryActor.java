@@ -45,7 +45,7 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
   }
 
   @Override
-  public void intervalSignal(Scheduled<RetryContext> scheduled, RetryContext context) {
+  public void intervalSignal(final Scheduled<RetryContext> scheduled, final RetryContext context) {
     queryWithRetries(context);
   }
 
@@ -228,7 +228,7 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
     return completes();
   }
 
-  private <T> void queryWithRetries(RetryContext context) {
+  private <T> void queryWithRetries(final RetryContext context) {
     final Consumer<T> answer = (maybeFoundState) -> {
       if (context.needsRetry(maybeFoundState)) {
         scheduler().scheduleOnce(selfAs(Scheduled.class), context.nextTry(), 0, context.retryInterval);
@@ -327,11 +327,11 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
   }
 
   static final class RetryContext<T> {
-    public final CompletesEventually completes;
-    public final Consumer<Consumer<T>> query;
-    public final T notFoundState;
-    public final int retryInterval;
-    public final int retriesLeft;
+    private final CompletesEventually completes;
+    private final Consumer<Consumer<T>> query;
+    private final T notFoundState;
+    private final int retryInterval;
+    private final int retriesLeft;
 
     public RetryContext(final CompletesEventually completes, final Consumer<Consumer<T>> query, final T notFoundState, final int retryInterval, final int retriesLeft) {
       this.completes = completes;
@@ -341,11 +341,11 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
       this.retriesLeft = retriesLeft;
     }
 
-    public RetryContext<T> nextTry() {
+    private RetryContext<T> nextTry() {
       return new RetryContext(completes, query, notFoundState, retryInterval, retriesLeft - 1);
     }
 
-    public <T> boolean needsRetry(T maybeFoundState) {
+    private <T> boolean needsRetry(final T maybeFoundState) {
       return retriesLeft > 0 && Objects.equals(maybeFoundState, notFoundState);
     }
   }

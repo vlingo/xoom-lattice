@@ -195,8 +195,7 @@ public class StateStoreQueryActorTest {
 
   @Before
   public void init() {
-    TestWorld.startWithDefaults("test-state-store-query");
-    world = World.startWithDefaults("test-state-store-query");
+    world = TestWorld.startWithDefaults("test-state-store-query").world();
     stateStore = new FailingStateStore(world.actorFor(StateStore.class, InMemoryStateStoreActor.class, Arrays.asList(new NoOpDispatcher())));
     StatefulTypeRegistry.registerAll(world, stateStore, TestState.class);
     queries = world.actorFor(TestQueries.class, TestQueriesActor.class, stateStore);

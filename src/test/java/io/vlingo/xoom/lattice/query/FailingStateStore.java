@@ -22,12 +22,12 @@ public class FailingStateStore implements StateStore {
   private final AtomicInteger readCount = new AtomicInteger(0);
   private final AtomicInteger expectedReadFailures = new AtomicInteger(0);
 
-  public FailingStateStore(StateStore delegate) {
+  public FailingStateStore(final StateStore delegate) {
     this.delegate = delegate;
   }
 
   @Override
-  public void read(String id, Class type, ReadResultInterest interest, Object object) {
+  public void read(final String id, final Class type, final ReadResultInterest interest, final Object object) {
     if (readCount.incrementAndGet() > expectedReadFailures.get()) {
       delegate.read(id, type, interest, object);
     } else {
@@ -36,34 +36,34 @@ public class FailingStateStore implements StateStore {
   }
 
   @Override
-  public void readAll(Collection collection, ReadResultInterest interest, Object object) {
+  public void readAll(final Collection collection, final ReadResultInterest interest, final Object object) {
     readCount.incrementAndGet();
     delegate.readAll(collection, interest, object);
   }
 
   @Override
-  public Completes<Stream> streamAllOf(Class stateType) {
+  public Completes<Stream> streamAllOf(final Class stateType) {
     readCount.incrementAndGet();
     return delegate.streamAllOf(stateType);
   }
 
   @Override
-  public Completes<Stream> streamSomeUsing(QueryExpression query) {
+  public Completes<Stream> streamSomeUsing(final QueryExpression query) {
     readCount.incrementAndGet();
     return delegate.streamSomeUsing(query);
   }
 
   @Override
-  public <ET extends Entry<?>> Completes<StateStoreEntryReader<ET>> entryReader(String s) {
+  public <ET extends Entry<?>> Completes<StateStoreEntryReader<ET>> entryReader(final String s) {
     return delegate.entryReader(s);
   }
 
   @Override
-  public <S, C> void write(String s, S s1, int i, List<Source<C>> list, Metadata metadata, WriteResultInterest writeResultInterest, Object o) {
+  public <S, C> void write(final String s, final S s1, final int i, final List<Source<C>> list, final Metadata metadata, final WriteResultInterest writeResultInterest, final Object o) {
     delegate.write(s, s1, i, list, metadata, writeResultInterest, o);
   }
 
-  public void expectReadFailures(Integer count) {
+  public void expectReadFailures(final Integer count) {
     expectedReadFailures.set(count);
   }
 }

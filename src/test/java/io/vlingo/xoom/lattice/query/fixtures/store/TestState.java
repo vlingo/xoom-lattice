@@ -4,11 +4,11 @@ public class TestState {
   public static final String MISSING = "(missing)";
   public final String name;
 
-  private TestState(String name) {
+  private TestState(final String name) {
     this.name = name;
   }
 
-  public static TestState named(String name) {
+  public static TestState named(final String name) {
     return new TestState(name);
   }
 
