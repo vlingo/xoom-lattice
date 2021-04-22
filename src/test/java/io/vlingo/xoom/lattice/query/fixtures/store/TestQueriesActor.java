@@ -24,12 +24,12 @@ public class TestQueriesActor extends StateStoreQueryActor implements TestQuerie
 
   @Override
   public Completes<TestState> testStateById(final String id, final int retryInterval, final int retryCount) {
-    return queryStateWithRetriesFor(id, TestState.class, retryInterval, retryCount);
+    return queryStateFor(id, TestState.class, retryInterval, retryCount);
   }
 
   @Override
   public Completes<TestState> testStateById(final String id, final TestState notFoundState, final int retryInterval, final int retryCount) {
-    return queryStateWithRetriesFor(id, TestState.class, notFoundState, retryInterval, retryCount);
+    return queryStateFor(id, TestState.class, notFoundState, retryInterval, retryCount);
   }
 
   @Override
@@ -44,12 +44,12 @@ public class TestQueriesActor extends StateStoreQueryActor implements TestQuerie
 
   @Override
   public Completes<ObjectState<TestState>> testObjectStateById(final String id, final int retryInterval, final int retryCount) {
-    return queryObjectStateWithRetriesFor(id, TestState.class, retryInterval, retryCount);
+    return queryObjectStateFor(id, TestState.class, retryInterval, retryCount);
   }
 
   @Override
   public Completes<ObjectState<TestState>> testObjectStateById(final String id, final ObjectState<TestState> notFoundState, final int retryInterval, final int retryCount) {
-    return queryObjectStateWithRetriesFor(id, TestState.class, notFoundState, retryInterval, retryCount);
+    return queryObjectStateFor(id, TestState.class, notFoundState, retryInterval, retryCount);
   }
 
   @Override

@@ -113,8 +113,8 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
    * @return {@code Completes<ObjectState<T>>}
    */
   @SuppressWarnings("unchecked")
-  protected <T> Completes<ObjectState<T>> queryObjectStateWithRetriesFor(final String id, final Class<T> type, final int retryInterval, final int retryTotal) {
-    return queryObjectStateWithRetriesFor(id, type, null, retryInterval, retryTotal);
+  protected <T> Completes<ObjectState<T>> queryObjectStateFor(final String id, final Class<T> type, final int retryInterval, final int retryTotal) {
+    return queryObjectStateFor(id, type, null, retryInterval, retryTotal);
   }
 
   /**
@@ -139,7 +139,7 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
    * @return {@code Completes<ObjectState<T>>}
    */
   @SuppressWarnings("unchecked")
-  protected <T> Completes<ObjectState<T>> queryObjectStateWithRetriesFor(final String id, final Class<T> type, final ObjectState<T> notFoundState, final int retryInterval, final int retryTotal) {
+  protected <T> Completes<ObjectState<T>> queryObjectStateFor(final String id, final Class<T> type, final ObjectState<T> notFoundState, final int retryInterval, final int retryTotal) {
     queryWithRetries(new RetryContext<T>(completesEventually(), (answer) -> queryFor(id, type, QueryResultHandler.ResultType.ObjectState, (T) notFoundState, answer), (T) notFoundState, retryInterval, retryTotal));
     return completes();
   }
@@ -201,8 +201,8 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
    * @param <T> the type of the state
    * @return {@code Completes<T>}
    */
-  protected <T> Completes<T> queryStateWithRetriesFor(final String id, final Class<T> type, final int retryInterval, final int retryTotal) {
-    return queryStateWithRetriesFor(id, type, null, retryInterval, retryTotal);
+  protected <T> Completes<T> queryStateFor(final String id, final Class<T> type, final int retryInterval, final int retryTotal) {
+    return queryStateFor(id, type, null, retryInterval, retryTotal);
   }
 
   /**
@@ -223,7 +223,7 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
    * @param <T> the type of the state
    * @return {@code Completes<T>}
    */
-  protected <T> Completes<T> queryStateWithRetriesFor(final String id, final Class<T> type, final T notFoundState, final int retryInterval, final int retryTotal) {
+  protected <T> Completes<T> queryStateFor(final String id, final Class<T> type, final T notFoundState, final int retryInterval, final int retryTotal) {
     queryWithRetries(new RetryContext<T>(completesEventually(), (answer) -> queryFor(id, type, QueryResultHandler.ResultType.Unwrapped, notFoundState, answer), notFoundState, retryInterval, retryTotal));
     return completes();
   }
