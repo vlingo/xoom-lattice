@@ -12,18 +12,22 @@ public class TestQueriesActor extends StateStoreQueryActor implements TestQuerie
     super(stateStore);
   }
 
+  @Override
   public Completes<TestState> testStateById(final String id) {
     return queryStateFor(id, TestState.class);
   }
 
+  @Override
   public Completes<TestState> testStateById(final String id, final TestState notFoundState) {
     return queryStateFor(id, TestState.class, notFoundState);
   }
 
+  @Override
   public Completes<TestState> testStateById(final String id, final int retryInterval, final int retryCount) {
     return queryStateWithRetriesFor(id, TestState.class, retryInterval, retryCount);
   }
 
+  @Override
   public Completes<TestState> testStateById(final String id, final TestState notFoundState, final int retryInterval, final int retryCount) {
     return queryStateWithRetriesFor(id, TestState.class, notFoundState, retryInterval, retryCount);
   }
@@ -36,6 +40,16 @@ public class TestQueriesActor extends StateStoreQueryActor implements TestQuerie
   @Override
   public Completes<ObjectState<TestState>> testObjectStateById(String id, ObjectState<TestState> notFoundState) {
     return queryObjectStateFor(id, TestState.class, notFoundState);
+  }
+
+  @Override
+  public Completes<ObjectState<TestState>> testObjectStateById(final String id, final int retryInterval, final int retryCount) {
+    return queryObjectStateWithRetriesFor(id, TestState.class, retryInterval, retryCount);
+  }
+
+  @Override
+  public Completes<ObjectState<TestState>> testObjectStateById(final String id, final ObjectState<TestState> notFoundState, final int retryInterval, final int retryCount) {
+    return queryObjectStateWithRetriesFor(id, TestState.class, notFoundState, retryInterval, retryCount);
   }
 
   @Override

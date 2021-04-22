@@ -18,5 +18,9 @@ public interface TestQueries {
 
   Completes<ObjectState<TestState>> testObjectStateById(final String id, final ObjectState<TestState> notFoundState);
 
+  Completes<ObjectState<TestState>> testObjectStateById(final String id, final int retryInterval, final int retryCount);
+
+  Completes<ObjectState<TestState>> testObjectStateById(final String id, final ObjectState<TestState> notFoundState, final int retryInterval, final int retryCount);
+
   Completes<Collection<TestState>> all(final Collection<TestState> all);
 }

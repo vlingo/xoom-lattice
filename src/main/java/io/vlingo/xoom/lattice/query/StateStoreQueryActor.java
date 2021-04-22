@@ -92,6 +92,58 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
     return (Completes<ObjectState<T>>) queryFor(id, type, QueryResultHandler.ResultType.ObjectState, (T) notFoundState);
   }
 
+  /**
+   * Answer a {@code Completes<ObjectState<T>>} of the eventual result of querying
+   * for the state of the {@code type} and identified by {@code id}.
+   *
+   * <p>If the state is found, the {@code ObjectState} will contain a valid {@code state}
+   * of the {@code type}, the {@code stateVersion}, and {@code metadata}. The contents of
+   * the {@code metadata} depends on whether or not it as included in the corresponding
+   * {@code write()} operation.
+   *
+   * <p>If the state is not found, the {@code ObjectState} will be {@code ObjectState#Null}.
+   *
+   * <p>If the state is not found, the query will be retried up to {@code retryTotal} times in {@code retryInterval} intervals.
+   *
+   * @param id the String unique identity of the state to query
+   * @param type the {@code Class<T>} type of the state to query
+   * @param retryInterval the interval for retries if state is not found at first
+   * @param retryTotal the maximum number of retries if state is not found at first
+   * @param <T> the type of the state
+   * @return {@code Completes<ObjectState<T>>}
+   */
+  @SuppressWarnings("unchecked")
+  protected <T> Completes<ObjectState<T>> queryObjectStateWithRetriesFor(final String id, final Class<T> type, final int retryInterval, final int retryTotal) {
+    return queryObjectStateWithRetriesFor(id, type, null, retryInterval, retryTotal);
+  }
+
+  /**
+   * Answer a {@code Completes<ObjectState<T>>} of the eventual result of querying
+   * for the state of the {@code type} and identified by {@code id}.
+   *
+   * <p>If the state is found, the {@code ObjectState} will contain a valid {@code state}
+   * of the {@code type}, the {@code stateVersion}, and {@code metadata}. The contents of
+   * the {@code metadata} depends on whether or not it as included in the corresponding
+   * {@code write()} operation.
+   *
+   * <p>If the state is not found, the {@code ObjectState} will be {@code notFoundState}.
+   *
+   * <p>If the state is not found, the query will be retried up to {@code retryTotal} times in {@code retryInterval} intervals.
+   *
+   * @param id the String unique identity of the state to query
+   * @param type the {@code Class<T>} type of the state to query
+   * @param notFoundState the T state to answer if the query doesn't find the desired state
+   * @param retryInterval the interval for retries if state is not found at first
+   * @param retryTotal the maximum number of retries if state is not found at first
+   * @param <T> the type of the state
+   * @return {@code Completes<ObjectState<T>>}
+   */
+  @SuppressWarnings("unchecked")
+  protected <T> Completes<ObjectState<T>> queryObjectStateWithRetriesFor(final String id, final Class<T> type, final ObjectState<T> notFoundState, final int retryInterval, final int retryTotal) {
+    queryWithRetries(new RetryContext<T>(completesEventually(), (answer) -> queryFor(id, type, QueryResultHandler.ResultType.ObjectState, (T) notFoundState, answer), (T) notFoundState, retryInterval, retryTotal));
+    return completes();
+  }
+
   protected <T, R> Completes<Collection<R>> streamAllOf(final Class<T> type, final Collection<R> all) {
     return queryAllOf(type, all);
   }

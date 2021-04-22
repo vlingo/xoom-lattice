@@ -157,6 +157,42 @@ public class StateStoreQueryActorTest {
     assertEquals(TestState.MISSING, testState.name);
   }
 
+  @Test
+  public void itFindsObjectStateByIdAndTypeAfterRetries() {
+    givenTestState("1", "Foo");
+    givenStateReadFailures(3);
+
+    ObjectState<TestState> testState = queries.testObjectStateById("1", 100, 3).await(500);
+
+    assertEquals(true, testState.isObject());
+    assertEquals("Foo", ((TestState)testState.data).name);
+  }
+
+  @Test
+  public void itFindsObjectStateByIdAndTypeWithNotFoundStateAfterRetries() {
+    givenTestState("1", "Foo");
+    givenStateReadFailures(3);
+
+    ObjectState<TestState> notFoundState = new ObjectState();
+
+    ObjectState<TestState> testState = queries.testObjectStateById("1", notFoundState, 100, 3).await(500);
+
+    assertEquals(true, testState.isObject());
+    assertEquals("Foo", ((TestState)testState.data).name);
+  }
+
+  @Test
+  public void itReturnsNullObjectStateIfStateIsNotFoundByIdAndTypeAfterRetries() {
+    givenTestState("1", "Foo");
+    givenStateReadFailures(3);
+
+    ObjectState<TestState> notFoundState = new ObjectState();
+
+    ObjectState<TestState> testState = queries.testObjectStateById("1", notFoundState, 100, 2).await(500);
+
+    assertEquals(notFoundState, testState);
+  }
+
   @Before
   public void init() {
     TestWorld.startWithDefaults("test-state-store-query");
