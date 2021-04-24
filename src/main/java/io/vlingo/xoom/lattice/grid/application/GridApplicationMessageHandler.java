@@ -16,6 +16,7 @@ import io.vlingo.xoom.lattice.grid.application.message.*;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.xoom.lattice.grid.hashring.HashRing;
 import io.vlingo.xoom.lattice.util.HardRefHolder;
+import io.vlingo.xoom.lattice.util.WeakQueue;
 import io.vlingo.xoom.wire.message.RawMessage;
 import io.vlingo.xoom.wire.node.Id;
 import org.slf4j.Logger;
@@ -24,7 +25,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
@@ -32,6 +35,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   private static final Logger logger = LoggerFactory.getLogger(GridApplicationMessageHandler.class);
 
   private final Id localNode;
+  private final AtomicBoolean isClusterHealthy = new AtomicBoolean(false);
   private final HashRing<Id> hashRing;
   private final GridActorControl.Inbound inbound;
   private final GridActorControl.Outbound outbound;
@@ -40,6 +44,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   private final Scheduler scheduler;
 
   private final HardRefHolder holder;
+  private final Queue<Runnable> buffer = new WeakQueue<>(); // buffer messages when cluster is not healthy
 
   public GridApplicationMessageHandler(
       final Id localNode, final HashRing<Id> hashRing,
@@ -70,23 +75,49 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   }
 
   @Override
+  public void informNodeIsHealthy(final Id id, final boolean isHealthy) {
+    isClusterHealthy.set(isHealthy);
+    if (isHealthy) {
+      disburse(id);
+    }
+  }
+
+  @Override
   public void handle(final RawMessage raw) {
     try {
       final Message message = decoder.decode(raw.asBinaryMessage());
       final Id sender = Id.of(raw.header().nodeId());
+      logger.debug("Buffering message {} from {}", message, sender);
       final Runnable runnable = () -> {
         logger.debug("Handling message {} from {}", message, sender);
         message.accept(localNode, sender, visitor);
       };
 
+      if (isClusterHealthy.get()) {
+        runnable.run(); // incoming messages are dispatched immediately
+      } else {
+        buffer.offer(runnable); // buffer messages; cluster is not healthy
+      }
+
       if (Objects.nonNull(holder)) {
         holder.holdOnTo(runnable);
       }
-
-      runnable.run(); // incoming messages are dispatched immediately
     } catch (Exception e) {
       logger.error(String.format("Failed to process message %s", raw), e);
     }
+  }
+
+  private void disburse(final Id id) {
+    if (!id.equals(localNode)) return;
+    if (buffer.size() == 0) return;
+    logger.debug("Disbursing {} buffered messages", buffer.size());
+    Runnable next;
+    do {
+      next = buffer.poll();
+      if (next != null) {
+        next.run();
+      }
+    } while (next != null);
   }
 
   final class ControlMessageVisitor implements Visitor {

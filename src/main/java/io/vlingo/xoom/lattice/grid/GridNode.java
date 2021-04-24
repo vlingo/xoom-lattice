@@ -156,6 +156,7 @@ public class GridNode extends ClusterApplicationAdapter {
   public void informNodeIsHealthy(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node reported healthy: " + nodeId + " and is healthy: " + isHealthyCluster);
     outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
+    applicationMessageHandler.informNodeIsHealthy(nodeId, isHealthyCluster);
   }
 
   @Override
@@ -167,6 +168,8 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
+    outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
+    applicationMessageHandler.informNodeIsHealthy(nodeId, isHealthyCluster);
     gridRuntime.hashRing().excludeNode(nodeId);
     retryUnAckMessagesOn(nodeId);
   }
