@@ -168,8 +168,8 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   }
 
   @Override
-  public void disburse(final Id id) {
-    throw new UnsupportedOperationException("disburse of buffered messages handled in ApplicationMessageHandler");
+  public void informNodeIsHealthy(Id id, boolean isHealthy) {
+    throw new UnsupportedOperationException("informNodeIsHealthy handled in ApplicationMessageHandler");
   }
 
   public static class InboundGridActorControlInstantiator implements ActorInstantiator<InboundGridActorControl> {

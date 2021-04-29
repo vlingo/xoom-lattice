@@ -7,40 +7,35 @@
 
 package io.vlingo.xoom.lattice.grid.application;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.LocalMessage;
 import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.common.Completes;
 import io.vlingo.xoom.common.Scheduler;
-import io.vlingo.xoom.lattice.grid.application.message.Answer;
-import io.vlingo.xoom.lattice.grid.application.message.Decoder;
-import io.vlingo.xoom.lattice.grid.application.message.Deliver;
-import io.vlingo.xoom.lattice.grid.application.message.Message;
-import io.vlingo.xoom.lattice.grid.application.message.Relocate;
-import io.vlingo.xoom.lattice.grid.application.message.Start;
-import io.vlingo.xoom.lattice.grid.application.message.Visitor;
+import io.vlingo.xoom.lattice.grid.application.message.*;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.JavaObjectDecoder;
 import io.vlingo.xoom.lattice.grid.hashring.HashRing;
 import io.vlingo.xoom.lattice.util.HardRefHolder;
 import io.vlingo.xoom.lattice.util.WeakQueue;
 import io.vlingo.xoom.wire.message.RawMessage;
 import io.vlingo.xoom.wire.node.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public final class GridApplicationMessageHandler implements ApplicationMessageHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(GridApplicationMessageHandler.class);
 
   private final Id localNode;
+  private final AtomicBoolean isClusterHealthy = new AtomicBoolean(false);
   private final HashRing<Id> hashRing;
   private final GridActorControl.Inbound inbound;
   private final GridActorControl.Outbound outbound;
@@ -49,7 +44,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   private final Scheduler scheduler;
 
   private final HardRefHolder holder;
-  private final Queue<Runnable> buffer = new WeakQueue<>();
+  private final Queue<Runnable> buffer = new WeakQueue<>(); // buffer messages when cluster is not healthy
 
   public GridApplicationMessageHandler(
       final Id localNode, final HashRing<Id> hashRing,
@@ -80,6 +75,14 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   }
 
   @Override
+  public void informNodeIsHealthy(final Id id, final boolean isHealthy) {
+    isClusterHealthy.set(isHealthy);
+    if (isHealthy) {
+      disburse(id);
+    }
+  }
+
+  @Override
   public void handle(final RawMessage raw) {
     try {
       final Message message = decoder.decode(raw.asBinaryMessage());
@@ -89,7 +92,13 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
         logger.debug("Handling message {} from {}", message, sender);
         message.accept(localNode, sender, visitor);
       };
-      buffer.offer(runnable);
+
+      if (isClusterHealthy.get()) {
+        runnable.run(); // incoming messages are dispatched immediately
+      } else {
+        buffer.offer(runnable); // buffer messages; cluster is not healthy
+      }
+
       if (Objects.nonNull(holder)) {
         holder.holdOnTo(runnable);
       }
@@ -98,10 +107,10 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
   }
 
-  @Override
-  public void disburse(final Id id) {
+  private void disburse(final Id id) {
     if (!id.equals(localNode)) return;
-    logger.debug("Disbursing buffered messages");
+    if (buffer.size() == 0) return;
+    logger.debug("Disbursing {} buffered messages", buffer.size());
     Runnable next;
     do {
       next = buffer.poll();
@@ -110,7 +119,6 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       }
     } while (next != null);
   }
-
 
   final class ControlMessageVisitor implements Visitor {
     @Override

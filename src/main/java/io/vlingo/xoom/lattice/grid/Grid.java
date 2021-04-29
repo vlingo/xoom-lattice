@@ -212,7 +212,6 @@ public class Grid extends Stage implements GridRuntime {
               address,
               GridActorOperations.supplyRelocationSnapshot(actor) /*actor.provideRelocationSnapshot()*/,
               GridActorOperations.pending(actor));
-      outbound.disburse(toNode);
     }
   }
 
