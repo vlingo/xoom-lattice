@@ -153,10 +153,12 @@
             <configuration>
               <imageName>${project.name}</imageName>
               <buildArgs>
-          --no-fallback --shared 
-          --initialize-at-run-time=io.netty
-          --allow-incomplete-classpath
-      </buildArgs>
+                --shared -H:DashboardDump=${project.name} -H:+DashboardAll -H:+DashboardJson
+                -H:+DashboardPretty
+                --initialize-at-run-time=io.netty
+                --initialize-at-run-time=io.vlingo.xoom.common.identity.IdentityGeneratorType
+                --allow-incomplete-classpath
+              </buildArgs>
             </configuration>
           </plugin>
         </plugins>
