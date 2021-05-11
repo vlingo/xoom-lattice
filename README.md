@@ -13,7 +13,7 @@ Docs: https://docs.vlingo.io/xoom-lattice
     <dependency>
       <groupId>io.vlingo.xoom</groupId>
       <artifactId>xoom-lattice</artifactId>
-      <version>1.7.6</version>
+      <version>1.7.7</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
@@ -21,7 +21,7 @@ Docs: https://docs.vlingo.io/xoom-lattice
 
 ```gradle
 dependencies {
-    compile 'io.vlingo.xoom:xoom-lattice:1.7.6'
+    compile 'io.vlingo.xoom:xoom-lattice:1.7.7'
 }
 ```
 
