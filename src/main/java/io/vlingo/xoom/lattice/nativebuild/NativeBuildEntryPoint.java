@@ -1,4 +1,4 @@
-package io.vlingo.xoom.lattice.implnative;
+package io.vlingo.xoom.lattice.nativebuild;
 
 import io.vlingo.xoom.actors.Configuration;
 import io.vlingo.xoom.actors.World;
