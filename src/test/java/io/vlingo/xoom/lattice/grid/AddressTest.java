@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.xoom.actors;
+package io.vlingo.xoom.lattice.grid;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -18,8 +18,9 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+import io.vlingo.xoom.actors.Address;
+import io.vlingo.xoom.actors.AddressFactory;
 import io.vlingo.xoom.common.identity.IdentityGeneratorType;
-import io.vlingo.xoom.lattice.grid.GridAddressFactory;
 
 public class AddressTest {
   @Test
