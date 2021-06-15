@@ -55,4 +55,12 @@ public interface Exchange {
    * @param <L> the local type
    */
   <L> void send(final L local);
+
+  /**
+   * Answer whether I am active or not.
+   * @return Boolean
+   */
+  default boolean isActive() {
+    throw new UnsupportedOperationException("This method is unsupported by default");
+  }
 }
