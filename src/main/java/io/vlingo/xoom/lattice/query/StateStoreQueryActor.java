@@ -7,6 +7,10 @@
 
 package io.vlingo.xoom.lattice.query;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Consumer;
+
 import io.vlingo.xoom.actors.Actor;
 import io.vlingo.xoom.actors.CompletesEventually;
 import io.vlingo.xoom.common.Completes;
@@ -22,13 +26,10 @@ import io.vlingo.xoom.symbio.store.StorageException;
 import io.vlingo.xoom.symbio.store.state.StateStore;
 import io.vlingo.xoom.symbio.store.state.StateStore.ReadResultInterest;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.function.Consumer;
-
 /**
  * A building-block {@code Actor} that queries asynchronously for state by id.
  */
+@SuppressWarnings("rawtypes")
 public abstract class StateStoreQueryActor extends Actor implements CompositeIdentitySupport, ReadResultInterest, Scheduled<StateStoreQueryActor.RetryContext> {
 
   private final ReadResultInterest readInterest;
@@ -112,7 +113,6 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
    * @param <T> the type of the state
    * @return {@code Completes<ObjectState<T>>}
    */
-  @SuppressWarnings("unchecked")
   protected <T> Completes<ObjectState<T>> queryObjectStateFor(final String id, final Class<T> type, final int retryInterval, final int retryTotal) {
     return queryObjectStateFor(id, type, null, retryInterval, retryTotal);
   }
@@ -228,6 +228,7 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
     return completes();
   }
 
+  @SuppressWarnings("unchecked")
   private <T> void queryWithRetries(final RetryContext context) {
     final Consumer<T> answer = (maybeFoundState) -> {
       if (context.needsRetry(maybeFoundState)) {
@@ -239,7 +240,7 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
     context.query.accept(answer);
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings("unchecked")
   private <T, R> Completes<Collection<R>> queryAllOf(final Class<T> type, final Collection<R> all) {
     final Consumer<StateBundle> populator = (StateBundle state) -> {
       all.add((R) state.object);
@@ -298,7 +299,6 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
     final T notFoundState;
     final ResultType resultType;
 
-    @SuppressWarnings("rawtypes")
     static QueryResultHandler from(final Object handler) {
       return (QueryResultHandler) handler;
     }
@@ -341,10 +341,12 @@ public abstract class StateStoreQueryActor extends Actor implements CompositeIde
       this.retriesLeft = retriesLeft;
     }
 
+    @SuppressWarnings("unchecked")
     private RetryContext<T> nextTry() {
       return new RetryContext(completes, query, notFoundState, retryInterval, retriesLeft - 1);
     }
 
+    @SuppressWarnings({ "hiding", "unlikely-arg-type" })
     private <T> boolean needsRetry(final T maybeFoundState) {
       return retriesLeft > 0 && Objects.equals(maybeFoundState, notFoundState);
     }

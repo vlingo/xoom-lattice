@@ -1,5 +1,15 @@
 package io.vlingo.xoom.lattice.query;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import io.vlingo.xoom.actors.World;
 import io.vlingo.xoom.actors.testkit.TestWorld;
 import io.vlingo.xoom.common.Outcome;
@@ -14,15 +24,6 @@ import io.vlingo.xoom.symbio.store.StorageException;
 import io.vlingo.xoom.symbio.store.dispatch.NoOpDispatcher;
 import io.vlingo.xoom.symbio.store.state.StateStore;
 import io.vlingo.xoom.symbio.store.state.inmemory.InMemoryStateStoreActor;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class StateStoreQueryActorTest {
   private World world;
@@ -82,7 +83,7 @@ public class StateStoreQueryActorTest {
   public void itFindsObjectStateByIdAndTypeWithNotFoundObjectState() {
     givenTestState("1", "Foo");
 
-    ObjectState<TestState> notFoundState = new ObjectState();
+    ObjectState<TestState> notFoundState = new ObjectState<>();
 
     ObjectState<TestState> testState = queries.testObjectStateById("1", notFoundState).await(100);
 
@@ -92,7 +93,7 @@ public class StateStoreQueryActorTest {
 
   @Test
   public void itReturnsNullObjectStateIfNotFoundByIdAndTypeWithNotFoundObjectState() {
-    ObjectState<TestState> notFoundState = new ObjectState();
+    ObjectState<TestState> notFoundState = new ObjectState<>();
 
     ObjectState<TestState> testState = queries.testObjectStateById("1", notFoundState).await(100);
 
@@ -173,7 +174,7 @@ public class StateStoreQueryActorTest {
     givenTestState("1", "Foo");
     givenStateReadFailures(3);
 
-    ObjectState<TestState> notFoundState = new ObjectState();
+    ObjectState<TestState> notFoundState = new ObjectState<>();
 
     ObjectState<TestState> testState = queries.testObjectStateById("1", notFoundState, 100, 3).await(500);
 
@@ -186,7 +187,7 @@ public class StateStoreQueryActorTest {
     givenTestState("1", "Foo");
     givenStateReadFailures(3);
 
-    ObjectState<TestState> notFoundState = new ObjectState();
+    ObjectState<TestState> notFoundState = new ObjectState<>();
 
     ObjectState<TestState> testState = queries.testObjectStateById("1", notFoundState, 100, 2).await(500);
 

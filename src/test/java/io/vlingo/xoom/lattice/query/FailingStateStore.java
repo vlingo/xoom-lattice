@@ -1,5 +1,9 @@
 package io.vlingo.xoom.lattice.query;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.vlingo.xoom.common.Completes;
 import io.vlingo.xoom.common.Failure;
 import io.vlingo.xoom.reactivestreams.Stream;
@@ -12,10 +16,6 @@ import io.vlingo.xoom.symbio.store.StorageException;
 import io.vlingo.xoom.symbio.store.state.StateStore;
 import io.vlingo.xoom.symbio.store.state.StateStoreEntryReader;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class FailingStateStore implements StateStore {
 
   private final StateStore delegate;
@@ -27,7 +27,7 @@ public class FailingStateStore implements StateStore {
   }
 
   @Override
-  public void read(final String id, final Class type, final ReadResultInterest interest, final Object object) {
+  public void read(final String id, final Class<?> type, final ReadResultInterest interest, final Object object) {
     if (readCount.incrementAndGet() > expectedReadFailures.get()) {
       delegate.read(id, type, interest, object);
     } else {
@@ -36,13 +36,14 @@ public class FailingStateStore implements StateStore {
   }
 
   @Override
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public void readAll(final Collection collection, final ReadResultInterest interest, final Object object) {
     readCount.incrementAndGet();
     delegate.readAll(collection, interest, object);
   }
 
   @Override
-  public Completes<Stream> streamAllOf(final Class stateType) {
+  public Completes<Stream> streamAllOf(final Class<?> stateType) {
     readCount.incrementAndGet();
     return delegate.streamAllOf(stateType);
   }
