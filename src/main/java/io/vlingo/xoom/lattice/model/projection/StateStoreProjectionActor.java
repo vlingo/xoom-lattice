@@ -204,6 +204,10 @@ public abstract class StateStoreProjectionActor<T> extends Actor
     }
   }
 
+  protected boolean readyForUpsert(final Projectable projectable, final ProjectionControl control) {
+    return true;
+  }
+
   /**
    * Answer the {@code List<Source<?>>} that are adapted from the
    * current {@code Projectable#entries()}.
@@ -230,6 +234,10 @@ public abstract class StateStoreProjectionActor<T> extends Actor
    * @param control the ProjectionControl with Confirmer use to confirm projection is completed
    */
   protected void upsertFor(final Projectable projectable, final ProjectionControl control) {
+    if (!readyForUpsert(projectable, control)) {
+      return;
+    }
+
     final T currentData = currentDataFor(projectable);
 
     prepareForMergeWith(projectable);
