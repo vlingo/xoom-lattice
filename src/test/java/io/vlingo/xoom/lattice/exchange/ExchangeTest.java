@@ -7,15 +7,14 @@
 
 package io.vlingo.xoom.lattice.exchange;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import org.junit.Test;
-
 import io.vlingo.xoom.actors.testkit.AccessSafely;
 import io.vlingo.xoom.common.message.AsyncMessageQueue;
 import io.vlingo.xoom.common.message.MessageQueue;
+import org.junit.Test;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static org.junit.Assert.assertEquals;
 
 public class ExchangeTest {
 
@@ -59,5 +58,32 @@ public class ExchangeTest {
     assertEquals(local2, accessExchangeReceiver2.readFrom("getMessage"));
 
     exchange.close();
+  }
+
+  @Test
+  public void testThatObjectMessageShouldBeHandled() {
+    final MessageQueue queue = new AsyncMessageQueue(null);
+    final TestExchange exchange = new TestExchange(new AsyncMessageQueue(null));
+
+    exchange
+            .register(Covey.of(
+                    new TestExchangeSender(queue),
+                    received -> {},
+                    new TestExchangeAdapter1(),
+                    LocalType1.class,
+                    ExternalType1.class,
+                    ExchangeMessage.class))
+            .register(Covey.of(
+                    new TestExchangeSender(queue),
+                    received -> {},
+                    new TestExchangeAdapter2(),
+                    LocalType2.class,
+                    ExternalType2.class,
+                    ExchangeMessage.class));
+
+    assertEquals(true, exchange.shouldHandle(new ExchangeMessage("io.vlingo.xoom.lattice.exchange.ExternalType1", "{}")));
+    assertEquals(true, exchange.shouldHandle(new ExchangeMessage("io.vlingo.xoom.lattice.exchange.ExternalType2", "{}")));
+    assertEquals(false, exchange.shouldHandle(new ExchangeMessage("io.vlingo.xoom.lattice.exchange.ExternalType3", "{}")));
+    assertEquals(false, exchange.shouldHandle(""));
   }
 }

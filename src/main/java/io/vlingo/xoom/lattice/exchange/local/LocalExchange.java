@@ -64,4 +64,9 @@ public class LocalExchange implements Exchange, MessageQueueListener {
   final public void handleMessage(final Message message) throws Exception {
     forwarder.forwardToReceiver(message);
   }
+
+  @Override
+  public boolean shouldHandle(final Object exchangeMessage) {
+    return forwarder.supportExchangeMessage(exchangeMessage);
+  }
 }

@@ -57,6 +57,13 @@ public interface Exchange {
   <L> void send(final L local);
 
   /**
+   * Checks if this Exchange should handle a {@code exchangeMessage}
+   * @param exchangeMessage the exchange message to be handled
+   * @return true if {@code exchangeMessage} should be handled
+   */
+   boolean shouldHandle(final Object exchangeMessage);
+
+  /**
    * Answer whether I am active or not.
    * @return Boolean
    */

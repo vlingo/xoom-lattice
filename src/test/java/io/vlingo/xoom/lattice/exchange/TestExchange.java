@@ -7,12 +7,12 @@
 
 package io.vlingo.xoom.lattice.exchange;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.vlingo.xoom.actors.testkit.AccessSafely;
 import io.vlingo.xoom.common.message.Message;
 import io.vlingo.xoom.common.message.MessageQueue;
 import io.vlingo.xoom.common.message.MessageQueueListener;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestExchange implements Exchange, MessageQueueListener {
   private AccessSafely access = AccessSafely.afterCompleting(0);
@@ -65,6 +65,11 @@ public class TestExchange implements Exchange, MessageQueueListener {
     System.out.println("Exchange receiving: " + message);
     forwarder.forwardToReceiver(message);
     access.writeUsing("sentCount", 1);
+  }
+
+  @Override
+  public boolean shouldHandle(final Object exchangeMessage) {
+    return forwarder.supportExchangeMessage(exchangeMessage);
   }
 
   public AccessSafely afterCompleting(final int times) {

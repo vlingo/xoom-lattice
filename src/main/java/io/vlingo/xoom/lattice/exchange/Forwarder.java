@@ -68,7 +68,7 @@ public class Forwarder {
   @SuppressWarnings("rawtypes" )
   private List<Covey> ofExchangeMessage(final Object exchangeMessage) {
     final List<Covey> matched =
-            coveys.stream().filter(covey -> covey.adapter.supports(exchangeMessage)).collect(Collectors.toList());
+            compatibleCoveysWith(exchangeMessage).collect(Collectors.toList());
 
     if(matched.isEmpty()) {
       throw new IllegalArgumentException("Not a supported message type: " + exchangeMessage.getClass().getName());
@@ -91,4 +91,18 @@ public class Forwarder {
     }
     throw new IllegalArgumentException("Not a supported object type: " + objectType.getName());
   }
+
+  /**
+   * Checks if {@code exchangeMessage} is supported
+   * @param exchangeMessage the exchange message to be supported
+   * @return true if {@code exchangeMessage} is supported
+   */
+  public boolean supportExchangeMessage(final Object exchangeMessage) {
+    return compatibleCoveysWith(exchangeMessage).anyMatch(cv -> true);
+  }
+
+  private Stream<Covey<?,?,?>> compatibleCoveysWith(final Object exchangeMessage) {
+    return coveys.stream().filter(covey -> covey.adapter.supports(exchangeMessage));
+  }
+
 }
