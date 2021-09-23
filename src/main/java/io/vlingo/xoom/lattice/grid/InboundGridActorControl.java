@@ -58,8 +58,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
       } else if (clientReturns.isFuture()) {
         ((CompletableFuture) clientReturns.asFuture()).complete(result);
       }
-    }
-    else {
+    } else {
       if (clientReturns.isCompletes()) {
         clientReturns.asCompletes().failed(new RuntimeException("Remote actor call failed", answer.error));
       } else if (clientReturns.isCompletableFuture()) {

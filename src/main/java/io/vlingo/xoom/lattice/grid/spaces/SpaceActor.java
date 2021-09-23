@@ -182,7 +182,7 @@ public class SpaceActor extends Actor implements Space, Scheduled<ScheduledScann
         if (item != null) {
           expirableQuery.completes.with(Optional.of(KeyItem.of(item.key, item.object, item.lease)));
           confirmedExpirables.add(expirableQuery);
-        } else if (item == null) {
+        } else {
           if (now.isAfter(expirableQuery.expiresOn)) {
             confirmedExpirables.add(expirableQuery);
             expirableQuery.completes.with(Optional.empty());
