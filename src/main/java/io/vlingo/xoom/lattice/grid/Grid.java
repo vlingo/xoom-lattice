@@ -82,9 +82,12 @@ public class Grid extends Stage implements GridRuntime {
   private volatile boolean hasQuorum;
   private final long clusterHealthCheckInterval;
 
+  private final String clusterAppStageName;
+
   public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName, GridStageBuckets, GridStageInitialCapacity);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
+    this.clusterAppStageName = clusterProperties.clusterApplicationStageName();
     extenderStartDirectoryScanner();
     this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
     this.hasQuorum = false;
@@ -242,6 +245,12 @@ public class Grid extends Stage implements GridRuntime {
   @Override
   public ClassLoader worldClassLoader() {
     return __InternalOnlyAccessor.classLoader(this);
+  }
+
+  public Address allocateLocalAddress(String actorName) {
+    return world.stageNamed(clusterAppStageName)
+            .addressFactory()
+            .uniqueWith(actorName);
   }
 
   //====================================

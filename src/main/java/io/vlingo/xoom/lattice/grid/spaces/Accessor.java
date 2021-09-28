@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.Definition;
 import io.vlingo.xoom.lattice.grid.Grid;
 import io.vlingo.xoom.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
@@ -82,8 +83,9 @@ public class Accessor {
     Space space = spaces.get(name);
 
     if (space == null) {
+      final Address localAddress = grid.allocateLocalAddress(name);
       final Definition definition = Definition.has(PartitioningSpaceRouter.class, new PartitioningSpaceRouterInstantiator(totalPartitions, defaultScanInterval), name);
-      final Space internalSpace = grid.actorFor(Space.class, definition);
+      final Space internalSpace = grid.actorFor(Space.class, definition, localAddress);
       space = new SpaceItemFactoryRelay(grid, internalSpace);
       spaces.put(name, space);
     }
