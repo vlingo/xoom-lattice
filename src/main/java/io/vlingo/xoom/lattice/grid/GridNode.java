@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import io.vlingo.xoom.actors.Returns;
 import org.nustaq.serialization.FSTConfiguration;
 
 import io.vlingo.xoom.actors.Definition;
@@ -43,6 +44,7 @@ import io.vlingo.xoom.wire.node.Node;
 public class GridNode extends ClusterApplicationAdapter {
   // Sent messages waiting for continuation (answer) onto current node
   private static final Map<UUID, UnAckMessage> correlationMessages = new ConcurrentHashMap<>();
+  private static final Map<UUID, Returns<?>> correlation2Messages = new ConcurrentHashMap<>();
 
   private AttributesProtocol client;
   private final GridRuntime gridRuntime;
@@ -75,6 +77,7 @@ public class GridNode extends ClusterApplicationAdapter {
                                     localNode.id(),
                                     new FSTEncoder(conf),
                                     correlationMessages::put,
+                                    correlation2Messages::put,
                                     new OutBuffers(holder)));
 
     this.gridRuntime.setOutbound(outbound);
@@ -85,7 +88,8 @@ public class GridNode extends ClusterApplicationAdapter {
                     InboundGridActorControl.class,
                     new InboundGridActorControlInstantiator(
                             gridRuntime,
-                            correlationMessages::remove));
+                            correlationMessages::remove,
+                            correlation2Messages::remove));
 
     this.applicationMessageHandler =
             new GridApplicationMessageHandler(
@@ -240,7 +244,7 @@ public class GridNode extends ClusterApplicationAdapter {
             .filter(entry -> leftNode.equals(entry.getValue().getReceiver()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    retryMessages.keySet().stream()
+    retryMessages.keySet()
             .forEach(correlationMessages::remove);
 
     for (UnAckMessage retryMessage : retryMessages.values()) {

@@ -33,21 +33,26 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   private final GridRuntime gridRuntime;
 
   private final Function<UUID, UnAckMessage> correlation;
+  private final Function<UUID, Returns<?>> correlation2;
 
-
-  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation) {
+  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation, final Function<UUID, Returns<?>> correlation2) {
     this.gridRuntime = gridRuntime;
     this.correlation = correlation;
+    this.correlation2 = correlation2;
   }
 
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
+    // same Answer is used for both Deliver and Deliver2 message
     logger().debug("GRID: Processing application message: Answer");
-    final Returns<Object> clientReturns = correlation.apply(answer.correlationId).getReturns();
+    Returns<Object> clientReturns = correlation.apply(answer.correlationId).getReturns();
     if (clientReturns == null) {
-      logger().warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
-      return;
+      clientReturns = (Returns<Object>) correlation2.apply(answer.correlationId);
+      if (clientReturns == null) {
+        logger().warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
+        return;
+      }
     }
     if (answer.error == null) {
       T result = ActorProxyBase.thunk(gridRuntime.asStage(), answer.result);
@@ -135,6 +140,23 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   }
 
   @Override
+  public <T> void deliver(
+          Id recipient,
+          Id sender,
+          Returns<?> returns,
+          Class<T> protocol, Function<Grid, Actor> actorProvider,
+          SerializableConsumer<T> consumer,
+          String representation) {
+    logger().debug("Processing: Received application message: Deliver2");
+
+    final Grid grid = (Grid) gridRuntime.asStage();
+
+    final Actor actor = actorProvider.apply(grid);
+
+    __InternalOnlyAccessor.actorMailbox(actor).send(actor, protocol, consumer, returns, representation);
+  }
+
+  @Override
   public void relocate(
           final Id receiver,
           final Id sender,
@@ -176,15 +198,17 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
 
     private final GridRuntime gridRuntime;
     private final Function<UUID, UnAckMessage> correlation;
+    private final Function<UUID, Returns<?>> correlation2;
 
-    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation) {
+    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation, final Function<UUID, Returns<?>> correlation2) {
       this.gridRuntime = gridRuntime;
       this.correlation = correlation;
+      this.correlation2 = correlation2;
     }
 
     @Override
     public InboundGridActorControl instantiate() {
-      return new InboundGridActorControl(gridRuntime, correlation);
+      return new InboundGridActorControl(gridRuntime, correlation, correlation2);
     }
   }
 }
