@@ -11,6 +11,8 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class Lease extends Period {
+  private static final long serialVersionUID = -1198289722304469050L;
+
   public static final Lease Forever = Lease.of(Instant.MAX.getEpochSecond());
   public static final Lease None = Lease.of(0);
 

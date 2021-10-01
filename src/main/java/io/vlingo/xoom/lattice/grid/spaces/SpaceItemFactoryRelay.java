@@ -7,26 +7,26 @@
 
 package io.vlingo.xoom.lattice.grid.spaces;
 
+import io.vlingo.xoom.actors.Actor;
+import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.Stage;
+import io.vlingo.xoom.common.Completes;
+
 import java.util.Arrays;
 import java.util.Optional;
 
-import io.vlingo.xoom.actors.Actor;
-import io.vlingo.xoom.actors.Definition;
-import io.vlingo.xoom.common.Completes;
-import io.vlingo.xoom.lattice.grid.Grid;
-
 class SpaceItemFactoryRelay implements Space {
-  private final Grid grid;
+  private final Stage localStage;
   private final Space space;
 
-  SpaceItemFactoryRelay(final Grid grid, final Space space) {
-    this.grid = grid;
+  SpaceItemFactoryRelay(final Stage localStage, final Space space) {
+    this.localStage = localStage;
     this.space = space;
   }
 
   @Override
   public <T> Completes<T> itemFor(final Class<T> protocol, final Class<? extends Actor> type, final Object... parameters) {
-    final T actor = grid.actorFor(protocol, Definition.has(type, Arrays.asList(parameters)), grid.addressFactory().unique());
+    final T actor = localStage.actorFor(protocol, Definition.has(type, Arrays.asList(parameters)), localStage.addressFactory().unique());
     return Completes.withSuccess(actor);
   }
 

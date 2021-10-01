@@ -7,14 +7,14 @@
 
 package io.vlingo.xoom.lattice.grid.spaces;
 
+import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.Stage;
+import io.vlingo.xoom.lattice.grid.Grid;
+import io.vlingo.xoom.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
+
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import io.vlingo.xoom.actors.Address;
-import io.vlingo.xoom.actors.Definition;
-import io.vlingo.xoom.lattice.grid.Grid;
-import io.vlingo.xoom.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
 
 public class Accessor {
   private static final long DefaultScanInterval = 15_000;
@@ -25,6 +25,7 @@ public class Accessor {
   public final String name;
   private final Grid grid;
   private final Map<String,Space> spaces = new ConcurrentHashMap<>();
+  private final Map<String, DistributedSpace> distributedSpaces = new ConcurrentHashMap<>();
 
   public static Accessor named(final Grid grid, final String name) {
     Accessor accessor = grid.world().resolveDynamic(name, Accessor.class);
@@ -55,6 +56,20 @@ public class Accessor {
     return !isDefined();
   }
 
+  public synchronized Space distributedSpaceFor(final String spaceName) {
+    DistributedSpace distributedSpace = distributedSpaces.get(name);
+    if (distributedSpace == null) {
+      final Stage localStage = grid.localStage();
+      final Space localSpace = spaceFor(spaceName);
+      final Definition definition = Definition.has(DistributedSpaceActor.class,
+              new DistributedSpace.DistributedSpaceInstantiator(this.name, spaceName, localSpace, grid));
+      distributedSpace = localStage.actorFor(DistributedSpace.class, definition);
+      distributedSpaces.put(name, distributedSpace);
+    }
+
+    return distributedSpace;
+  }
+
   public Space spaceFor(final String name) {
     return spaceFor(name, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
   }
@@ -83,10 +98,10 @@ public class Accessor {
     Space space = spaces.get(name);
 
     if (space == null) {
-      final Address localAddress = grid.allocateLocalAddress(name);
+      final Stage localStage = grid.localStage();
       final Definition definition = Definition.has(PartitioningSpaceRouter.class, new PartitioningSpaceRouterInstantiator(totalPartitions, defaultScanInterval), name);
-      final Space internalSpace = grid.actorFor(Space.class, definition, localAddress);
-      space = new SpaceItemFactoryRelay(grid, internalSpace);
+      final Space internalSpace = localStage.actorFor(Space.class, definition);
+      space = new SpaceItemFactoryRelay(localStage, internalSpace);
       spaces.put(name, space);
     }
 

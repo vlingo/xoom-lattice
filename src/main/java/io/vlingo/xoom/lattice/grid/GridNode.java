@@ -129,6 +129,7 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informAllLiveNodes(final Collection<Node> liveNodes, final boolean isHealthyCluster) {
     logger().debug("GRID: Live nodes confirmed: " + liveNodes + " and is healthy: " + isHealthyCluster);
+    gridRuntime.informAllLiveNodes(liveNodes);
   }
 
   @Override

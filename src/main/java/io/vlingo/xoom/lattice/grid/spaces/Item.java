@@ -9,7 +9,11 @@ package io.vlingo.xoom.lattice.grid.spaces;
 
 import io.vlingo.xoom.lattice.grid.spaces.ScheduledScanner.ScheduledScannable;
 
-public class Item<T> implements ScheduledScannable<Item<T>> {
+import java.io.Serializable;
+
+public class Item<T> implements ScheduledScannable<Item<T>>, Serializable {
+  private static final long serialVersionUID = 2260078842732670754L;
+
   public final Lease lease;
   public final T object;
 

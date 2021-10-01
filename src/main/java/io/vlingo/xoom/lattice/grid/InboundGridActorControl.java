@@ -8,6 +8,7 @@
 package io.vlingo.xoom.lattice.grid;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -44,9 +45,11 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
-    // same Answer is used for both Deliver and Deliver2 message
+    // same Answer is used for both Deliver and Deliver2 messages
     logger().debug("GRID: Processing application message: Answer");
-    Returns<Object> clientReturns = correlation.apply(answer.correlationId).getReturns();
+    Returns<Object> clientReturns = Optional.ofNullable(correlation.apply(answer.correlationId))
+            .map(UnAckMessage::getReturns)
+            .orElse(null);
     if (clientReturns == null) {
       clientReturns = (Returns<Object>) correlation2.apply(answer.correlationId);
       if (clientReturns == null) {
@@ -54,6 +57,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
         return;
       }
     }
+
     if (answer.error == null) {
       T result = ActorProxyBase.thunk(gridRuntime.asStage(), answer.result);
       if (clientReturns.isCompletes()) {
