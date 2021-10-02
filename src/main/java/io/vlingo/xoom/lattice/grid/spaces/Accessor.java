@@ -56,38 +56,46 @@ public class Accessor {
     return !isDefined();
   }
 
-  public synchronized Space distributedSpaceFor(final String spaceName) {
-    DistributedSpace distributedSpace = distributedSpaces.get(name);
+  public Space distributedSpaceFor(final String spaceName) {
+    return distributedSpaceFor(spaceName, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
+  }
+
+  public Space distributedSpaceFor(final String spaceName, final int totalPartitions) {
+    return distributedSpaceFor(spaceName, totalPartitions, Duration.ofMillis(DefaultScanInterval));
+  }
+
+  public synchronized Space distributedSpaceFor(final String spaceName, final int totalPartitions, final Duration scanInterval) {
+    DistributedSpace distributedSpace = distributedSpaces.get(this.name);
     if (distributedSpace == null) {
       final Stage localStage = grid.localStage();
-      final Space localSpace = spaceFor(spaceName);
+      final Space localSpace = spaceFor(spaceName, totalPartitions, scanInterval);
       final Definition definition = Definition.has(DistributedSpaceActor.class,
-              new DistributedSpace.DistributedSpaceInstantiator(this.name, spaceName, localSpace, grid));
+              new DistributedSpace.DistributedSpaceInstantiator(this.name, spaceName, totalPartitions, scanInterval, localSpace, this.grid));
       distributedSpace = localStage.actorFor(DistributedSpace.class, definition);
-      distributedSpaces.put(name, distributedSpace);
+      distributedSpaces.put(this.name, distributedSpace);
     }
 
     return distributedSpace;
   }
 
-  public Space spaceFor(final String name) {
-    return spaceFor(name, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
+  public Space spaceFor(final String spaceName) {
+    return spaceFor(spaceName, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
   }
 
-  public Space spaceFor(final String name, final int totalPartitions) {
-    return spaceFor(name, totalPartitions, Duration.ofMillis(DefaultScanInterval));
+  public Space spaceFor(final String spaceName, final int totalPartitions) {
+    return spaceFor(spaceName, totalPartitions, Duration.ofMillis(DefaultScanInterval));
   }
 
-  public Space spaceFor(final String name, final long defaultScanInterval) {
-    return spaceFor(name, DefaultTotalPartitions, Duration.ofMillis(defaultScanInterval));
+  public Space spaceFor(final String spaceName, final long scanInterval) {
+    return spaceFor(spaceName, DefaultTotalPartitions, Duration.ofMillis(scanInterval));
   }
 
-  public Space spaceFor(final String name, final int totalPartitions, final long defaultScanInterval) {
-    return spaceFor(name, totalPartitions, Duration.ofMillis(defaultScanInterval));
+  public Space spaceFor(final String spaceName, final int totalPartitions, final long scanInterval) {
+    return spaceFor(spaceName, totalPartitions, Duration.ofMillis(scanInterval));
   }
 
-  public synchronized Space spaceFor(final String name, final int totalPartitions, final Duration defaultScanInterval) {
-    if (defaultScanInterval.isNegative() || defaultScanInterval.isZero()) {
+  public synchronized Space spaceFor(final String spaceName, final int totalPartitions, final Duration scanInterval) {
+    if (scanInterval.isNegative() || scanInterval.isZero()) {
       throw new IllegalArgumentException("The defaultScanInterval must be greater than zero.");
     }
 
@@ -95,14 +103,14 @@ public class Accessor {
       throw new IllegalStateException("Accessor is invalid.");
     }
 
-    Space space = spaces.get(name);
+    Space space = spaces.get(spaceName);
 
     if (space == null) {
       final Stage localStage = grid.localStage();
-      final Definition definition = Definition.has(PartitioningSpaceRouter.class, new PartitioningSpaceRouterInstantiator(totalPartitions, defaultScanInterval), name);
+      final Definition definition = Definition.has(PartitioningSpaceRouter.class, new PartitioningSpaceRouterInstantiator(totalPartitions, scanInterval), spaceName);
       final Space internalSpace = localStage.actorFor(Space.class, definition);
       space = new SpaceItemFactoryRelay(localStage, internalSpace);
-      spaces.put(name, space);
+      spaces.put(spaceName, space);
     }
 
     return space;

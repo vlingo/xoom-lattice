@@ -17,18 +17,23 @@ import io.vlingo.xoom.lattice.grid.application.GridActorControl;
 import io.vlingo.xoom.lattice.util.SerializableFunction;
 import io.vlingo.xoom.wire.node.Id;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 
 public class DistributedSpaceActor extends Actor implements DistributedSpace {
   private final String accessorName;
   private final String spaceName;
+  private final int totalPartitions;
+  private final Duration scanInterval;
   private final Space localSpace;
   private final Grid grid;
 
-  public DistributedSpaceActor(String accessorName, String spaceName, Space localSpace, Grid grid) {
+  public DistributedSpaceActor(String accessorName, String spaceName, int totalPartitions, Duration scanInterval, Space localSpace, Grid grid) {
     this.accessorName = accessorName;
     this.spaceName = spaceName;
+    this.totalPartitions = totalPartitions;
+    this.scanInterval = scanInterval;
     this.localSpace = localSpace;
     this.grid = grid;
   }
@@ -130,6 +135,8 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
   private SerializableFunction<Grid, Actor> newActorProvider() {
     final String _accessorName = this.accessorName;
     final String _spaceName = this.spaceName;
+    final int _totalPartitions = this.totalPartitions;
+    final Duration _scanInterval = this.scanInterval;
 
     return (_grid) -> {
       Accessor maybeAccessor = Accessor.named(_grid, _accessorName);
@@ -137,7 +144,7 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
               ? maybeAccessor
               : Accessor.using(_grid, _accessorName);
 
-      return ((DistributedSpace__Proxy) accessor.distributedSpaceFor(_spaceName)).__actor();
+      return ((DistributedSpace__Proxy) accessor.distributedSpaceFor(_spaceName, _totalPartitions, _scanInterval)).__actor();
     };
   }
 }
