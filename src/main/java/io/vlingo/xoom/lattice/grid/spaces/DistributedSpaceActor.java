@@ -106,8 +106,8 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
     final SerializableFunction<Grid, Actor> actorProvider = newActorProvider();
 
     for (Id nodeId : grid.allOtherNodes()) {
-      Completes<Optional<KeyItem<T>>> distributedCompletes = Completes.using(scheduler());
-      distributedCompletes.andFinallyConsume(keyItem -> logger().debug("Confirmation of distributed space TAKE from " + nodeId));
+      Completes<KeyItem<T>> distributedCompletes = Completes.using(scheduler());
+      distributedCompletes.andFinallyConsume(maybeNull -> logger().debug("Confirmation of distributed space TAKE from " + nodeId));
 
       outbound.deliver(nodeId,
               grid.nodeId(),
