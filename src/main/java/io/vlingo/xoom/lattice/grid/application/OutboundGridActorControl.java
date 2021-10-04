@@ -112,7 +112,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   }
 
   @Override
-  public <T> void deliver(
+  public <T> void gridDeliver(
           final Id recipient,
           final Id sender,
           final Returns<?> returns,
@@ -134,7 +134,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   }
 
   @Override
-  public <T> void deliver(
+  public <T> void actorDeliver(
           Id recipient,
           Id sender,
           Returns<?> returns,

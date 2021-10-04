@@ -30,7 +30,7 @@ public interface GridActorControl {
           final Address address,
           final Definition.SerializationProxy definitionProxy);
 
-  <T> void deliver(
+  <T> void gridDeliver(
           final Id recipient,
           final Id sender,
           final Returns<?> returns,
@@ -40,7 +40,7 @@ public interface GridActorControl {
           final SerializableConsumer<T> consumer,
           final String representation);
 
-  <T> void deliver(
+  <T> void actorDeliver(
           final Id recipient,
           final Id sender,
           final Returns<?> returns,

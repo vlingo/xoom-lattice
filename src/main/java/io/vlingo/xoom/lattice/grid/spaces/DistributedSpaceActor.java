@@ -81,7 +81,7 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
       Completes<KeyItem<T>> distributedCompletes = Completes.using(scheduler());
       distributedCompletes.andFinallyConsume(keyItem -> logger().debug("Confirmation of distributed space PUT for " + key + " with " + item.object + " from " + nodeId));
 
-      outbound.deliver(nodeId,
+      outbound.actorDeliver(nodeId,
               grid.nodeId(),
               Returns.value(distributedCompletes),
               DistributedSpace.class,
@@ -114,7 +114,7 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
       Completes<KeyItem<T>> distributedCompletes = Completes.using(scheduler());
       distributedCompletes.andFinallyConsume(maybeNull -> logger().debug("Confirmation of distributed space TAKE from " + nodeId));
 
-      outbound.deliver(nodeId,
+      outbound.actorDeliver(nodeId,
               grid.nodeId(),
               Returns.value(distributedCompletes),
               DistributedSpace.class,

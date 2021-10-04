@@ -253,7 +253,7 @@ public class GridNode extends ClusterApplicationAdapter {
       final Id newRecipient = gridRuntime.hashRing().nodeOf(gridDeliver.address.idString());
 
       if (newRecipient.equals(localNode)) {
-        inbound.deliver(newRecipient,
+        inbound.gridDeliver(newRecipient,
                 newRecipient,
                 retryMessage.getReturns(),
                 (Class<Object>) gridDeliver.protocol,
@@ -262,7 +262,7 @@ public class GridNode extends ClusterApplicationAdapter {
                 (SerializableConsumer<Object>) gridDeliver.consumer,
                 gridDeliver.representation);
       } else {
-        outbound.deliver(newRecipient,
+        outbound.gridDeliver(newRecipient,
                 localNode.id(),
                 retryMessage.getReturns(),
                 (Class<Object>) gridDeliver.protocol,

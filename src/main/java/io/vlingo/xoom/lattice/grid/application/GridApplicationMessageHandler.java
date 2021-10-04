@@ -128,7 +128,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     public <T> void visit(final Id receiver, final Id sender, final GridDeliver<T> gridDeliver) {
       final Id recipient = receiver(receiver, gridDeliver.address);
       if (recipient == receiver) {
-        inbound.deliver(
+        inbound.gridDeliver(
             receiver, sender,
             returnsAnswer(receiver, sender, gridDeliver.answerCorrelationId),
             gridDeliver.protocol, gridDeliver.address, gridDeliver.definition, gridDeliver.consumer, gridDeliver.representation);
@@ -139,7 +139,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
 
     @Override
     public <T> void visit(Id receiver, Id sender, ActorDeliver<T> actorDeliver) {
-      inbound.deliver(
+      inbound.actorDeliver(
               receiver, sender, returnsAnswer(receiver, sender, actorDeliver.answerCorrelationId),
               actorDeliver.protocol, actorDeliver.actorProvider, actorDeliver.consumer, actorDeliver.representation);
     }

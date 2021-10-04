@@ -128,7 +128,7 @@ public class GridMailbox implements Mailbox {
       if (overrides.contains(localMessage.protocol())) {
         local.send(message);
       }
-      outbound.deliver(
+      outbound.gridDeliver(
           nodeOf, localId, localMessage.returns(), message.protocol(),
           address, Definition.SerializationProxy.from(message.actor().definition()),
           localMessage.consumer(), message.representation());
@@ -143,7 +143,7 @@ public class GridMailbox implements Mailbox {
       if (overrides.contains(protocol)) {
         local.send(actor, protocol, consumer, returns, representation);
       }
-      outbound.deliver(nodeOf, localId, returns, (Class<Object>) protocol,
+      outbound.gridDeliver(nodeOf, localId, returns, (Class<Object>) protocol,
           address, Definition.SerializationProxy.from(actor.definition()),
           (SerializableConsumer<Object>) consumer, representation);
     }, () -> local.send(actor, protocol, consumer, returns, representation));
