@@ -16,7 +16,7 @@ import java.io.Serializable;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class Deliver2<T> implements Serializable, Message {
+public class ActorDeliver<T> implements Serializable, Message {
 
   public final Class<T> protocol;
   public final Function<Grid, Actor> actorProvider;
@@ -24,11 +24,11 @@ public class Deliver2<T> implements Serializable, Message {
   public final String representation;
   public final UUID answerCorrelationId;
 
-  public Deliver2(Class<T> protocol, Function<Grid, Actor> actorProvider, SerializableConsumer<T> consumer, String representation) {
+  public ActorDeliver(Class<T> protocol, Function<Grid, Actor> actorProvider, SerializableConsumer<T> consumer, String representation) {
     this(protocol, actorProvider, consumer, representation, null);
   }
 
-  public Deliver2(Class<T> protocol, Function<Grid, Actor> actorProvider, SerializableConsumer<T> consumer, String representation, UUID answerCorrelationId) {
+  public ActorDeliver(Class<T> protocol, Function<Grid, Actor> actorProvider, SerializableConsumer<T> consumer, String representation, UUID answerCorrelationId) {
     this.protocol = protocol;
     this.actorProvider = actorProvider;
     this.consumer = consumer;

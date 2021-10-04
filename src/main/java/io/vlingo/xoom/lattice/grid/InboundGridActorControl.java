@@ -33,13 +33,13 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
 
   private final GridRuntime gridRuntime;
 
-  private final Function<UUID, UnAckMessage> correlation;
-  private final Function<UUID, Returns<?>> correlation2;
+  private final Function<UUID, UnAckMessage> gridMessagesCorrelation;
+  private final Function<UUID, Returns<?>> actorMessagesCorrelation;
 
-  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation, final Function<UUID, Returns<?>> correlation2) {
+  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> gridMessagesCorrelation, final Function<UUID, Returns<?>> actorMessagesCorrelation) {
     this.gridRuntime = gridRuntime;
-    this.correlation = correlation;
-    this.correlation2 = correlation2;
+    this.gridMessagesCorrelation = gridMessagesCorrelation;
+    this.actorMessagesCorrelation = actorMessagesCorrelation;
   }
 
   @Override
@@ -47,11 +47,11 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
     // same Answer is used for both Deliver and Deliver2 messages
     logger().debug("GRID: Processing application message: Answer");
-    Returns<Object> clientReturns = Optional.ofNullable(correlation.apply(answer.correlationId))
+    Returns<Object> clientReturns = Optional.ofNullable(gridMessagesCorrelation.apply(answer.correlationId))
             .map(UnAckMessage::getReturns)
             .orElse(null);
     if (clientReturns == null) {
-      clientReturns = (Returns<Object>) correlation2.apply(answer.correlationId);
+      clientReturns = (Returns<Object>) actorMessagesCorrelation.apply(answer.correlationId);
       if (clientReturns == null) {
         logger().warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
         return;
@@ -201,18 +201,18 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
     private static final long serialVersionUID = 1494058617174306163L;
 
     private final GridRuntime gridRuntime;
-    private final Function<UUID, UnAckMessage> correlation;
-    private final Function<UUID, Returns<?>> correlation2;
+    private final Function<UUID, UnAckMessage> gridMessagesCorrelation;
+    private final Function<UUID, Returns<?>> actorMessagesCorrelation;
 
-    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation, final Function<UUID, Returns<?>> correlation2) {
+    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> gridMessagesCorrelation, final Function<UUID, Returns<?>> actorMessagesCorrelation) {
       this.gridRuntime = gridRuntime;
-      this.correlation = correlation;
-      this.correlation2 = correlation2;
+      this.gridMessagesCorrelation = gridMessagesCorrelation;
+      this.actorMessagesCorrelation = actorMessagesCorrelation;
     }
 
     @Override
     public InboundGridActorControl instantiate() {
-      return new InboundGridActorControl(gridRuntime, correlation, correlation2);
+      return new InboundGridActorControl(gridRuntime, gridMessagesCorrelation, actorMessagesCorrelation);
     }
   }
 }

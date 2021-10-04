@@ -20,11 +20,11 @@ import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.common.SerializableConsumer;
 import io.vlingo.xoom.wire.node.Id;
 
-public class Deliver<T> implements Serializable, Message {
+public class GridDeliver<T> implements Serializable, Message {
   private static final long serialVersionUID = 591702431591762704L;
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public static Function<io.vlingo.xoom.actors.Message, Deliver<?>> from(BiConsumer<UUID, UnAckMessage> correlation, Id receiver) {
+  public static Function<io.vlingo.xoom.actors.Message, GridDeliver<?>> from(BiConsumer<UUID, UnAckMessage> correlation, Id receiver) {
     return (message) -> {
       final LocalMessage<?> __message = (LocalMessage<?>) message;
       final Optional<Returns<?>> returns = Optional.ofNullable(__message.returns());
@@ -33,7 +33,7 @@ public class Deliver<T> implements Serializable, Message {
               .map(_return -> UUID.randomUUID())
               .orElse(null);
 
-      Deliver deliver = new Deliver(
+      GridDeliver gridDeliver = new GridDeliver(
           __message.protocol(),
           __message.actor().address(),
           Definition.SerializationProxy.from(__message.actor().definition()),
@@ -42,10 +42,10 @@ public class Deliver<T> implements Serializable, Message {
           __message.representation());
 
       if (answerCorrelationId != null) {
-        correlation.accept(answerCorrelationId, new UnAckMessage(receiver, returns.get(), deliver));
+        correlation.accept(answerCorrelationId, new UnAckMessage(receiver, returns.get(), gridDeliver));
       }
 
-      return deliver;
+      return gridDeliver;
     };
   }
 
@@ -56,20 +56,20 @@ public class Deliver<T> implements Serializable, Message {
   public final UUID answerCorrelationId;
   public final String representation;
 
-  public Deliver(final Class<T> protocol,
-                 final Address address,
-                 final Definition.SerializationProxy definition,
-                 final SerializableConsumer<T> consumer,
-                 final String representation) {
+  public GridDeliver(final Class<T> protocol,
+                     final Address address,
+                     final Definition.SerializationProxy definition,
+                     final SerializableConsumer<T> consumer,
+                     final String representation) {
     this(protocol, address, definition, consumer, null, representation);
   }
 
-  public Deliver(final Class<T> protocol,
-                 final Address address,
-                 final Definition.SerializationProxy definition,
-                 final SerializableConsumer<T> consumer,
-                 final UUID answerCorrelationId,
-                 final String representation) {
+  public GridDeliver(final Class<T> protocol,
+                     final Address address,
+                     final Definition.SerializationProxy definition,
+                     final SerializableConsumer<T> consumer,
+                     final UUID answerCorrelationId,
+                     final String representation) {
     this.protocol = protocol;
     this.address = address;
     this.definition = definition;

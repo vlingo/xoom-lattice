@@ -29,7 +29,7 @@ import io.vlingo.xoom.lattice.grid.application.GridApplicationMessageHandler;
 import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl;
 import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl.OutboundGridActorControlInstantiator;
 import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
-import io.vlingo.xoom.lattice.grid.application.message.Deliver;
+import io.vlingo.xoom.lattice.grid.application.message.GridDeliver;
 import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.FSTDecoder;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.FSTEncoder;
@@ -43,8 +43,8 @@ import io.vlingo.xoom.wire.node.Node;
 
 public class GridNode extends ClusterApplicationAdapter {
   // Sent messages waiting for continuation (answer) onto current node
-  private static final Map<UUID, UnAckMessage> correlationMessages = new ConcurrentHashMap<>();
-  private static final Map<UUID, Returns<?>> correlation2Messages = new ConcurrentHashMap<>();
+  private static final Map<UUID, UnAckMessage> gridMessagesCorrelations = new ConcurrentHashMap<>();
+  private static final Map<UUID, Returns<?>> actorMessagesCorrelations = new ConcurrentHashMap<>();
 
   private AttributesProtocol client;
   private final GridRuntime gridRuntime;
@@ -76,8 +76,8 @@ public class GridNode extends ClusterApplicationAdapter {
                     new OutboundGridActorControlInstantiator(
                                     localNode.id(),
                                     new FSTEncoder(conf),
-                                    correlationMessages::put,
-                                    correlation2Messages::put,
+                                    gridMessagesCorrelations::put,
+                                    actorMessagesCorrelations::put,
                                     new OutBuffers(holder)));
 
     this.gridRuntime.setOutbound(outbound);
@@ -88,8 +88,8 @@ public class GridNode extends ClusterApplicationAdapter {
                     InboundGridActorControl.class,
                     new InboundGridActorControlInstantiator(
                             gridRuntime,
-                            correlationMessages::remove,
-                            correlation2Messages::remove));
+                            gridMessagesCorrelations::remove,
+                            actorMessagesCorrelations::remove));
 
     this.applicationMessageHandler =
             new GridApplicationMessageHandler(
@@ -241,35 +241,35 @@ public class GridNode extends ClusterApplicationAdapter {
    */
   @SuppressWarnings("unchecked")
   private void retryUnAckMessagesOn(final Id leftNode) {
-    final Map<UUID, UnAckMessage> retryMessages = correlationMessages.entrySet().stream()
+    final Map<UUID, UnAckMessage> retryMessages = gridMessagesCorrelations.entrySet().stream()
             .filter(entry -> leftNode.equals(entry.getValue().getReceiver()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     retryMessages.keySet()
-            .forEach(correlationMessages::remove);
+            .forEach(gridMessagesCorrelations::remove);
 
     for (UnAckMessage retryMessage : retryMessages.values()) {
-      Deliver<?> deliver = retryMessage.getMessage();
-      final Id newRecipient = gridRuntime.hashRing().nodeOf(deliver.address.idString());
+      GridDeliver<?> gridDeliver = retryMessage.getMessage();
+      final Id newRecipient = gridRuntime.hashRing().nodeOf(gridDeliver.address.idString());
 
       if (newRecipient.equals(localNode)) {
         inbound.deliver(newRecipient,
                 newRecipient,
                 retryMessage.getReturns(),
-                (Class<Object>) deliver.protocol,
-                deliver.address,
-                deliver.definition,
-                (SerializableConsumer<Object>) deliver.consumer,
-                deliver.representation);
+                (Class<Object>) gridDeliver.protocol,
+                gridDeliver.address,
+                gridDeliver.definition,
+                (SerializableConsumer<Object>) gridDeliver.consumer,
+                gridDeliver.representation);
       } else {
         outbound.deliver(newRecipient,
                 localNode.id(),
                 retryMessage.getReturns(),
-                (Class<Object>) deliver.protocol,
-                deliver.address,
-                deliver.definition,
-                (SerializableConsumer<Object>) deliver.consumer,
-                deliver.representation);
+                (Class<Object>) gridDeliver.protocol,
+                gridDeliver.address,
+                gridDeliver.definition,
+                (SerializableConsumer<Object>) gridDeliver.consumer,
+                gridDeliver.representation);
       }
     }
   }

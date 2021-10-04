@@ -125,23 +125,23 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
 
     @Override
-    public <T> void visit(final Id receiver, final Id sender, final Deliver<T> deliver) {
-      final Id recipient = receiver(receiver, deliver.address);
+    public <T> void visit(final Id receiver, final Id sender, final GridDeliver<T> gridDeliver) {
+      final Id recipient = receiver(receiver, gridDeliver.address);
       if (recipient == receiver) {
         inbound.deliver(
             receiver, sender,
-            returnsAnswer(receiver, sender, deliver.answerCorrelationId),
-            deliver.protocol, deliver.address, deliver.definition, deliver.consumer, deliver.representation);
+            returnsAnswer(receiver, sender, gridDeliver.answerCorrelationId),
+            gridDeliver.protocol, gridDeliver.address, gridDeliver.definition, gridDeliver.consumer, gridDeliver.representation);
       } else {
-        outbound.forward(recipient, sender, deliver);
+        outbound.forward(recipient, sender, gridDeliver);
       }
     }
 
     @Override
-    public <T> void visit(Id receiver, Id sender, Deliver2<T> deliver) {
+    public <T> void visit(Id receiver, Id sender, ActorDeliver<T> actorDeliver) {
       inbound.deliver(
-              receiver, sender, returnsAnswer(receiver, sender, deliver.answerCorrelationId),
-              deliver.protocol, deliver.actorProvider, deliver.consumer, deliver.representation);
+              receiver, sender, returnsAnswer(receiver, sender, actorDeliver.answerCorrelationId),
+              actorDeliver.protocol, actorDeliver.actorProvider, actorDeliver.consumer, actorDeliver.representation);
     }
 
     @Override
