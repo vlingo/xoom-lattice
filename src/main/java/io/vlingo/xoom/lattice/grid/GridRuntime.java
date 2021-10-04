@@ -15,6 +15,9 @@ import io.vlingo.xoom.lattice.grid.application.GridActorControl;
 import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
 import io.vlingo.xoom.lattice.grid.hashring.HashRing;
 import io.vlingo.xoom.wire.node.Id;
+import io.vlingo.xoom.wire.node.Node;
+
+import java.util.Collection;
 
 public interface GridRuntime extends QuorumObserver {
   Actor actorAt(Address address);
@@ -23,6 +26,7 @@ public interface GridRuntime extends QuorumObserver {
   GridNodeBootstrap gridNodeBootstrap();
   HashRing<Id> hashRing();
   void nodeJoined(final Id newNode);
+  void informAllLiveNodes(final Collection<Node> liveNodes);
   QuorumObserver quorumObserver();
   void setNodeId(final Id nodeId);
   void setOutbound(final GridActorControl.Outbound outbound);

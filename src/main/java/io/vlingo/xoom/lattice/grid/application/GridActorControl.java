@@ -8,11 +8,14 @@
 package io.vlingo.xoom.lattice.grid.application;
 
 import java.util.List;
+import java.util.function.Function;
 
+import io.vlingo.xoom.actors.Actor;
 import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.Definition;
 import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.common.SerializableConsumer;
+import io.vlingo.xoom.lattice.grid.Grid;
 import io.vlingo.xoom.lattice.grid.application.message.Answer;
 import io.vlingo.xoom.lattice.grid.application.message.Message;
 import io.vlingo.xoom.wire.fdx.outbound.ApplicationOutboundStream;
@@ -27,13 +30,22 @@ public interface GridActorControl {
           final Address address,
           final Definition.SerializationProxy definitionProxy);
 
-  <T> void deliver(
+  <T> void gridDeliver(
           final Id recipient,
           final Id sender,
           final Returns<?> returns,
           final Class<T> protocol,
           final Address address,
           final Definition.SerializationProxy definitionProxy,
+          final SerializableConsumer<T> consumer,
+          final String representation);
+
+  <T> void actorDeliver(
+          final Id recipient,
+          final Id sender,
+          final Returns<?> returns,
+          final Class<T> protocol,
+          final Function<Grid, Actor> actorProvider,
           final SerializableConsumer<T> consumer,
           final String representation);
 

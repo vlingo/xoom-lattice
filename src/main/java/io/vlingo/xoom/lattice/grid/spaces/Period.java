@@ -7,12 +7,16 @@
 
 package io.vlingo.xoom.lattice.grid.spaces;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 
-public class Period {
+public class Period implements Serializable {
+  private static final long serialVersionUID = 9024915819552469634L;
+
   public static final Period Forever = Period.of(Instant.MAX.getEpochSecond());
   public static final Period None = Period.of(0);
+
 
   public final Duration duration;
 

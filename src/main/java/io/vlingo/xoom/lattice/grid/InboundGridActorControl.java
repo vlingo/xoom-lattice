@@ -8,6 +8,7 @@
 package io.vlingo.xoom.lattice.grid;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -32,23 +33,31 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
 
   private final GridRuntime gridRuntime;
 
-  private final Function<UUID, UnAckMessage> correlation;
+  private final Function<UUID, UnAckMessage> gridMessagesCorrelation;
+  private final Function<UUID, Returns<?>> actorMessagesCorrelation;
 
-
-  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation) {
+  public InboundGridActorControl(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> gridMessagesCorrelation, final Function<UUID, Returns<?>> actorMessagesCorrelation) {
     this.gridRuntime = gridRuntime;
-    this.correlation = correlation;
+    this.gridMessagesCorrelation = gridMessagesCorrelation;
+    this.actorMessagesCorrelation = actorMessagesCorrelation;
   }
 
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
+    // same Answer is used for both Deliver and Deliver2 messages
     logger().debug("GRID: Processing application message: Answer");
-    final Returns<Object> clientReturns = correlation.apply(answer.correlationId).getReturns();
+    Returns<Object> clientReturns = Optional.ofNullable(gridMessagesCorrelation.apply(answer.correlationId))
+            .map(UnAckMessage::getReturns)
+            .orElse(null);
     if (clientReturns == null) {
-      logger().warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
-      return;
+      clientReturns = (Returns<Object>) actorMessagesCorrelation.apply(answer.correlationId);
+      if (clientReturns == null) {
+        logger().warn("GRID: Answer from {} for Returns with {} didn't match a Returns on this node!", sender, answer.correlationId);
+        return;
+      }
     }
+
     if (answer.error == null) {
       T result = ActorProxyBase.thunk(gridRuntime.asStage(), answer.result);
       if (clientReturns.isCompletes()) {
@@ -58,8 +67,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
       } else if (clientReturns.isFuture()) {
         ((CompletableFuture) clientReturns.asFuture()).complete(result);
       }
-    }
-    else {
+    } else {
       if (clientReturns.isCompletes()) {
         clientReturns.asCompletes().failed(new RuntimeException("Remote actor call failed", answer.error));
       } else if (clientReturns.isCompletableFuture()) {
@@ -103,7 +111,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   }
 
   @Override
-  public <T> void deliver(
+  public <T> void gridDeliver(
           final Id receiver,
           final Id sender,
           final Returns<?> returns,
@@ -133,6 +141,23 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
 
       GridActorOperations.resumeFromRelocation(actor);
     }
+  }
+
+  @Override
+  public <T> void actorDeliver(
+          Id recipient,
+          Id sender,
+          Returns<?> returns,
+          Class<T> protocol, Function<Grid, Actor> actorProvider,
+          SerializableConsumer<T> consumer,
+          String representation) {
+    logger().debug("Processing: Received application message: Deliver2");
+
+    final Grid grid = (Grid) gridRuntime.asStage();
+
+    final Actor actor = actorProvider.apply(grid);
+
+    __InternalOnlyAccessor.actorMailbox(actor).send(actor, protocol, consumer, returns, representation);
   }
 
   @Override
@@ -176,16 +201,18 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
     private static final long serialVersionUID = 1494058617174306163L;
 
     private final GridRuntime gridRuntime;
-    private final Function<UUID, UnAckMessage> correlation;
+    private final Function<UUID, UnAckMessage> gridMessagesCorrelation;
+    private final Function<UUID, Returns<?>> actorMessagesCorrelation;
 
-    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> correlation) {
+    public InboundGridActorControlInstantiator(final GridRuntime gridRuntime, final Function<UUID, UnAckMessage> gridMessagesCorrelation, final Function<UUID, Returns<?>> actorMessagesCorrelation) {
       this.gridRuntime = gridRuntime;
-      this.correlation = correlation;
+      this.gridMessagesCorrelation = gridMessagesCorrelation;
+      this.actorMessagesCorrelation = actorMessagesCorrelation;
     }
 
     @Override
     public InboundGridActorControl instantiate() {
-      return new InboundGridActorControl(gridRuntime, correlation);
+      return new InboundGridActorControl(gridRuntime, gridMessagesCorrelation, actorMessagesCorrelation);
     }
   }
 }

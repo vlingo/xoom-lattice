@@ -13,8 +13,11 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import io.vlingo.xoom.lattice.grid.Grid;
+import io.vlingo.xoom.lattice.grid.application.message.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,14 +27,6 @@ import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.Definition;
 import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.common.SerializableConsumer;
-import io.vlingo.xoom.lattice.grid.application.message.Answer;
-import io.vlingo.xoom.lattice.grid.application.message.Deliver;
-import io.vlingo.xoom.lattice.grid.application.message.Encoder;
-import io.vlingo.xoom.lattice.grid.application.message.Forward;
-import io.vlingo.xoom.lattice.grid.application.message.Message;
-import io.vlingo.xoom.lattice.grid.application.message.Relocate;
-import io.vlingo.xoom.lattice.grid.application.message.Start;
-import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.FSTEncoder;
 import io.vlingo.xoom.lattice.util.OutBuffers;
 import io.vlingo.xoom.wire.fdx.outbound.ApplicationOutboundStream;
@@ -45,7 +40,8 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   private final Id localNodeId;
   private ApplicationOutboundStream stream;
   private final Encoder encoder;
-  private final BiConsumer<UUID, UnAckMessage> correlation;
+  private final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer;
+  private final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer;
 
   private final OutBuffers outBuffers; // buffer messages for unhealthy nodes
   private final ConcurrentHashMap<Id, Boolean> nodesHealth;
@@ -54,23 +50,26 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   public OutboundGridActorControl(
           final Id localNodeId,
           final Encoder encoder,
-          final BiConsumer<UUID, UnAckMessage> correlation,
+          final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer,
+          final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer,
           final OutBuffers outBuffers) {
 
-    this(localNodeId, null, encoder, correlation, outBuffers);
+    this(localNodeId, null, encoder, gridMessagesCorrelationConsumer, actorMessagesCorrelationConsumer, outBuffers);
   }
 
   public OutboundGridActorControl(
           final Id localNodeId,
           final ApplicationOutboundStream stream,
           final Encoder encoder,
-          final BiConsumer<UUID, UnAckMessage> correlation,
+          final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer,
+          final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer,
           final OutBuffers outBuffers) {
 
     this.localNodeId = localNodeId;
     this.stream = stream;
     this.encoder = encoder;
-    this.correlation = correlation;
+    this.gridMessagesCorrelationConsumer = gridMessagesCorrelationConsumer;
+    this.actorMessagesCorrelationConsumer = actorMessagesCorrelationConsumer;
     this.outBuffers = outBuffers;
     this.nodesHealth = new ConcurrentHashMap<>();
   }
@@ -113,7 +112,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   }
 
   @Override
-  public <T> void deliver(
+  public <T> void gridDeliver(
           final Id recipient,
           final Id sender,
           final Returns<?> returns,
@@ -123,15 +122,36 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
           final SerializableConsumer<T> consumer,
           final String representation) {
 
-    final Deliver<T> deliver;
+    final GridDeliver<T> gridDeliver;
     if (returns == null) {
-      deliver = new Deliver<>(protocol, address, definitionProxy, consumer, representation);
+      gridDeliver = new GridDeliver<>(protocol, address, definitionProxy, consumer, representation);
     } else {
       final UUID answerCorrelationId = UUID.randomUUID();
-      deliver = new Deliver<>(protocol, address, definitionProxy, consumer, answerCorrelationId, representation);
-      correlation.accept(answerCorrelationId, new UnAckMessage(recipient, returns, deliver));
+      gridDeliver = new GridDeliver<>(protocol, address, definitionProxy, consumer, answerCorrelationId, representation);
+      gridMessagesCorrelationConsumer.accept(answerCorrelationId, new UnAckMessage(recipient, returns, gridDeliver));
     }
-    send(recipient, deliver);
+    send(recipient, gridDeliver);
+  }
+
+  @Override
+  public <T> void actorDeliver(
+          Id recipient,
+          Id sender,
+          Returns<?> returns,
+          Class<T> protocol,
+          Function<Grid, Actor> actorProvider,
+          SerializableConsumer<T> consumer,
+          String representation) {
+    final ActorDeliver<T> actorDeliver;
+    if (returns == null) {
+      actorDeliver = new ActorDeliver<>(protocol, actorProvider, consumer, representation);
+    } else {
+      final UUID answerCorrelationId = UUID.randomUUID();
+      actorDeliver = new ActorDeliver<>(protocol, actorProvider, consumer, representation, answerCorrelationId);
+      actorMessagesCorrelationConsumer.accept(answerCorrelationId, returns);
+    }
+
+    send(recipient, actorDeliver);
   }
 
   @Override
@@ -152,10 +172,10 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
           final Address address,
           final Object snapshot, List<? extends io.vlingo.xoom.actors.Message> pending) {
 
-    final List<Deliver<?>> messages =
+    final List<GridDeliver<?>> messages =
             pending
               .stream()
-              .map(Deliver.from(correlation, receiver))
+              .map(GridDeliver.from(gridMessagesCorrelationConsumer, receiver))
               .collect(Collectors.toList());
 
     send(receiver, new Relocate(address, definitionProxy, snapshot, messages));
@@ -187,23 +207,26 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
 
     private final Id id;
     private final FSTEncoder fstEncoder;
-    private final BiConsumer<UUID, UnAckMessage> correlation;
+    private final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer;
+    private final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer;
     private final OutBuffers outBuffers;
 
     public OutboundGridActorControlInstantiator(
             final Id id,
             final FSTEncoder fstEncoder,
-            final BiConsumer<UUID, UnAckMessage> correlation,
+            final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer,
+            final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer,
             final OutBuffers outBuffers) {
       this.id = id;
       this.fstEncoder = fstEncoder;
-      this.correlation = correlation;
+      this.gridMessagesCorrelationConsumer = gridMessagesCorrelationConsumer;
+      this.actorMessagesCorrelationConsumer = actorMessagesCorrelationConsumer;
       this.outBuffers = outBuffers;
     }
 
     @Override
     public OutboundGridActorControl instantiate() {
-      return new OutboundGridActorControl(id, fstEncoder, correlation, outBuffers);
+      return new OutboundGridActorControl(id, fstEncoder, gridMessagesCorrelationConsumer, actorMessagesCorrelationConsumer, outBuffers);
     }
   }
 }

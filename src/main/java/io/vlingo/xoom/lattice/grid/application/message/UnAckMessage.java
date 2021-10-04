@@ -16,9 +16,9 @@ import io.vlingo.xoom.wire.node.Id;
 public class UnAckMessage {
     private final Id receiver;
     private final Returns<?> returns;
-    private final Deliver<?> message;
+    private final GridDeliver<?> message;
 
-    public UnAckMessage(Id receiver, Returns<?> returns, Deliver<?> message) {
+    public UnAckMessage(Id receiver, Returns<?> returns, GridDeliver<?> message) {
         this.receiver = receiver;
         this.returns = returns;
         this.message = message;
@@ -33,7 +33,7 @@ public class UnAckMessage {
         return (Returns<Object>) returns;
     }
 
-    public Deliver<?> getMessage() {
+    public GridDeliver<?> getMessage() {
         return message;
     }
 }

@@ -22,10 +22,7 @@ import io.vlingo.xoom.wire.node.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -128,16 +125,23 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
 
     @Override
-    public <T> void visit(final Id receiver, final Id sender, final Deliver<T> deliver) {
-      final Id recipient = receiver(receiver, deliver.address);
+    public <T> void visit(final Id receiver, final Id sender, final GridDeliver<T> gridDeliver) {
+      final Id recipient = receiver(receiver, gridDeliver.address);
       if (recipient == receiver) {
-        inbound.deliver(
+        inbound.gridDeliver(
             receiver, sender,
-            returnsAnswer(receiver, sender, deliver),
-            deliver.protocol, deliver.address, deliver.definition, deliver.consumer, deliver.representation);
+            returnsAnswer(receiver, sender, gridDeliver.answerCorrelationId),
+            gridDeliver.protocol, gridDeliver.address, gridDeliver.definition, gridDeliver.consumer, gridDeliver.representation);
       } else {
-        outbound.forward(recipient, sender, deliver);
+        outbound.forward(recipient, sender, gridDeliver);
       }
+    }
+
+    @Override
+    public <T> void visit(Id receiver, Id sender, ActorDeliver<T> actorDeliver) {
+      inbound.actorDeliver(
+              receiver, sender, returnsAnswer(receiver, sender, actorDeliver.answerCorrelationId),
+              actorDeliver.protocol, actorDeliver.actorProvider, actorDeliver.consumer, actorDeliver.representation);
     }
 
     @Override
@@ -166,7 +170,7 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
         final List<LocalMessage> pending = relocate.pending.stream()
             .map(deliver ->
                 new LocalMessage(null, deliver.protocol, deliver.consumer,
-                    returnsAnswer(receiver, sender, deliver), deliver.representation))
+                    returnsAnswer(receiver, sender, deliver.answerCorrelationId), deliver.representation))
             .collect(Collectors.toCollection(ArrayList::new));
         inbound.relocate(receiver, sender, relocate.definition,
             relocate.address, relocate.snapshot, pending);
@@ -175,24 +179,21 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
       }
     }
 
-    private Returns<?> returnsAnswer(final Id receiver, final Id sender, final Deliver<?> deliver) {
-      final Returns<?> returns;
-      if (deliver.answerCorrelationId == null) {
-        returns = null;
-      } else {
-        final Completes<Object> completes = Completes.using(scheduler);
-        completes.andThen(result -> new Answer<>(deliver.answerCorrelationId, result))
-                .recoverFrom(error -> new Answer<>(deliver.answerCorrelationId, error))
-                .otherwise(ignored -> new Answer<>(deliver.answerCorrelationId, new TimeoutException()))
-                .andThenConsume(4000,
-                        answer -> outbound.answer(sender, receiver, answer))
-                .andFinally();
-
-        // 'root' Completes here! Completes#with(Object) will trigger the execution of whole Completes chain/pipeline built above
-        returns = Returns.value(completes);
+    private Returns<?> returnsAnswer(final Id receiver, final Id sender, final UUID answerCorrelationId) {
+      if (answerCorrelationId == null) {
+        return null;
       }
-      return returns;
+
+      final Completes<Object> completes = Completes.using(scheduler);
+      completes.andThen(result -> new Answer<>(answerCorrelationId, result))
+              .recoverFrom(error -> new Answer<>(answerCorrelationId, error))
+              .otherwise(ignored -> new Answer<>(answerCorrelationId, new TimeoutException()))
+              .andThenConsume(4000,
+                      answer -> outbound.answer(sender, receiver, answer))
+              .andFinally();
+
+      // 'root' Completes here! Completes#with(Object) will trigger the execution of whole Completes chain/pipeline built above
+      return Returns.value(completes);
     }
   }
-
 }

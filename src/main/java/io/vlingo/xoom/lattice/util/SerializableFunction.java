@@ -5,11 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-package io.vlingo.xoom.lattice.grid.spaces;
+package io.vlingo.xoom.lattice.util;
 
 import java.io.Serializable;
-import java.util.Comparator;
+import java.util.function.Function;
 
-public interface Key extends Comparator<Key>, Serializable {
-  boolean matches(final Key other);
+@FunctionalInterface
+public interface SerializableFunction<T, R> extends Function<T, R>, Serializable {
 }

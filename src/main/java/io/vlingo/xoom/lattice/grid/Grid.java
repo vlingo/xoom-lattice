@@ -7,8 +7,13 @@
 
 package io.vlingo.xoom.lattice.grid;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import io.vlingo.xoom.wire.node.Node;
 import org.slf4j.LoggerFactory;
 
 import io.vlingo.xoom.actors.Actor;
@@ -77,14 +82,18 @@ public class Grid extends Stage implements GridRuntime {
   private final HashRing<Id> hashRing;
 
   private Id nodeId;
+  private Collection<Node> liveNodes = new ArrayList<>();
   private GridActorControl.Outbound outbound;
 
   private volatile boolean hasQuorum;
   private final long clusterHealthCheckInterval;
 
+  private final String clusterAppStageName;
+
   public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName, GridStageBuckets, GridStageInitialCapacity);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
+    this.clusterAppStageName = clusterProperties.clusterApplicationStageName();
     extenderStartDirectoryScanner();
     this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
     this.hasQuorum = false;
@@ -200,6 +209,11 @@ public class Grid extends Stage implements GridRuntime {
         });
   }
 
+  @Override
+  public void informAllLiveNodes(Collection<Node> liveNodes) {
+    this.liveNodes = liveNodes;
+  }
+
   private void relocateActorTo(Actor actor, Address address, Id toNode) {
     if (!GridActorOperations.isSuspendedForRelocation(actor)) {
       logger.debug("Relocating actor [{}] to [{}]", address, toNode);
@@ -242,6 +256,25 @@ public class Grid extends Stage implements GridRuntime {
   @Override
   public ClassLoader worldClassLoader() {
     return __InternalOnlyAccessor.classLoader(this);
+  }
+
+  public List<Id> allOtherNodes() {
+    return liveNodes.stream()
+            .map(Node::id)
+            .filter(nodeId -> !nodeId.equals(this.nodeId))
+            .collect(Collectors.toList());
+  }
+
+  public Stage localStage() {
+    return world.stageNamed(clusterAppStageName);
+  }
+
+  public Id nodeId() {
+    return nodeId;
+  }
+
+  public GridActorControl.Outbound getOutbound() {
+    return outbound;
   }
 
   //====================================

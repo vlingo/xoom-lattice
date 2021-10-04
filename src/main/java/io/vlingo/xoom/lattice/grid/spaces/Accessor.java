@@ -7,13 +7,14 @@
 
 package io.vlingo.xoom.lattice.grid.spaces;
 
+import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.Stage;
+import io.vlingo.xoom.lattice.grid.Grid;
+import io.vlingo.xoom.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
+
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import io.vlingo.xoom.actors.Definition;
-import io.vlingo.xoom.lattice.grid.Grid;
-import io.vlingo.xoom.lattice.grid.spaces.Space.PartitioningSpaceRouterInstantiator;
 
 public class Accessor {
   private static final long DefaultScanInterval = 15_000;
@@ -24,6 +25,7 @@ public class Accessor {
   public final String name;
   private final Grid grid;
   private final Map<String,Space> spaces = new ConcurrentHashMap<>();
+  private final Map<String, DistributedSpace> distributedSpaces = new ConcurrentHashMap<>();
 
   public static Accessor named(final Grid grid, final String name) {
     Accessor accessor = grid.world().resolveDynamic(name, Accessor.class);
@@ -54,24 +56,46 @@ public class Accessor {
     return !isDefined();
   }
 
-  public Space spaceFor(final String name) {
-    return spaceFor(name, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
+  public Space distributedSpaceFor(final String spaceName) {
+    return distributedSpaceFor(spaceName, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
   }
 
-  public Space spaceFor(final String name, final int totalPartitions) {
-    return spaceFor(name, totalPartitions, Duration.ofMillis(DefaultScanInterval));
+  public Space distributedSpaceFor(final String spaceName, final int totalPartitions) {
+    return distributedSpaceFor(spaceName, totalPartitions, Duration.ofMillis(DefaultScanInterval));
   }
 
-  public Space spaceFor(final String name, final long defaultScanInterval) {
-    return spaceFor(name, DefaultTotalPartitions, Duration.ofMillis(defaultScanInterval));
+  public synchronized Space distributedSpaceFor(final String spaceName, final int totalPartitions, final Duration scanInterval) {
+    DistributedSpace distributedSpace = distributedSpaces.get(this.name);
+    if (distributedSpace == null) {
+      final Stage localStage = grid.localStage();
+      final Space localSpace = spaceFor(spaceName, totalPartitions, scanInterval);
+      final Definition definition = Definition.has(DistributedSpaceActor.class,
+              new DistributedSpace.DistributedSpaceInstantiator(this.name, spaceName, totalPartitions, scanInterval, localSpace, this.grid));
+      distributedSpace = localStage.actorFor(DistributedSpace.class, definition);
+      distributedSpaces.put(this.name, distributedSpace);
+    }
+
+    return distributedSpace;
   }
 
-  public Space spaceFor(final String name, final int totalPartitions, final long defaultScanInterval) {
-    return spaceFor(name, totalPartitions, Duration.ofMillis(defaultScanInterval));
+  public Space spaceFor(final String spaceName) {
+    return spaceFor(spaceName, DefaultTotalPartitions, Duration.ofMillis(DefaultScanInterval));
   }
 
-  public synchronized Space spaceFor(final String name, final int totalPartitions, final Duration defaultScanInterval) {
-    if (defaultScanInterval.isNegative() || defaultScanInterval.isZero()) {
+  public Space spaceFor(final String spaceName, final int totalPartitions) {
+    return spaceFor(spaceName, totalPartitions, Duration.ofMillis(DefaultScanInterval));
+  }
+
+  public Space spaceFor(final String spaceName, final long scanInterval) {
+    return spaceFor(spaceName, DefaultTotalPartitions, Duration.ofMillis(scanInterval));
+  }
+
+  public Space spaceFor(final String spaceName, final int totalPartitions, final long scanInterval) {
+    return spaceFor(spaceName, totalPartitions, Duration.ofMillis(scanInterval));
+  }
+
+  public synchronized Space spaceFor(final String spaceName, final int totalPartitions, final Duration scanInterval) {
+    if (scanInterval.isNegative() || scanInterval.isZero()) {
       throw new IllegalArgumentException("The defaultScanInterval must be greater than zero.");
     }
 
@@ -79,13 +103,14 @@ public class Accessor {
       throw new IllegalStateException("Accessor is invalid.");
     }
 
-    Space space = spaces.get(name);
+    Space space = spaces.get(spaceName);
 
     if (space == null) {
-      final Definition definition = Definition.has(PartitioningSpaceRouter.class, new PartitioningSpaceRouterInstantiator(totalPartitions, defaultScanInterval), name);
-      final Space internalSpace = grid.actorFor(Space.class, definition);
-      space = new SpaceItemFactoryRelay(grid, internalSpace);
-      spaces.put(name, space);
+      final Stage localStage = grid.localStage();
+      final Definition definition = Definition.has(PartitioningSpaceRouter.class, new PartitioningSpaceRouterInstantiator(totalPartitions, scanInterval), spaceName);
+      final Space internalSpace = localStage.actorFor(Space.class, definition);
+      space = new SpaceItemFactoryRelay(localStage, internalSpace);
+      spaces.put(spaceName, space);
     }
 
     return space;

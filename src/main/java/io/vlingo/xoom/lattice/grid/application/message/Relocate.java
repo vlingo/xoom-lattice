@@ -19,9 +19,9 @@ public class Relocate implements Message {
   public final Address address;
   public final Definition.SerializationProxy definition;
   public final Object snapshot;
-  public final List<Deliver<?>> pending;
+  public final List<GridDeliver<?>> pending;
 
-  public Relocate(Address address, Definition.SerializationProxy definition, Object snapshot, List<Deliver<?>> pending) {
+  public Relocate(Address address, Definition.SerializationProxy definition, Object snapshot, List<GridDeliver<?>> pending) {
     this.address = address;
     this.definition = definition;
     this.snapshot = snapshot;
