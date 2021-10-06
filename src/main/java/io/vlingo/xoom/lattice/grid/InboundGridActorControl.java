@@ -45,7 +45,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   @Override
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public <T> void answer(final Id receiver, final Id sender, final Answer<T> answer) {
-    // same Answer is used for both Deliver and Deliver2 messages
+    // same Answer is used for both GridDeliver and ActorDeliver messages
     logger().debug("GRID: Processing application message: Answer");
     Returns<Object> clientReturns = Optional.ofNullable(gridMessagesCorrelation.apply(answer.correlationId))
             .map(UnAckMessage::getReturns)
@@ -121,7 +121,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
           final SerializableConsumer<T> consumer,
           final String representation) {
 
-    logger().debug("Processing: Received application message: Deliver");
+    logger().debug("Processing: Received application message: GridDeliver");
 
     final Stage stage = gridRuntime.asStage();
 
@@ -151,7 +151,7 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
           Class<T> protocol, Function<Grid, Actor> actorProvider,
           SerializableConsumer<T> consumer,
           String representation) {
-    logger().debug("Processing: Received application message: Deliver2");
+    logger().debug("Processing: Received application message: ActorDeliver");
 
     final Grid grid = (Grid) gridRuntime.asStage();
 
