@@ -32,7 +32,7 @@ public class MurmurSortedMapHashRing<T> implements HashRing<T> {
 
             @Override
             public ByteBuffer create(Void aVoid) {
-              return ByteBuffer.allocate(36);
+              return ByteBuffer.allocate(128);
             }
 
             @Override
