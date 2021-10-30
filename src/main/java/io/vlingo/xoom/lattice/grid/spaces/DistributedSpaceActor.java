@@ -19,21 +19,31 @@ import io.vlingo.xoom.wire.node.Id;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DistributedSpaceActor extends Actor implements DistributedSpace {
   private final String accessorName;
   private final String spaceName;
   private final int totalPartitions;
   private final Duration scanInterval;
+
+  /**
+   * Write through factor on all the other distributed nodes. 0.0f value means no write through, only write eventually.
+   * 1.0f value means write through on all the other distributed nodes.
+   */
+  private final float writeThroughFactor;
+
   private final Space localSpace;
   private final Grid grid;
 
-  public DistributedSpaceActor(String accessorName, String spaceName, int totalPartitions, Duration scanInterval, Space localSpace, Grid grid) {
+  public DistributedSpaceActor(String accessorName, String spaceName, int totalPartitions, Duration scanInterval, float writeThroughFactor, Space localSpace, Grid grid) {
     this.accessorName = accessorName;
     this.spaceName = spaceName;
     this.totalPartitions = totalPartitions;
     this.scanInterval = scanInterval;
+    this.writeThroughFactor = writeThroughFactor;
     this.localSpace = localSpace;
     this.grid = grid;
   }
@@ -76,21 +86,39 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
     final GridActorControl outbound = grid.getOutbound();
     final String representation = "localPut(io.vlingo.xoom.lattice.grid.spaces.Key, io.vlingo.xoom.lattice.grid.spaces.Item<T>)"; // see DistributedSpace__Proxy
     final SerializableFunction<Grid, Actor> actorProvider = newActorProvider();
+    List<Id> allOtherNodes = grid.allOtherNodes();
+    final int writeThroughNodes = writeThroughOtherNodes(writeThroughFactor, allOtherNodes.size()) + 1;
+    final AtomicInteger completedWriteThrough = new AtomicInteger(0);
 
-    for (Id nodeId : grid.allOtherNodes()) {
-      Completes<KeyItem<T>> distributedCompletes = Completes.using(scheduler());
-      distributedCompletes.andFinallyConsume(keyItem -> logger().debug("Confirmation of distributed space PUT for " + key + " with " + item.object + " from " + nodeId));
+    logger().debug("Local PUT for " + key + " and " + item.object);
+    Completes<KeyItem<T>> localSpaceCompletes = localSpace.put(key, item);
 
-      outbound.actorDeliver(nodeId,
-              grid.nodeId(),
-              Returns.value(distributedCompletes),
-              DistributedSpace.class,
-              actorProvider,
-              consumer,
-              representation);
-    }
+    // make sure put on local space happens first before any replication on other nodes
+    return localSpaceCompletes.andThen(localKeyItem -> {
+      for (Id nodeId : grid.allOtherNodes()) {
+        Completes<KeyItem<T>> distributedCompletes = Completes.using(scheduler());
+        distributedCompletes.andFinallyConsume(remoteKeyItem -> {
+          logger().debug("Confirmation of distributed space PUT for " + remoteKeyItem.key + " with " + remoteKeyItem.object + " from " + nodeId);
+          if (completedWriteThrough.incrementAndGet() == writeThroughNodes) {
+            completesEventually().with(localKeyItem);
+          }
+        });
 
-    return localPut(key, item);
+        outbound.actorDeliver(nodeId,
+                grid.nodeId(),
+                Returns.value(distributedCompletes),
+                DistributedSpace.class,
+                actorProvider,
+                consumer,
+                representation);
+      }
+
+      if (completedWriteThrough.incrementAndGet() == writeThroughNodes) {
+        completesEventually().with(localKeyItem);
+      }
+
+      return localKeyItem;
+    });
   }
 
   @Override
@@ -109,26 +137,38 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
     final GridActorControl outbound = grid.getOutbound();
     final String representation = "localTake(io.vlingo.xoom.lattice.grid.spaces.Key, io.vlingo.xoom.lattice.grid.spaces.Period)"; // see DistributedSpace__Proxy
     final SerializableFunction<Grid, Actor> actorProvider = newActorProvider();
-
-    for (Id nodeId : grid.allOtherNodes()) {
-      Completes<KeyItem<T>> distributedCompletes = Completes.using(scheduler());
-      distributedCompletes.andFinallyConsume(maybeNull -> logger().debug("Confirmation of distributed space TAKE from " + nodeId));
-
-      outbound.actorDeliver(nodeId,
-              grid.nodeId(),
-              Returns.value(distributedCompletes),
-              DistributedSpace.class,
-              actorProvider,
-              consumer,
-              representation);
-    }
+    List<Id> allOtherNodes = grid.allOtherNodes();
+    final int writeThroughNodes = writeThroughOtherNodes(writeThroughFactor, allOtherNodes.size()) + 1;
+    final AtomicInteger completedWriteThrough = new AtomicInteger(0);
 
     logger().debug("Local TAKE for " + key);
     Completes<Optional<KeyItem<T>>> localSpaceCompletes = localSpace.take(key, until);
 
-    return localSpaceCompletes.andThen(keyItem -> {
-      completesEventually().with(keyItem);
-      return keyItem;
+    // make sure take on local space happens first before any replication on other nodes
+    return localSpaceCompletes.andThen(localKeyItem -> {
+      for (Id nodeId : allOtherNodes) {
+        Completes<KeyItem<T>> distributedCompletes = Completes.using(scheduler());
+        distributedCompletes.andFinallyConsume(maybeNull -> {
+          logger().debug("Confirmation of distributed space TAKE from " + nodeId);
+          if (completedWriteThrough.incrementAndGet() == writeThroughNodes) {
+            completesEventually().with(localKeyItem);
+          }
+        });
+
+        outbound.actorDeliver(nodeId,
+                grid.nodeId(),
+                Returns.value(distributedCompletes),
+                DistributedSpace.class,
+                actorProvider,
+                consumer,
+                representation);
+      }
+
+      if (completedWriteThrough.incrementAndGet() == writeThroughNodes) {
+        completesEventually().with(localKeyItem);
+      }
+
+      return localKeyItem;
     });
   }
 
@@ -146,5 +186,10 @@ public class DistributedSpaceActor extends Actor implements DistributedSpace {
 
       return ((DistributedSpace__Proxy) accessor.distributedSpaceFor(_spaceName, _totalPartitions, _scanInterval)).__actor();
     };
+  }
+
+  private int writeThroughOtherNodes(float writeThroughFactor, int allOtherNodes) {
+    return Math.min(allOtherNodes,
+            Math.round(writeThroughFactor * allOtherNodes));
   }
 }

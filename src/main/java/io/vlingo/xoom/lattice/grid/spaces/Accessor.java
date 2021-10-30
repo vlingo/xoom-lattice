@@ -20,6 +20,8 @@ public class Accessor {
   private static final long DefaultScanInterval = 15_000;
   private static final int DefaultTotalPartitions = 5;
 
+  private static final float DistributedWriteThroughFactor = 0.5f;
+
   private static final Accessor NullAccessor = new Accessor(null, null);
 
   public final String name;
@@ -70,7 +72,7 @@ public class Accessor {
       final Stage localStage = grid.localStage();
       final Space localSpace = spaceFor(spaceName, totalPartitions, scanInterval);
       final Definition definition = Definition.has(DistributedSpaceActor.class,
-              new DistributedSpace.DistributedSpaceInstantiator(this.name, spaceName, totalPartitions, scanInterval, localSpace, this.grid));
+              new DistributedSpace.DistributedSpaceInstantiator(this.name, spaceName, totalPartitions, scanInterval, DistributedWriteThroughFactor, localSpace, this.grid));
       distributedSpace = localStage.actorFor(DistributedSpace.class, definition);
       distributedSpaces.put(this.name, distributedSpace);
     }

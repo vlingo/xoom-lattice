@@ -22,21 +22,23 @@ public interface DistributedSpace extends Space {
     private final String spaceName;
     private final int totalPartitions;
     private final Duration scanInterval;
+    private final float writeThroughFactor;
     private final Space localSpace;
     private final Grid grid;
 
-    public DistributedSpaceInstantiator(String accessorName, String spaceName, int totalPartitions, Duration scanInterval, Space localSpace, Grid grid) {
+    public DistributedSpaceInstantiator(String accessorName, String spaceName, int totalPartitions, Duration scanInterval, float writeThroughFactor, Space localSpace, Grid grid) {
       this.accessorName = accessorName;
       this.spaceName = spaceName;
       this.totalPartitions = totalPartitions;
       this.scanInterval = scanInterval;
+      this.writeThroughFactor = writeThroughFactor;
       this.localSpace = localSpace;
       this.grid = grid;
     }
 
     @Override
     public DistributedSpaceActor instantiate() {
-      return new DistributedSpaceActor(accessorName, spaceName, totalPartitions, scanInterval, localSpace, grid);
+      return new DistributedSpaceActor(accessorName, spaceName, totalPartitions, scanInterval, writeThroughFactor, localSpace, grid);
     }
 
     @Override
