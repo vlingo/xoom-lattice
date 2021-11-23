@@ -65,7 +65,7 @@ public class MultiConfirmingProjectionControlActor extends Actor implements Mult
 
     final int total = confirmable.total + 1;
 
-    if (confirmable.count < total) {
+    if (confirmable.count > total) {
       confirmables.put(projectionId, confirmable.incrementTotal());
     } else {
       ProjectionControl.confirmerFor(confirmable.projectable, projectionControl).confirm();
