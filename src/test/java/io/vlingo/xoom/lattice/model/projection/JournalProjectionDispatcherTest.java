@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -128,6 +129,10 @@ public class JournalProjectionDispatcherTest {
     appendInterest = world.stage().actorFor(AppendResultInterest.class, JournalAppendResultInterest.class);
   }
 
+  @After
+  public void tearDown() {
+    world.terminate();
+  }
 
   private static class AccessHolder {
     private AccessSafely accessJournal;
@@ -230,6 +235,7 @@ public class JournalProjectionDispatcherTest {
         case "TwoHappened":
         case "ThreeHappened":
           accessHolder.accessProjection.writeUsing(AccessProjection, 1);
+          ProjectionControl.confirmerFor(projectable, control).confirm();
           logger().debug("ALL " + (++count));
           break;
         default:
