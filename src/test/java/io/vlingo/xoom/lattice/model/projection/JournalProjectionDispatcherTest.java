@@ -235,6 +235,7 @@ public class JournalProjectionDispatcherTest {
         case "TwoHappened":
         case "ThreeHappened":
           accessHolder.accessProjection.writeUsing(AccessProjection, 1);
+          ProjectionControl.confirmerFor(projectable, control).confirm();
           logger().debug("ALL " + (++count));
           break;
         default:
