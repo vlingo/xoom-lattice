@@ -252,7 +252,7 @@ public class GridNode extends ClusterApplicationAdapter {
       GridDeliver<?> gridDeliver = retryMessage.getMessage();
       final Id newRecipient = gridRuntime.hashRing().nodeOf(gridDeliver.address.idString());
 
-      if (newRecipient.equals(localNode)) {
+      if (newRecipient.equals(localNode.id())) {
         inbound.gridDeliver(newRecipient,
                 newRecipient,
                 retryMessage.getReturns(),
