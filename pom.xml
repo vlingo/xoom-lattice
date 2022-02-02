@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.vlingo.xoom</groupId>
   <artifactId>xoom-lattice</artifactId>
-  <version>1.9.1</version>
+  <version>1.9.2-SNAPSHOT</version>
   <name>xoom-lattice</name>
   <description>Tooling for reactive Domain-Driven Design projects that are highly concurrent. Includes compute grid, actor caching, spaces, cross-node cluster messaging, CQRS, and Event Sourcing support.</description>
   <url>https://github.com/vlingo/xoom-lattice</url>
@@ -89,27 +89,27 @@
     <dependency>
       <groupId>io.vlingo.xoom</groupId>
       <artifactId>xoom-common</artifactId>
-      <version>1.9.1</version>
+      <version>1.9.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo.xoom</groupId>
       <artifactId>xoom-actors</artifactId>
-      <version>1.9.1</version>
+      <version>1.9.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo.xoom</groupId>
       <artifactId>xoom-streams</artifactId>
-      <version>1.9.1</version>
+      <version>1.9.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo.xoom</groupId>
       <artifactId>xoom-cluster</artifactId>
-      <version>1.9.1</version>
+      <version>1.9.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo.xoom</groupId>
       <artifactId>xoom-symbio</artifactId>
-      <version>1.9.1</version>
+      <version>1.9.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>de.ruedigermoeller</groupId>
