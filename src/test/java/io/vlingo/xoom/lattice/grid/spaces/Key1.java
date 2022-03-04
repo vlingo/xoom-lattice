@@ -8,6 +8,8 @@
 package io.vlingo.xoom.lattice.grid.spaces;
 
 public final class Key1 implements Key {
+  private static final long serialVersionUID = 1L;
+
   public final String id;
 
   public Key1(final String id) {

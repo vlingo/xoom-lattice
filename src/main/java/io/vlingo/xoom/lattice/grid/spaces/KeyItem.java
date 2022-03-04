@@ -8,6 +8,8 @@
 package io.vlingo.xoom.lattice.grid.spaces;
 
 public final class KeyItem<T> extends Item<T> {
+  private static final long serialVersionUID = 1L;
+
   public final Key key;
 
   public static <T> KeyItem<T> of(final Key key, final T object, final Lease lease) {
