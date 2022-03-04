@@ -18,6 +18,8 @@ public interface DistributedSpace extends Space {
   <T> Completes<KeyItem<T>> localTake(final Key key, final Period until);
 
   class DistributedSpaceInstantiator implements ActorInstantiator<DistributedSpaceActor> {
+    private static final long serialVersionUID = 1L;
+
     private final String accessorName;
     private final String spaceName;
     private final int totalPartitions;
