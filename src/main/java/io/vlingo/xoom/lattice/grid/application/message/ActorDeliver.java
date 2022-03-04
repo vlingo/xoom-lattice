@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public class ActorDeliver<T> implements Serializable, Message {
+  private static final long serialVersionUID = 1L;
 
   public final Class<T> protocol;
   public final Function<Grid, Actor> actorProvider;
