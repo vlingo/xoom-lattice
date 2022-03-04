@@ -122,7 +122,8 @@ public class DistributedSpace__Proxy extends ActorProxyBase<DistributedSpace> im
     return null;
   }
 
-  public <T> Completes<T> itemFor(Class<T> arg0, Class<? extends Actor> arg1, Object[] arg2) {
+  @Override
+  public <T> Completes<T> itemFor(Class<T> arg0, Class<? extends Actor> arg1, Object... arg2) {
     if (!actor.isStopped()) {
       ActorProxyBase<DistributedSpace> self = this;
       final SerializableConsumer<DistributedSpace> consumer = (actor) -> actor.itemFor(ActorProxyBase.thunk(self, (Actor)actor, arg0), ActorProxyBase.thunk(self, (Actor)actor, arg1), ActorProxyBase.thunk(self, (Actor)actor, arg2));
