@@ -22,6 +22,7 @@ import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.AddressFactory;
 import io.vlingo.xoom.actors.Configuration;
 import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.DirectoryEvictionConfiguration;
 import io.vlingo.xoom.actors.Logger;
 import io.vlingo.xoom.actors.Mailbox;
 import io.vlingo.xoom.actors.Relocatable;
@@ -94,7 +95,7 @@ public class Grid extends Stage implements GridRuntime {
     super(world, addressFactory, gridNodeName, GridStageBuckets, GridStageInitialCapacity);
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     this.clusterAppStageName = clusterProperties.clusterApplicationStageName();
-    extenderStartDirectoryScanner();
+    extenderStartDirectoryScanner(true); // forces DirectoryEvictor into action
     this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
     this.hasQuorum = false;
 
