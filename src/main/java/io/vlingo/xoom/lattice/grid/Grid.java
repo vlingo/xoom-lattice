@@ -92,11 +92,12 @@ public class Grid extends Stage implements GridRuntime {
 
   public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName, GridStageBuckets, GridStageInitialCapacity);
+
+    this.hasQuorum = false;
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     this.clusterAppStageName = clusterProperties.clusterApplicationStageName();
     extenderStartDirectoryScanner(true); // forces DirectoryEvictor into action
     this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
-    this.hasQuorum = false;
 
     this.clusterHealthCheckInterval = clusterProperties.clusterHealthCheckInterval();
 

@@ -8,14 +8,15 @@
 package io.vlingo.xoom.lattice.grid;
 
 import io.vlingo.xoom.actors.Logger;
+import io.vlingo.xoom.cluster.model.ClusterControl;
 import io.vlingo.xoom.cluster.model.ClusterSnapshotControl;
 import io.vlingo.xoom.common.Tuple2;
 
 final class GridShutdownHook {
-  private final Tuple2<ClusterSnapshotControl, Logger> control;
+  private final Tuple2<ClusterControl, Logger> control;
   private final String nodeName;
 
-  protected GridShutdownHook(final String nodeName, final Tuple2<ClusterSnapshotControl, Logger> control) {
+  protected GridShutdownHook(final String nodeName, final Tuple2<ClusterControl, Logger> control) {
     this.nodeName = nodeName;
     this.control = control;
   }

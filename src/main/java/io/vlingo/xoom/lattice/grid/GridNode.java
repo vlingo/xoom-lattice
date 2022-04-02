@@ -7,28 +7,15 @@
 
 package io.vlingo.xoom.lattice.grid;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-import io.vlingo.xoom.actors.Returns;
-import org.nustaq.serialization.FSTConfiguration;
-
 import io.vlingo.xoom.actors.Definition;
-import io.vlingo.xoom.cluster.model.application.ClusterApplicationAdapter;
+import io.vlingo.xoom.actors.Returns;
+import io.vlingo.xoom.cluster.model.application.ClusterApplication2Adapter;
 import io.vlingo.xoom.cluster.model.attribute.Attribute;
 import io.vlingo.xoom.cluster.model.attribute.AttributesProtocol;
 import io.vlingo.xoom.common.SerializableConsumer;
 import io.vlingo.xoom.lattice.grid.InboundGridActorControl.InboundGridActorControlInstantiator;
-import io.vlingo.xoom.lattice.grid.application.ApplicationMessageHandler;
-import io.vlingo.xoom.lattice.grid.application.GridActorControl;
-import io.vlingo.xoom.lattice.grid.application.GridApplicationMessageHandler;
-import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl;
+import io.vlingo.xoom.lattice.grid.application.*;
 import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl.OutboundGridActorControlInstantiator;
-import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
 import io.vlingo.xoom.lattice.grid.application.message.GridDeliver;
 import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.FSTDecoder;
@@ -40,8 +27,16 @@ import io.vlingo.xoom.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.xoom.wire.message.RawMessage;
 import io.vlingo.xoom.wire.node.Id;
 import io.vlingo.xoom.wire.node.Node;
+import org.nustaq.serialization.FSTConfiguration;
 
-public class GridNode extends ClusterApplicationAdapter {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+public class GridNode extends ClusterApplication2Adapter {
   // Sent messages waiting for continuation (answer) onto current node
   private static final Map<UUID, UnAckMessage> gridMessagesCorrelations = new ConcurrentHashMap<>();
   private static final Map<UUID, Returns<?>> actorMessagesCorrelations = new ConcurrentHashMap<>();
@@ -133,31 +128,6 @@ public class GridNode extends ClusterApplicationAdapter {
   }
 
   @Override
-  public void informLeaderElected(final Id leaderId, final boolean isHealthyCluster, final boolean isLocalNodeLeading) {
-    logger().debug("GRID: Leader elected: " + leaderId + " and is healthy: " + isHealthyCluster);
-
-    if (isLocalNodeLeading) {
-      logger().debug("GRID: Local node is leading.");
-    }
-  }
-
-  @Override
-  public void informLeaderLost(final Id lostLeaderId, final boolean isHealthyCluster) {
-    logger().debug("GRID: Leader lost: " + lostLeaderId + " and is healthy: " + isHealthyCluster);
-  }
-
-  @Override
-  public void informLocalNodeShutDown(final Id nodeId) {
-    logger().debug("GRID: Local node shut down: " + nodeId);
-    // TODO relocate local actors to another node?
-  }
-
-  @Override
-  public void informLocalNodeStarted(final Id nodeId) {
-    logger().debug("GRID: Local node started: " + nodeId);
-  }
-
-  @Override
   public void informNodeIsHealthy(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node reported healthy: " + nodeId + " and is healthy: " + isHealthyCluster);
     outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
@@ -180,15 +150,13 @@ public class GridNode extends ClusterApplicationAdapter {
   }
 
   @Override
-  public void informQuorumAchieved() {
-    logger().debug("GRID: Quorum achieved");
-    quorumObservers.forEach(QuorumObserver::quorumAchieved);
-  }
-
-  @Override
-  public void informQuorumLost() {
-    logger().debug("GRID: Quorum lost");
-    quorumObservers.forEach(QuorumObserver::quorumLost);
+  public void informClusterIsHealthy(boolean isHealthyCluster) {
+    logger().debug("GRID: Cluster is healthy: " + isHealthyCluster);
+    if (isHealthyCluster) {
+      quorumObservers.forEach(QuorumObserver::quorumAchieved);
+    } else {
+      quorumObservers.forEach(QuorumObserver::quorumLost);
+    }
   }
 
   @Override
