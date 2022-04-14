@@ -22,7 +22,6 @@ import io.vlingo.xoom.actors.Address;
 import io.vlingo.xoom.actors.AddressFactory;
 import io.vlingo.xoom.actors.Configuration;
 import io.vlingo.xoom.actors.Definition;
-import io.vlingo.xoom.actors.DirectoryEvictionConfiguration;
 import io.vlingo.xoom.actors.Logger;
 import io.vlingo.xoom.actors.Mailbox;
 import io.vlingo.xoom.actors.Relocatable;
