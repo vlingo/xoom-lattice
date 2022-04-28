@@ -9,7 +9,7 @@ package io.vlingo.xoom.lattice.grid;
 
 import io.vlingo.xoom.actors.Definition;
 import io.vlingo.xoom.actors.Returns;
-import io.vlingo.xoom.cluster.model.application.ClusterApplication2Adapter;
+import io.vlingo.xoom.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.xoom.cluster.model.attribute.Attribute;
 import io.vlingo.xoom.cluster.model.attribute.AttributesProtocol;
 import io.vlingo.xoom.common.SerializableConsumer;
@@ -36,7 +36,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class GridNode extends ClusterApplication2Adapter {
+public class GridNode extends ClusterApplicationAdapter {
   // Sent messages waiting for continuation (answer) onto current node
   private static final Map<UUID, UnAckMessage> gridMessagesCorrelations = new ConcurrentHashMap<>();
   private static final Map<UUID, Returns<?>> actorMessagesCorrelations = new ConcurrentHashMap<>();
@@ -128,13 +128,6 @@ public class GridNode extends ClusterApplication2Adapter {
   }
 
   @Override
-  public void informNodeIsHealthy(final Id nodeId, final boolean isHealthyCluster) {
-    logger().debug("GRID: Node reported healthy: " + nodeId + " and is healthy: " + isHealthyCluster);
-    outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
-    applicationMessageHandler.informNodeIsHealthy(nodeId, isHealthyCluster);
-  }
-
-  @Override
   public void informNodeJoinedCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node joined: " + nodeId + " and is healthy: " + isHealthyCluster);
     gridRuntime.nodeJoined(nodeId);
@@ -144,7 +137,6 @@ public class GridNode extends ClusterApplication2Adapter {
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
     outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
-    applicationMessageHandler.informNodeIsHealthy(nodeId, isHealthyCluster);
     gridRuntime.hashRing().excludeNode(nodeId);
     retryUnAckMessagesOn(nodeId);
   }

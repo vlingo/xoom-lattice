@@ -72,14 +72,6 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
   }
 
   @Override
-  public void informNodeIsHealthy(final Id id, final boolean isHealthy) {
-    isClusterHealthy.set(isHealthy);
-    if (isHealthy) {
-      disburse(id);
-    }
-  }
-
-  @Override
   public void handle(final RawMessage raw) {
     try {
       final Message message = decoder.decode(raw.asBinaryMessage());

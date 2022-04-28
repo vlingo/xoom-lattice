@@ -9,7 +9,6 @@ package io.vlingo.xoom.lattice.grid;
 
 import io.vlingo.xoom.actors.Logger;
 import io.vlingo.xoom.cluster.model.ClusterControl;
-import io.vlingo.xoom.cluster.model.ClusterSnapshotControl;
 import io.vlingo.xoom.common.Tuple2;
 
 final class GridShutdownHook {

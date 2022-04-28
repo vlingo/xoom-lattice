@@ -10,7 +10,7 @@ package io.vlingo.xoom.lattice.grid;
 import io.vlingo.xoom.actors.Logger;
 import io.vlingo.xoom.cluster.model.Cluster;
 import io.vlingo.xoom.cluster.model.ClusterControl;
-import io.vlingo.xoom.cluster.model.application.ClusterApplication2.ClusterApplicationInstantiator;
+import io.vlingo.xoom.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.xoom.common.Tuple2;
 
 public class GridNodeBootstrap {
