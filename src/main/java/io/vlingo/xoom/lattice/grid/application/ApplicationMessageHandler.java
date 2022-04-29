@@ -13,4 +13,6 @@ import io.vlingo.xoom.wire.node.Id;
 public interface ApplicationMessageHandler {
 
   void handle(final RawMessage message);
+
+  void informClusterIsHealthy(boolean isHealthyCluster);
 }

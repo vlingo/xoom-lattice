@@ -96,8 +96,15 @@ public final class GridApplicationMessageHandler implements ApplicationMessageHa
     }
   }
 
-  private void disburse(final Id id) {
-    if (!id.equals(localNode)) return;
+  @Override
+  public void informClusterIsHealthy(boolean isHealthyCluster) {
+    boolean oldValue =  this.isClusterHealthy.getAndSet(isHealthyCluster);
+    if (isHealthyCluster && !oldValue) {
+      disburse();
+    }
+  }
+
+  private void disburse() {
     if (buffer.size() == 0) return;
     logger.debug("Disbursing {} buffered messages", buffer.size());
     Runnable next;

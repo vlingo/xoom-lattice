@@ -64,7 +64,7 @@ public interface GridActorControl {
           final Object snapshot,
           final List<? extends io.vlingo.xoom.actors.Message> pending);
 
-  void informNodeIsHealthy(final Id id, boolean isHealthy);
+  void informClusterIsHealthy(boolean isHealthyCluster);
 
   interface Inbound extends GridActorControl {
   }

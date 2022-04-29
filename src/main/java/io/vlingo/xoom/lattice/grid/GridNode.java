@@ -124,31 +124,38 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informAllLiveNodes(final Collection<Node> liveNodes, final boolean isHealthyCluster) {
     logger().debug("GRID: Live nodes confirmed: " + liveNodes + " and is healthy: " + isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
     gridRuntime.informAllLiveNodes(liveNodes);
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
   }
 
   @Override
   public void informNodeJoinedCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node joined: " + nodeId + " and is healthy: " + isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
     gridRuntime.nodeJoined(nodeId);
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
   }
 
   @Override
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
-    outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
     gridRuntime.hashRing().excludeNode(nodeId);
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
     retryUnAckMessagesOn(nodeId);
   }
 
   @Override
   public void informClusterIsHealthy(boolean isHealthyCluster) {
     logger().debug("GRID: Cluster is healthy: " + isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
     if (isHealthyCluster) {
       quorumObservers.forEach(QuorumObserver::quorumAchieved);
     } else {
       quorumObservers.forEach(QuorumObserver::quorumLost);
     }
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
   }
 
   @Override
