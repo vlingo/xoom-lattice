@@ -23,6 +23,7 @@ public interface GridRuntime extends QuorumObserver {
   Actor actorAt(Address address);
   void relocateActors();
   Stage asStage();
+  Stage localStage();
   GridNodeBootstrap gridNodeBootstrap();
   HashRing<Id> hashRing();
   void nodeJoined(final Id newNode);

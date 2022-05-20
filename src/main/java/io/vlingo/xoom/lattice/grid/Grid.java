@@ -266,6 +266,7 @@ public class Grid extends Stage implements GridRuntime {
             .collect(Collectors.toList());
   }
 
+  @Override
   public Stage localStage() {
     return world.stageNamed(clusterAppStageName);
   }

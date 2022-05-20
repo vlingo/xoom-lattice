@@ -15,6 +15,7 @@ import io.vlingo.xoom.cluster.model.attribute.AttributesProtocol;
 import io.vlingo.xoom.common.SerializableConsumer;
 import io.vlingo.xoom.lattice.grid.InboundGridActorControl.InboundGridActorControlInstantiator;
 import io.vlingo.xoom.lattice.grid.application.*;
+import io.vlingo.xoom.lattice.grid.attributes.AttributesSync;
 import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl.OutboundGridActorControlInstantiator;
 import io.vlingo.xoom.lattice.grid.application.message.GridDeliver;
 import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
@@ -162,6 +163,7 @@ public class GridNode extends ClusterApplicationAdapter {
   public void informAttributesClient(final AttributesProtocol client) {
     logger().debug("GRID: Attributes Client received.");
     this.client = client;
+    AttributesSync.instance(gridRuntime.localStage(), localNode.name().value(), client);
   }
 
   @Override
