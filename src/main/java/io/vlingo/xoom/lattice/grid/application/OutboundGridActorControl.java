@@ -81,7 +81,6 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   }
 
   private void send(final Id recipient, final Message message) {
-    logger.debug("Buffering message {} to {}", message, recipient);
     final Runnable sendFunction = () -> {
       logger.debug("Sending message {} to {}", message, recipient);
       byte[] payload = encoder.encode(message);
@@ -94,6 +93,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
     if (isHealthyCluster.get()) {
       sendFunction.run(); // send the message immediately, node is healthy
     } else {
+      logger.debug("Buffering message {} to {}", message, recipient);
       outBuffers.enqueue(recipient, sendFunction); // enqueue the message, node is unhealthy
     }
   }
