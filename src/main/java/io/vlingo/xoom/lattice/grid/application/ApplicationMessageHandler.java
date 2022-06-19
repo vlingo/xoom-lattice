@@ -14,5 +14,5 @@ public interface ApplicationMessageHandler {
 
   void handle(final RawMessage message);
 
-  void informNodeIsHealthy(final Id id, final boolean isHealthy);
+  void informClusterIsHealthy(boolean isHealthyCluster);
 }

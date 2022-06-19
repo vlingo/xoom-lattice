@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   private final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer;
 
   private final OutBuffers outBuffers; // buffer messages for unhealthy nodes
-  private final ConcurrentHashMap<Id, Boolean> nodesHealth;
+  private final AtomicBoolean isHealthyCluster;
 
 
   public OutboundGridActorControl(
@@ -71,19 +72,15 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
     this.gridMessagesCorrelationConsumer = gridMessagesCorrelationConsumer;
     this.actorMessagesCorrelationConsumer = actorMessagesCorrelationConsumer;
     this.outBuffers = outBuffers;
-    this.nodesHealth = new ConcurrentHashMap<>();
+    this.isHealthyCluster = new AtomicBoolean(false);
   }
 
   @Override
-  public void informNodeIsHealthy(final Id id, final boolean isHealthy) {
-    nodesHealth.merge(id, isHealthy, (oldVal, newVal) -> isHealthy);
-    if (isHealthy) {
-      disburse(id);
-    }
+  public void informClusterIsHealthy(boolean isHealthyCluster) {
+    this.isHealthyCluster.set(isHealthyCluster);
   }
 
   private void send(final Id recipient, final Message message) {
-    logger.debug("Buffering message {} to {}", message, recipient);
     final Runnable sendFunction = () -> {
       logger.debug("Sending message {} to {}", message, recipient);
       byte[] payload = encoder.encode(message);
@@ -93,9 +90,10 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
       stream.sendTo(raw, recipient);
     };
 
-    if (nodesHealth.get(recipient) != null && nodesHealth.get(recipient)) {
+    if (isHealthyCluster.get()) {
       sendFunction.run(); // send the message immediately, node is healthy
     } else {
+      logger.debug("Buffering message {} to {}", message, recipient);
       outBuffers.enqueue(recipient, sendFunction); // enqueue the message, node is unhealthy
     }
   }

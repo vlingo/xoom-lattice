@@ -9,12 +9,12 @@ package io.vlingo.xoom.lattice.grid;
 
 import io.vlingo.xoom.actors.Logger;
 import io.vlingo.xoom.cluster.model.Cluster;
-import io.vlingo.xoom.cluster.model.ClusterSnapshotControl;
+import io.vlingo.xoom.cluster.model.ClusterControl;
 import io.vlingo.xoom.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.xoom.common.Tuple2;
 
 public class GridNodeBootstrap {
-  private final Tuple2<ClusterSnapshotControl, Logger> clusterSnapshotControl;
+  private final Tuple2<ClusterControl, Logger> clusterControl;
 
   private final GridShutdownHook shutdownHook;
 
@@ -25,7 +25,7 @@ public class GridNodeBootstrap {
   public static GridNodeBootstrap boot(final GridRuntime grid, final String nodeName, final io.vlingo.xoom.cluster.model.Properties properties, final boolean embedded) throws Exception {
     properties.validateRequired(nodeName);
 
-    final Tuple2<ClusterSnapshotControl, Logger> control =
+    final Tuple2<ClusterControl, Logger> control =
             Cluster.controlFor(
                     grid.world(),
                     new GridNodeInstantiator(grid),
@@ -43,12 +43,12 @@ public class GridNodeBootstrap {
     return instance;
   }
 
-  public ClusterSnapshotControl clusterSnapshotControl() {
-    return clusterSnapshotControl._1;
+  public ClusterControl clusterControl() {
+    return clusterControl._1;
   }
 
-  private GridNodeBootstrap(final Tuple2<ClusterSnapshotControl, Logger> control, final String nodeName) throws Exception {
-    this.clusterSnapshotControl = control;
+  private GridNodeBootstrap(final Tuple2<ClusterControl, Logger> control, final String nodeName) throws Exception {
+    this.clusterControl = control;
 
     this.shutdownHook = new GridShutdownHook(nodeName, control);
     this.shutdownHook.register();

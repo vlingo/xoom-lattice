@@ -193,8 +193,8 @@ public class InboundGridActorControl extends Actor implements GridActorControl.I
   }
 
   @Override
-  public void informNodeIsHealthy(Id id, boolean isHealthy) {
-    throw new UnsupportedOperationException("informNodeIsHealthy handled in ApplicationMessageHandler");
+  public void informClusterIsHealthy(boolean isHealthyCluster) {
+    throw new UnsupportedOperationException("informClusterIsHealthy handled in ApplicationMessageHandler");
   }
 
   public static class InboundGridActorControlInstantiator implements ActorInstantiator<InboundGridActorControl> {

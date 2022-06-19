@@ -85,18 +85,19 @@ public class Grid extends Stage implements GridRuntime {
   private Collection<Node> liveNodes = new ArrayList<>();
   private GridActorControl.Outbound outbound;
 
-  private volatile boolean hasQuorum;
+  private volatile boolean isHealthyCluster;
   private final long clusterHealthCheckInterval;
 
   private final String clusterAppStageName;
 
   public Grid(final World world, final AddressFactory addressFactory, final io.vlingo.xoom.cluster.model.Properties clusterProperties, final String gridNodeName) throws Exception {
     super(world, addressFactory, gridNodeName, GridStageBuckets, GridStageInitialCapacity);
+
+    this.isHealthyCluster = false;
     this.hashRing = new MurmurSortedMapHashRing<>(100);
     this.clusterAppStageName = clusterProperties.clusterApplicationStageName();
     extenderStartDirectoryScanner(true); // forces DirectoryEvictor into action
     this.gridNodeBootstrap = GridNodeBootstrap.boot(this, gridNodeName, clusterProperties, false);
-    this.hasQuorum = false;
 
     this.clusterHealthCheckInterval = clusterProperties.clusterHealthCheckInterval();
 
@@ -116,12 +117,12 @@ public class Grid extends Stage implements GridRuntime {
 
   @Override
   public void quorumAchieved() {
-    this.hasQuorum = true;
+    this.isHealthyCluster = true;
   }
 
   @Override
   public void quorumLost() {
-    this.hasQuorum = false;
+    this.isHealthyCluster = false;
   }
 
   //====================================
@@ -302,7 +303,7 @@ public class Grid extends Stage implements GridRuntime {
   }
 
   private Mailbox maybeRemoteMailbox(final Address address, final Definition definition, final Mailbox maybeMailbox, final Runnable out) {
-    while (!hasQuorum && address.isDistributable()) {
+    while (!isHealthyCluster && address.isDistributable()) {
       logger.debug("Mailbox allocation waiting for cluster quorum...");
       try {
         Thread.sleep(clusterHealthCheckInterval);

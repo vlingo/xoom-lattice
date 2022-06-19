@@ -7,28 +7,15 @@
 
 package io.vlingo.xoom.lattice.grid;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-import io.vlingo.xoom.actors.Returns;
-import org.nustaq.serialization.FSTConfiguration;
-
 import io.vlingo.xoom.actors.Definition;
+import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.xoom.cluster.model.attribute.Attribute;
 import io.vlingo.xoom.cluster.model.attribute.AttributesProtocol;
 import io.vlingo.xoom.common.SerializableConsumer;
 import io.vlingo.xoom.lattice.grid.InboundGridActorControl.InboundGridActorControlInstantiator;
-import io.vlingo.xoom.lattice.grid.application.ApplicationMessageHandler;
-import io.vlingo.xoom.lattice.grid.application.GridActorControl;
-import io.vlingo.xoom.lattice.grid.application.GridApplicationMessageHandler;
-import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl;
+import io.vlingo.xoom.lattice.grid.application.*;
 import io.vlingo.xoom.lattice.grid.application.OutboundGridActorControl.OutboundGridActorControlInstantiator;
-import io.vlingo.xoom.lattice.grid.application.QuorumObserver;
 import io.vlingo.xoom.lattice.grid.application.message.GridDeliver;
 import io.vlingo.xoom.lattice.grid.application.message.UnAckMessage;
 import io.vlingo.xoom.lattice.grid.application.message.serialization.FSTDecoder;
@@ -40,6 +27,14 @@ import io.vlingo.xoom.wire.fdx.outbound.ApplicationOutboundStream;
 import io.vlingo.xoom.wire.message.RawMessage;
 import io.vlingo.xoom.wire.node.Id;
 import io.vlingo.xoom.wire.node.Node;
+import org.nustaq.serialization.FSTConfiguration;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class GridNode extends ClusterApplicationAdapter {
   // Sent messages waiting for continuation (answer) onto current node
@@ -129,66 +124,38 @@ public class GridNode extends ClusterApplicationAdapter {
   @Override
   public void informAllLiveNodes(final Collection<Node> liveNodes, final boolean isHealthyCluster) {
     logger().debug("GRID: Live nodes confirmed: " + liveNodes + " and is healthy: " + isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
     gridRuntime.informAllLiveNodes(liveNodes);
-  }
-
-  @Override
-  public void informLeaderElected(final Id leaderId, final boolean isHealthyCluster, final boolean isLocalNodeLeading) {
-    logger().debug("GRID: Leader elected: " + leaderId + " and is healthy: " + isHealthyCluster);
-
-    if (isLocalNodeLeading) {
-      logger().debug("GRID: Local node is leading.");
-    }
-  }
-
-  @Override
-  public void informLeaderLost(final Id lostLeaderId, final boolean isHealthyCluster) {
-    logger().debug("GRID: Leader lost: " + lostLeaderId + " and is healthy: " + isHealthyCluster);
-  }
-
-  @Override
-  public void informLocalNodeShutDown(final Id nodeId) {
-    logger().debug("GRID: Local node shut down: " + nodeId);
-    // TODO relocate local actors to another node?
-  }
-
-  @Override
-  public void informLocalNodeStarted(final Id nodeId) {
-    logger().debug("GRID: Local node started: " + nodeId);
-  }
-
-  @Override
-  public void informNodeIsHealthy(final Id nodeId, final boolean isHealthyCluster) {
-    logger().debug("GRID: Node reported healthy: " + nodeId + " and is healthy: " + isHealthyCluster);
-    outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
-    applicationMessageHandler.informNodeIsHealthy(nodeId, isHealthyCluster);
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
   }
 
   @Override
   public void informNodeJoinedCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node joined: " + nodeId + " and is healthy: " + isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
     gridRuntime.nodeJoined(nodeId);
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
   }
 
   @Override
   public void informNodeLeftCluster(final Id nodeId, final boolean isHealthyCluster) {
     logger().debug("GRID: Node left: " + nodeId + " and is healthy: " + isHealthyCluster);
-    outbound.informNodeIsHealthy(nodeId, isHealthyCluster);
-    applicationMessageHandler.informNodeIsHealthy(nodeId, isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
     gridRuntime.hashRing().excludeNode(nodeId);
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
     retryUnAckMessagesOn(nodeId);
   }
 
   @Override
-  public void informQuorumAchieved() {
-    logger().debug("GRID: Quorum achieved");
-    quorumObservers.forEach(QuorumObserver::quorumAchieved);
-  }
-
-  @Override
-  public void informQuorumLost() {
-    logger().debug("GRID: Quorum lost");
-    quorumObservers.forEach(QuorumObserver::quorumLost);
+  public void informClusterIsHealthy(boolean isHealthyCluster) {
+    logger().debug("GRID: Cluster is healthy: " + isHealthyCluster);
+    outbound.informClusterIsHealthy(isHealthyCluster);
+    if (isHealthyCluster) {
+      quorumObservers.forEach(QuorumObserver::quorumAchieved);
+    } else {
+      quorumObservers.forEach(QuorumObserver::quorumLost);
+    }
+    applicationMessageHandler.informClusterIsHealthy(isHealthyCluster);
   }
 
   @Override
