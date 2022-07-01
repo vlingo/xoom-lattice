@@ -28,7 +28,7 @@ public class GridClusterPropertiesTest {
 
     assertEquals(GridNode.class.getName(), properties.getString("cluster.app.class", ""));
 
-    final String[] seedNodes = properties.getString("cluster.seedNodes", "").split(",");
+    final String[] seedNodes = properties.getString("cluster.nodes", "").split(",");
 
     assertEquals(3, seedNodes.length);
     assertEquals("node1", seedNodes[0]);
@@ -44,6 +44,7 @@ public class GridClusterPropertiesTest {
 
     assertEquals("2", properties.getString("node.node2.id", ""));
     assertEquals("node2", properties.getString("node.node2.name", ""));
+    assertEquals("true", properties.getString("node.node2.seed", ""));
     assertEquals("localhost", properties.getString("node.node2.host", ""));
     assertEquals("37373", properties.getString("node.node2.op.port", ""));
     assertEquals("37374", properties.getString("node.node2.app.port", ""));
@@ -67,7 +68,7 @@ public class GridClusterPropertiesTest {
 
     assertEquals(GridNode.class.getName(), properties.getString("cluster.app.class", ""));
 
-    final String[] seedNodes = properties.getString("cluster.seedNodes", "").split(",");
+    final String[] seedNodes = properties.getString("cluster.nodes", "").split(",");
 
     assertEquals(1, seedNodes.length);
     assertEquals("node1", seedNodes[0]);
