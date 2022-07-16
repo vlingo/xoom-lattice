@@ -78,13 +78,13 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.1</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.0</version>
+      <version>1.2.11</version>
     </dependency>
     <dependency>
       <groupId>io.vlingo.xoom</groupId>
@@ -115,6 +115,12 @@
       <groupId>de.ruedigermoeller</groupId>
       <artifactId>fst</artifactId>
       <version>2.57</version>
+      <exclusions>
+        <exclusion> <!-- Use the jackson-core version from 'scalecube-codec-jackson-smile' (xoom-cluster) -->
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.graalvm.sdk</groupId>
