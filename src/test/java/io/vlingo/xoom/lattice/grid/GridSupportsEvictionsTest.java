@@ -7,13 +7,12 @@
 
 package io.vlingo.xoom.lattice.grid;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
+import io.vlingo.xoom.actors.World;
+import io.vlingo.xoom.cluster.StaticClusterConfiguration;
 import org.junit.Test;
 
-import io.vlingo.xoom.actors.World;
-import io.vlingo.xoom.cluster.ClusterProperties;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class GridSupportsEvictionsTest {
 
@@ -21,9 +20,9 @@ public class GridSupportsEvictionsTest {
   public void testSupportsEvictions() throws Exception {
     final World world = World.startWithDefaults("test-world");
 
-    final io.vlingo.xoom.cluster.model.Properties properties = ClusterProperties.oneNode();
+    StaticClusterConfiguration staticConfiguration = StaticClusterConfiguration.oneNode();
 
-    final Grid grid = Grid.start(world, properties, "node1");
+    final Grid grid = Grid.start(world, staticConfiguration.properties, staticConfiguration.propertiesOf(0));
     
     assertFalse(world.stage().supportsEvictions());
     assertTrue(grid.supportsEvictions());

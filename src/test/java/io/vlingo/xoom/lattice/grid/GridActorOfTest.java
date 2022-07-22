@@ -10,6 +10,7 @@ package io.vlingo.xoom.lattice.grid;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.vlingo.xoom.cluster.StaticClusterConfiguration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,7 +24,6 @@ import io.vlingo.xoom.actors.World;
 import io.vlingo.xoom.actors.plugin.logging.slf4j.Slf4jLoggerPlugin;
 import io.vlingo.xoom.actors.testkit.AccessSafely;
 import io.vlingo.xoom.actors.testkit.TestWorld;
-import io.vlingo.xoom.cluster.ClusterProperties;
 
 public class GridActorOfTest {
   private Grid grid;
@@ -100,10 +100,10 @@ public class GridActorOfTest {
       testWorld = TestWorld.start("test", configuration);
       world = testWorld.world();
 
-      final io.vlingo.xoom.cluster.model.Properties properties = ClusterProperties.oneNode();
+    StaticClusterConfiguration staticConfiguration = StaticClusterConfiguration.oneNode();
 
-      grid = Grid.start(world, properties, "node1");
-      grid.quorumAchieved();
+    grid = Grid.start(world, staticConfiguration.properties, staticConfiguration.propertiesOf(0));
+    grid.quorumAchieved();
   }
 
   @After
@@ -111,7 +111,7 @@ public class GridActorOfTest {
     testWorld.terminate();
   }
 
-  public static interface RingDing {
+  public interface RingDing {
     void ringDing();
   }
 

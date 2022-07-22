@@ -7,31 +7,31 @@
 
 package io.vlingo.xoom.lattice.grid;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import io.vlingo.xoom.cluster.StaticClusterConfiguration;
 
-import io.vlingo.xoom.cluster.ClusterProperties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GridClusterProperties {
   private static final int DefaultStartPort = 37371;
   private static final int DefaultTotalNodes = 3;
 
-  public static io.vlingo.xoom.cluster.model.Properties allNodes() {
+  public static StaticClusterConfiguration allNodes() {
     return allNodes(DefaultStartPort);
   }
 
-  public static io.vlingo.xoom.cluster.model.Properties allNodes(final int startPort) {
+  public static StaticClusterConfiguration allNodes(final int startPort) {
     return allNodes(startPort, DefaultTotalNodes);
   }
 
-  public static io.vlingo.xoom.cluster.model.Properties allNodes(final int startPort, final int totalNodes) {
-    return ClusterProperties.allNodes(new AtomicInteger(startPort - 1), totalNodes, GridNode.class.getName());
+  public static StaticClusterConfiguration allNodes(final int startPort, final int totalNodes) {
+    return StaticClusterConfiguration.allNodes(new AtomicInteger(startPort - 1), totalNodes, GridNode.class.getName());
   }
 
-  public static io.vlingo.xoom.cluster.model.Properties oneNode() {
+  public static StaticClusterConfiguration oneNode() {
     return oneNode(DefaultStartPort);
   }
 
-  public static io.vlingo.xoom.cluster.model.Properties oneNode(final int startPort) {
-    return ClusterProperties.oneNode(new AtomicInteger(startPort - 1), GridNode.class.getName());
+  public static StaticClusterConfiguration oneNode(final int startPort) {
+    return StaticClusterConfiguration.oneNode(new AtomicInteger(startPort - 1), GridNode.class.getName());
   }
 }

@@ -9,13 +9,13 @@ package io.vlingo.xoom.lattice.grid.spaces;
 
 import java.time.Duration;
 
+import io.vlingo.xoom.cluster.StaticClusterConfiguration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import io.vlingo.xoom.actors.Configuration;
-import io.vlingo.xoom.cluster.ClusterProperties;
 import io.vlingo.xoom.lattice.grid.Grid;
 
 public class AccessorTest {
@@ -52,7 +52,11 @@ public class AccessorTest {
 
   @Before
   public void setUp() throws Exception {
-    grid = Grid.start("test-world", Configuration.define(), ClusterProperties.oneNode(), "node1");
+    StaticClusterConfiguration clusterConfiguration = StaticClusterConfiguration.oneNode();
+    grid = Grid.start("test-world",
+            Configuration.define(),
+            clusterConfiguration.properties,
+            clusterConfiguration.propertiesOf(0));
     grid.quorumAchieved();
   }
 

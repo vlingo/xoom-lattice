@@ -7,18 +7,17 @@
 
 package io.vlingo.xoom.lattice.grid.spaces;
 
-import java.time.Duration;
-import java.util.Optional;
-
+import io.vlingo.xoom.actors.Configuration;
+import io.vlingo.xoom.cluster.StaticClusterConfiguration;
+import io.vlingo.xoom.common.Completes;
+import io.vlingo.xoom.lattice.grid.Grid;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.vlingo.xoom.actors.Configuration;
-import io.vlingo.xoom.cluster.ClusterProperties;
-import io.vlingo.xoom.common.Completes;
-import io.vlingo.xoom.lattice.grid.Grid;
+import java.time.Duration;
+import java.util.Optional;
 
 public class SpaceTest {
   private static final String DefaultItem = "ThisIsAnItem";
@@ -82,7 +81,11 @@ public class SpaceTest {
 
   @Before
   public void setUp() throws Exception {
-    grid = Grid.start("test-world", Configuration.define(), ClusterProperties.oneNode(), "node1");
+    final StaticClusterConfiguration staticConfiguration = StaticClusterConfiguration.oneNode();
+    grid = Grid.start("test-world",
+            Configuration.define(),
+            staticConfiguration.properties,
+            staticConfiguration.propertiesOf(0));
     grid.quorumAchieved();
   }
 
