@@ -17,6 +17,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import io.vlingo.xoom.cluster.model.node.Registry;
 import io.vlingo.xoom.lattice.grid.Grid;
 import io.vlingo.xoom.lattice.grid.application.message.*;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
   private static final Logger logger = LoggerFactory.getLogger(OutboundGridActorControl.class);
 
   private final Id localNodeId;
+  private final Registry registry;
   private ApplicationOutboundStream stream;
   private final Encoder encoder;
   private final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer;
@@ -50,16 +52,18 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
 
   public OutboundGridActorControl(
           final Id localNodeId,
+          final Registry registry,
           final Encoder encoder,
           final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer,
           final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer,
           final OutBuffers outBuffers) {
 
-    this(localNodeId, null, encoder, gridMessagesCorrelationConsumer, actorMessagesCorrelationConsumer, outBuffers);
+    this(localNodeId, registry, null, encoder, gridMessagesCorrelationConsumer, actorMessagesCorrelationConsumer, outBuffers);
   }
 
   public OutboundGridActorControl(
           final Id localNodeId,
+          final Registry registry,
           final ApplicationOutboundStream stream,
           final Encoder encoder,
           final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer,
@@ -67,6 +71,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
           final OutBuffers outBuffers) {
 
     this.localNodeId = localNodeId;
+    this.registry = registry;
     this.stream = stream;
     this.encoder = encoder;
     this.gridMessagesCorrelationConsumer = gridMessagesCorrelationConsumer;
@@ -87,7 +92,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
       RawMessage raw = RawMessage.from(
               localNodeId.value(), -1, payload.length);
       raw.putRemaining(ByteBuffer.wrap(payload));
-      stream.sendTo(raw, recipient);
+      stream.sendTo(raw, registry.getNode(recipient));
     };
 
     if (isHealthyCluster.get()) {
@@ -204,6 +209,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
     private static final long serialVersionUID = 8987209018742138417L;
 
     private final Id id;
+    private final Registry registry;
     private final FSTEncoder fstEncoder;
     private final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer;
     private final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer;
@@ -211,11 +217,13 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
 
     public OutboundGridActorControlInstantiator(
             final Id id,
+            final Registry registry,
             final FSTEncoder fstEncoder,
             final BiConsumer<UUID, UnAckMessage> gridMessagesCorrelationConsumer,
             final BiConsumer<UUID, Returns<?>> actorMessagesCorrelationConsumer,
             final OutBuffers outBuffers) {
       this.id = id;
+      this.registry = registry;
       this.fstEncoder = fstEncoder;
       this.gridMessagesCorrelationConsumer = gridMessagesCorrelationConsumer;
       this.actorMessagesCorrelationConsumer = actorMessagesCorrelationConsumer;
@@ -224,7 +232,7 @@ public class OutboundGridActorControl extends Actor implements GridActorControl.
 
     @Override
     public OutboundGridActorControl instantiate() {
-      return new OutboundGridActorControl(id, fstEncoder, gridMessagesCorrelationConsumer, actorMessagesCorrelationConsumer, outBuffers);
+      return new OutboundGridActorControl(id, registry, fstEncoder, gridMessagesCorrelationConsumer, actorMessagesCorrelationConsumer, outBuffers);
     }
   }
 }

@@ -12,6 +12,7 @@ import io.vlingo.xoom.actors.Returns;
 import io.vlingo.xoom.cluster.model.application.ClusterApplicationAdapter;
 import io.vlingo.xoom.cluster.model.attribute.Attribute;
 import io.vlingo.xoom.cluster.model.attribute.AttributesProtocol;
+import io.vlingo.xoom.cluster.model.node.Registry;
 import io.vlingo.xoom.common.SerializableConsumer;
 import io.vlingo.xoom.lattice.grid.InboundGridActorControl.InboundGridActorControlInstantiator;
 import io.vlingo.xoom.lattice.grid.application.*;
@@ -44,6 +45,7 @@ public class GridNode extends ClusterApplicationAdapter {
   private AttributesProtocol client;
   private final GridRuntime gridRuntime;
   private final Node localNode;
+  private final Registry registry;
 
   private final GridActorControl.Outbound outbound;
 
@@ -53,9 +55,10 @@ public class GridNode extends ClusterApplicationAdapter {
 
   private final Collection<QuorumObserver> quorumObservers;
 
-  public GridNode(final GridRuntime gridRuntime, final Node localNode) {
+  public GridNode(final GridRuntime gridRuntime, final Node localNode, final Registry registry) {
     this.gridRuntime = gridRuntime;
     this.localNode = localNode;
+    this.registry = registry;
 
     final FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
     // set classloader with available proxy classes
@@ -70,6 +73,7 @@ public class GridNode extends ClusterApplicationAdapter {
                     OutboundGridActorControl.class,
                     new OutboundGridActorControlInstantiator(
                                     localNode.id(),
+                                    registry,
                                     new FSTEncoder(conf),
                                     gridMessagesCorrelations::put,
                                     actorMessagesCorrelations::put,

@@ -10,6 +10,7 @@ package io.vlingo.xoom.lattice.grid;
 import io.vlingo.xoom.actors.Logger;
 import io.vlingo.xoom.cluster.model.Cluster;
 import io.vlingo.xoom.cluster.model.ClusterControl;
+import io.vlingo.xoom.cluster.model.NodeProperties;
 import io.vlingo.xoom.cluster.model.application.ClusterApplication.ClusterApplicationInstantiator;
 import io.vlingo.xoom.common.Tuple2;
 
@@ -18,19 +19,22 @@ public class GridNodeBootstrap {
 
   private final GridShutdownHook shutdownHook;
 
-  public static GridNodeBootstrap boot(final GridRuntime grid, final String nodeName, final boolean embedded) throws Exception {
-    return boot(grid, nodeName, io.vlingo.xoom.cluster.model.Properties.instance(), embedded);
+  public static GridNodeBootstrap boot(final GridRuntime grid, final String localNodeProperties, final boolean embedded) throws Exception {
+    return boot(grid, localNodeProperties, io.vlingo.xoom.cluster.model.Properties.instance(), embedded);
   }
 
-  public static GridNodeBootstrap boot(final GridRuntime grid, final String nodeName, final io.vlingo.xoom.cluster.model.Properties properties, final boolean embedded) throws Exception {
-    properties.validateRequired(nodeName);
+  public static GridNodeBootstrap boot(final GridRuntime grid, final String localNodeProperties, final io.vlingo.xoom.cluster.model.Properties properties, final boolean embedded) throws Exception {
+    properties.validateRequired();
 
     final Tuple2<ClusterControl, Logger> control =
             Cluster.controlFor(
                     grid.world(),
                     new GridNodeInstantiator(grid),
                     properties,
-                    nodeName);
+                    localNodeProperties);
+
+    final String nodeName = NodeProperties.from(localNodeProperties)
+            .getName();
 
     final GridNodeBootstrap instance = new GridNodeBootstrap(control, nodeName);
 
@@ -68,7 +72,7 @@ public class GridNodeBootstrap {
     @Override
     public GridNode instantiate() {
       gridRuntime.setNodeId(node().id());
-      return new GridNode(gridRuntime, node());
+      return new GridNode(gridRuntime, node(), registry());
     }
   }
 }
